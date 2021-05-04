@@ -7,7 +7,7 @@ energy demand models.
 
 ## Documentation
 
-READTHEDOCS link
+Available at https://demod.readthedocs.io/en/latest/
 
 ## Installation
 
