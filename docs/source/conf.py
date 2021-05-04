@@ -24,8 +24,8 @@ sys.path.insert(0, os.path.abspath('../../demod/simulators'))
 
 project = 'demod'
 year = datetime.datetime.now().year
-copyright = '2020-{}, Constantin Lionel, Barsanti Matteo'.format(year)
-author = 'Constantin Lionel, Barsanti Matteo'
+copyright = '2020-{}, HERUS-EPFL'.format(year)
+author = 'Barsanti Matteo, Constantin Lionel, HERUS-EPFL'
 
 # The full version, including alpha/beta/rc tags
 release = '0.0.1'
