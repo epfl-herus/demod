@@ -43,6 +43,9 @@ extensions = [
     'sphinx.ext.imgmath',   # support for writing maths. use:  :math:`a^2`, requires latex install on computer
 ]
 
+# By default, Sphinx expects the master doc to be contents. Read the Docs will set master doc to index instead
+master_doc = 'index'
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
