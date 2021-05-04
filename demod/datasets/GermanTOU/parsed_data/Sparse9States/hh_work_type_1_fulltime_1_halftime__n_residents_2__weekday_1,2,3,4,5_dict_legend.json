@@ -1,0 +1,16 @@
+{
+    "number of households diaries": 192,
+    "number of persons diaries": 384,
+    "subgroup_kwargs": {
+        "n_residents": 2,
+        "hh_work_type": "1_fulltime_1_halftime",
+        "weekday": [
+            1,
+            2,
+            3,
+            4,
+            5
+        ]
+    },
+    "cration date": "2021-04-19 11:58:04.669678"
+}

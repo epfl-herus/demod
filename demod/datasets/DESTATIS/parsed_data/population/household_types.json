@@ -1,0 +1,47 @@
+{
+  "subgroups_list": [
+    {
+      "n_residents": 1,
+      "household_type": 1
+    },
+    {
+      "n_residents": 2,
+      "household_type": 2
+    },
+    {
+      "n_residents": 2,
+      "household_type": 3
+    },
+    {
+      "n_residents": 3,
+      "household_type": 3
+    },
+    {
+      "n_residents": 4,
+      "household_type": 3
+    },
+    {
+      "n_residents": 3,
+      "household_type": 4
+    },
+    {
+      "n_residents": 4,
+      "household_type": 4
+    },
+    {
+      "n_residents": 5,
+      "household_type": 4
+    }
+  ],
+  "subgroups_probs": [
+    0.47192036499377854,
+    0.3276648693488179,
+    0.027844601133692793,
+    0.011281625881377022,
+    0.0030139637771325867,
+    0.0705931148900871,
+    0.06553297386976359,
+    0.02214848610535048
+  ],
+  "total_number": 41506000
+}

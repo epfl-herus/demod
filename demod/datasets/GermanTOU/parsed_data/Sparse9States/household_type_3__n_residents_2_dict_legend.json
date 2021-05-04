@@ -1,0 +1,9 @@
+{
+    "number of households diaries": 444,
+    "number of persons diaries": 888,
+    "subgroup_kwargs": {
+        "n_residents": 2,
+        "household_type": 3
+    },
+    "cration date": "2021-04-28 14:14:12.103723"
+}
