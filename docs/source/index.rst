@@ -15,6 +15,7 @@ Features
 
 - Easy-to-use load profile generation
 - API for creating your own simulations
+- Datasets support
 - Flexible framework
 - Free and Open source
 
@@ -32,30 +33,23 @@ Features
    about/index
 
 
-Installation
-------------
-
-Install $project by running: (python>3.8)
-
-   pip install demod
 
 Contribute
 ----------
 
-- Issue Tracker: github.com/$project/$project/issues
-- Source Code: github.com/$project/$project
+- Source Code: https://github.com/epfl-herus/demod
 
 Support
 -------
 
 If you are having issues, please let us know.
-We have a mailing list located at: @epfl.ch
+We have a mailing list located at: demod@groupes.epfl.ch
 
 License
 -------
 
 Demod is published under a
-`GPL 3 Licence <https://www.gnu.org/licenses/gpl-3.0.html>`_ .
+`GPLv3 Licence <https://www.gnu.org/licenses/gpl-3.0.html>`_ .
 
 Indices and tables
 ==================
