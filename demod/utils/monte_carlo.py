@@ -1,3 +1,19 @@
+"""Support for Monte Carlo sampling.
+
+Demod provides some helper function for
+`Monte Carlo (MC) sampling <https://en.wikipedia.org/wiki/Monte_Carlo_method>`_
+with numpy arrays and using discrete domains.
+
+Discrete Probability and Cumlative distribution functions (PDF and CDF)
+can be used for
+sampling.
+See the following example::
+
+    pdf = np.array([0.3, 0.65, 0.05])
+    # 30% chance return 0, 65% chance return 1, 5% chance return 2
+    out = monte_carlo_from_1d_pdf(pdf)
+
+"""
 import numpy as np
 
 PDF = np.ndarray
@@ -8,8 +24,7 @@ MC_choices = np.ndarray
 
 
 def monte_carlo_from_1d_cdf(cdf: CDF, n_samples: int = 1) -> MC_choices:
-    """A Monte Carlo (MC) trial for given cumlative distribution
-    function (CDF)
+    """Sample MC from a given CDF.
 
     Args:
         cdf: A 1-D ndarray with values being the CDF
@@ -21,7 +36,6 @@ def monte_carlo_from_1d_cdf(cdf: CDF, n_samples: int = 1) -> MC_choices:
     Notes:
         The MC algo performs no checks on the CDFs
     """
-
     # sample MC distibution
     rand = np.random.uniform(size=n_samples)
     # gets the approptiate cdfs values
@@ -30,8 +44,7 @@ def monte_carlo_from_1d_cdf(cdf: CDF, n_samples: int = 1) -> MC_choices:
 
 
 def monte_carlo_from_1d_pdf(pdf: PDF, n_samples: int = 1) -> MC_choices:
-    """A Monte Carlo (MC) trial for given probability distribution
-    function (PDF)
+    """Sample for given PDF.
 
     Args:
         pdf: A 1-D ndarray with values being the PDF
@@ -47,8 +60,7 @@ def monte_carlo_from_1d_pdf(pdf: PDF, n_samples: int = 1) -> MC_choices:
 
 
 def monte_carlo_from_cdf(cdf_s: CDFs) -> MC_choices:
-    """A Monte Carlo (MC) trial for given cumlative distribution
-    functions (CDFs)
+    """Sample from a set of given cumlative distribution functions (CDFs).
 
     Args:
         cdf_s: A 2-D ndarray with
@@ -69,8 +81,7 @@ def monte_carlo_from_cdf(cdf_s: CDFs) -> MC_choices:
 
 
 def monte_carlo_from_pdf(pdf_s: PDFs) -> MC_choices:
-    """A Monte Carlo (MC) trial for given probability distribution
-    functions (PDFs)
+    """Sample from a set of given probability distribution functions (PDFs).
 
     Args:
         pdf_s: A 2-D ndarray with
@@ -84,5 +95,3 @@ def monte_carlo_from_pdf(pdf_s: PDFs) -> MC_choices:
         The MC algo performs no checks on the PDFs
     """
     return monte_carlo_from_cdf(np.cumsum(pdf_s, axis=1))
-
-

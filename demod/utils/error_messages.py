@@ -1,11 +1,17 @@
-"""Contain different formatted error messages that can be used in Demod.
+"""Different formatted error messages that can be used in Demod.
 
-You can use these messages like this:
+You can use these messages like this::
 
-raise ValueError(UNKOWN_POPULATION_TYPE.format(
-    population_type='resident_number',
-    dataset=YouDataLoader
-))
+    raise ValueError(UNKOWN_POPULATION_TYPE.format(
+        population_type='resident_number',
+        dataset=YouDataLoader
+    ))
+
+
+* UNKOWN_POPULATION_TYPE(population_type, dataset)
+* ALGO_REQUIRES_LOADING_METHOD(algo, simulator, loading_method, dataset)
+* NOT_IMPLEMENTED_IN_DATASET_FOR_VERSION(not_implemented, dataset, version)
+* UNIMPLEMENTED_ALGO_IN_METHOD(algo, method)
 
 """
 

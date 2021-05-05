@@ -1,5 +1,5 @@
-"""
-A sparse implementation of the Transition probability Matrices.
+"""Modules for handling Sparse TPMs.
+
 Very useful when the TPMs are large and have a lot of 0 values in them.
 """
 
@@ -9,8 +9,10 @@ from typing import Tuple
 import warnings
 import numpy as np
 
+
 class SparseTPM():
-    """
+    """A sparse implementation of the Transition probability Matrices.
+
     Class to store a set of Transition Probability Matrices at
     different times that is very large and sparse.
     Provides methods for iteration over time, indexing,
@@ -28,23 +30,28 @@ class SparseTPM():
             dead states
 
     """
-    times:np.ndarray
-    inds_from:np.ndarray
-    inds_to:np.ndarray
-    values:np.ndarray
-    n_times:int
-    n_states:int
-    shape:Tuple[int,int,int]
-    dead_state_value:int
-    _iter_count:int
 
-    def __init__(self,
-            times:np.ndarray,
-            inds_from:np.ndarray,
-            inds_to:np.ndarray,
-            values:np.ndarray,
-            n_states:int=None, n_times:int=None, dead_state_value:int=None):
-        """Creates a sparse transition probability matrix.
+    times: np.ndarray
+    inds_from: np.ndarray
+    inds_to: np.ndarray
+    values: np.ndarray
+    n_times: int
+    n_states: int
+    shape: Tuple[int, int, int]
+    dead_state_value: int
+    _iter_count: int
+
+    def __init__(
+        self,
+        times: np.ndarray,
+        inds_from: np.ndarray,
+        inds_to: np.ndarray,
+        values: np.ndarray,
+        n_states: int = None,
+        n_times: int = None,
+        dead_state_value: int = None
+    ) -> None:
+        """Create a sparse transition probability matrix.
 
         Args:
             times: The timestep of each transitions, dtype=uint
@@ -64,24 +71,26 @@ class SparseTPM():
         """
         length = len(times)
         if not (
-                length==len(inds_from)
-                & length==len(inds_to)
-                & length==len(values)):
+                length == len(inds_from)
+                & length == len(inds_to)
+                & length == len(values)):
             raise ValueError('Inputs must match in length')
-        self.times      = np.array(times,       dtype=np.uint16)
-        self.inds_from  = np.array(inds_from,   dtype=np.uint16)
-        self.inds_to    = np.array(inds_to,     dtype=np.uint16)
-        self.values     = np.array(values)
+        self.times = np.array(times, dtype=np.uint16)
+        self.inds_from = np.array(inds_from, dtype=np.uint16)
+        self.inds_to = np.array(inds_to, dtype=np.uint16)
+        self.values = np.array(values)
 
-        if length == 0: # an empty matrix
+        if length == 0:  # an empty matrix
             n_states = 0
             n_times = 0
 
-        if n_states is None: # assert n_states to the maximum of the two states
+        if n_states is None:
+            # assign n_states to the maximum of the two states
             n_states = max(np.max(inds_from), np.max(inds_to)) + 1
         self.n_states = int(n_states)
 
-        if n_times is None: # assert n_times to the maximum of the two states
+        if n_times is None:
+            # assign n_times to the maximum transition times
             n_times = max(times) + 1
         self.n_times = int(n_times)
 
@@ -91,7 +100,8 @@ class SparseTPM():
 
         self._iter_count = 0
 
-    def __getitem__(self, key:int):
+    def __getitem__(self, key: int):
+        """Get the Transition matrix at the requested time."""
         if isinstance(key, int):
             key = self._check_int_time_value(key)
             # gets the desired key
@@ -110,10 +120,11 @@ class SparseTPM():
 
         return return_
 
-    def _check_int_time_value(self, time:int):
+    def _check_int_time_value(self, time: int):
         return time % self.n_times
 
-    def __setitem__(self, key:int, newvalue:np.ndarray):
+    def __setitem__(self, key: int, newvalue: np.ndarray):
+        """Set a transition matrix at the requested time."""
         if isinstance(key, int):
             key = self._check_int_time_value(key)
 
@@ -125,22 +136,26 @@ class SparseTPM():
             ind_from, ind_to = np.nonzero(newvalue)
 
             self.inds_from = np.r_[self.inds_from[~mask_remove], ind_from]
-            self.inds_to   = np.r_[self.inds_to[~mask_remove], ind_to]
-            self.times     = np.r_[
-                                    self.times[~mask_remove],
-                                    np.full_like(ind_from, key)]
-            self.values    = np.r_[
-                                    self.values[~mask_remove],
-                                    np.array(newvalue[ind_from, ind_to])]
+            self.inds_to = np.r_[self.inds_to[~mask_remove], ind_to]
+            self.times = np.r_[
+                self.times[~mask_remove],
+                np.full_like(ind_from, key)
+                ]
+            self.values = np.r_[
+                self.values[~mask_remove],
+                np.array(newvalue[ind_from, ind_to])
+                ]
         else:
             raise TypeError('indexing of sparse tpm type was not understood, \
                  must be int or')
 
     def __iter__(self):
+        """Iterate over the transition matrices."""
         self._iter_count = 0
         return self
 
     def __next__(self):
+        """Get the next transition matrix."""
         if self._iter_count < self.n_times:
             return_ = self[self._iter_count]
             self._iter_count += 1
@@ -148,9 +163,8 @@ class SparseTPM():
         else:
             raise StopIteration
 
-    def sparse_monte_carlo(self, time:int, states:np.ndarray) -> np.ndarray:
-        """Apply a monte carlo change of states for the given states
-            as input.
+    def sparse_monte_carlo(self, time: int, states: np.ndarray) -> np.ndarray:
+        """Apply a MC sampling from the current states given as input.
 
         Args:
             time: The current time at which the transition probabilities
@@ -179,7 +193,6 @@ class SparseTPM():
                 ] = self.dead_state_value
                 return self.sparse_monte_carlo(time, states)
 
-
         # compute a flattened cdf containing all the states cdf
         flattened_cdf = np.cumsum(self.values[mask])
         # print('cdf',flattened_cdf)
@@ -187,14 +200,14 @@ class SparseTPM():
         # monte carlo part
         # sample the random values, and add their location in the flattened cdf
         rand = np.random.uniform(size=states.shape) + inv
-        #print('r', rand)
+        # print('r', rand)
         # look for the position in the array
         new_states = self.inds_to[mask][np.searchsorted(flattened_cdf, rand)]
         # print('new states', new_states)
         return np.array(new_states)
 
-    def save(self, path:str) -> None:
-        """ Saves the TPM at the specified path.
+    def save(self, path: str) -> None:
+        """Save the TPM at the specified path.
 
         Can be then loaded via the load() method.
 
@@ -207,8 +220,8 @@ class SparseTPM():
         np.save(path+'_tpm_values', self.values)
 
     @ staticmethod
-    def load(path:str) -> SparseTPM:
-        """Loads a TPM from the specified path.
+    def load(path: str) -> SparseTPM:
+        """Load a TPM from the specified path.
 
         The TPM can be saved via the save method.
 

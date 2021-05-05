@@ -7,10 +7,9 @@ from typing import Any, Dict, List, NewType, Union
 
 import numpy as np
 
-from ..simulators.base_simulators import StepMethod, GetMethod, InitilizationTime
-
-
-
+from ..simulators.base_simulators import (
+    StepMethod, GetMethod, InitilizationTime
+)
 
 StepMethod = StepMethod
 GetMethod = GetMethod

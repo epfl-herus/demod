@@ -1,10 +1,12 @@
-"""We should use a library for that instead:
-    https://pypi.org/project/iso3166/#description
+"""Helpers for managing countries.
+
+We should use a library for that instead:
+https://pypi.org/project/iso3166/#description
 """
 
 
 def country_name_to_code(country_name: str) -> str:
-    """Returns the code corresponding the country.
+    """Return the code corresponding the country.
 
     Args:
         country_name: the name

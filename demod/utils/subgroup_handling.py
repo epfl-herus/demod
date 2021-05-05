@@ -1,4 +1,4 @@
-"""Various..helpers for subgroups."""
+"""Various helpers for subgroups."""
 
 from demod.utils.sim_types import Subgroup
 from os.path import join
@@ -66,6 +66,17 @@ def remove_time_attributues(subgroup: Subgroup) -> Subgroup:
 
 
 def check_weekend_day_format(subgroup: Subgroup):
+    """Check the subgroup is weekday or weekend.
+
+    subgroup['weekday'] must be [1, 2, 3, 4, 5] or [6, 7]
+    which means either weekdays or weekends.
+
+    Args:
+        subgroup: the subgroup to be checked
+
+    Raises:
+        ValueError: If the subgroup is not weekend or weekday
+    """
     if subgroup["weekday"] not in [[1, 2, 3, 4, 5], [6, 7]]:
         raise ValueError(
             " 'subgroup' is not weekdays or weekend format"
@@ -75,10 +86,10 @@ def check_weekend_day_format(subgroup: Subgroup):
 
 
 def is_weekend(subgroup: Subgroup) -> bool:
-    """Checks that the subgroup correspond to the weekend definition.
+    """Check that the subgroup correspond to the weekend definition.
 
     Args:
-        subgroup: [description]
+        subgroup: the subgroup to be checked
 
     Returns:
         whether subgroup is weekend
@@ -87,10 +98,10 @@ def is_weekend(subgroup: Subgroup) -> bool:
 
 
 def is_weekday(subgroup: Subgroup) -> bool:
-    """Checks that the subgroup correspond to the weekday definition.
+    """Check that the subgroup correspond to the weekday definition.
 
     Args:
-        subgroup: [description]
+        subgroup: the subgroup to be checked
 
     Returns:
         whether subgroup is weekday
