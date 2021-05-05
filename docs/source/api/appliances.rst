@@ -1,5 +1,6 @@
 
 .. _appliances-support:
+
 ===================
 Appliances Support
 ===================
@@ -38,8 +39,10 @@ Appliances Excell Sheet
 
 A spreadsheet modified from CREST is available for helping you designing
 appliances setting for you simulation.
-Instructions for creating can be directly found in the excell file.
-TODO: add the link to access the folder or the excell file.
+Instructions for creating can be directly found in the
+`downloadable excell file
+<https://github.com/epfl-herus/demod/blob/main/demod/datasets/ExcellInputFile/inputs.xlsx?raw=true>`_.
+
 
 Helper functions
 ----------------
