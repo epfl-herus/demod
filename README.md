@@ -33,3 +33,6 @@ Source code: [GitHub Repository](https://github.com/epfl-herus/demod)
 This repository is managed by
 [HERUS lab](https://www.epfl.ch/labs/herus/) from
 [EPFL : École Polytechnique Fédérale de Lausanne](https://www.epfl.ch/en/).
+
+Please report bugs and ideas for improvement to
+[our team](demod@groupes.epfl.ch) .
