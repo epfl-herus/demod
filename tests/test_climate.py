@@ -248,7 +248,22 @@ class RealInterpolatedClimateTests(TimeAwareSimulatorChildrenTests, unittest.Tes
             ValueError,
             sim.step,
         )
+    def test_getters_with_tzinfo(self):
+        """Test instantiation with a non-naive datetime object.
 
+        A non-naive datetime object holds a tzinfo,
+        which gives information on the time-zone and daylight saving
+        times.
+        """
+        # check using random time
+        new_time = self.default_start_datetime
+        new_time = new_time.replace(tzinfo=datetime.timezone.utc)
+        sim = self.sim(*self.args, start_datetime=new_time, **self.kwargs)
+        self.assertEqual(sim.current_time, new_time)
+        old_T = sim.get_outside_temperature()
+        sim.step()
+        self.assertEqual(sim.current_time, new_time+self.default_step_size)
+        self.assertNotEqual(sim.get_outside_temperature(), old_T)
 
 if __name__ == '__main__':
     unittest.main()
