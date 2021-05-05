@@ -1,11 +1,13 @@
 """Some units converters.
+
+Demod uses SI units by default. (Watts for power and Joules for energy.)
 """
 
 from typing import Any
 
 
 def joules_to_kwh(x: Any) -> Any:
-    """Transforms joules to kwh.
+    """Transform joules to kwh.
 
     1 kwh = 3'600'000 Joules
 
@@ -14,8 +16,9 @@ def joules_to_kwh(x: Any) -> Any:
     """
     return x / 3.6e6
 
+
 def kwh_to_joules(x: Any) -> Any:
-    """Transforms kwh to joules.
+    """Transform kwh to joules.
 
     1 kwh = 3'600'000 Joules
 
