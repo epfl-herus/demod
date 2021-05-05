@@ -562,42 +562,60 @@ class Params:
             appliance is a secondary appliance of that value.
             Nested levels indicate subtypes.
             Nested name should always finish with '_basename'.
+            Types are very important for datset compatibilities.
             Possible values:
 
             * 'freezer'
+
                 * 'chest_freezer'
                 * 'fridge_freezer'
                 * 'upright_freezer
+
             * 'fridge'
+
             * 'phone'
+
                 * 'fixed_phone'
                 * 'mobile_phone'
                 * 'smart_phone'
                 * 'answermachine_phone'
+
             * 'tablet'
             * 'speaker'
+
                 * 'cd_speaker'
                 * 'radio_speaker'
                 * 'hifi_speaker'
             * 'tv'
             * 'box'
+
                 * 'tv_box'
                 * 'internet_box'
                 * 'dual_box'
+                Internet + TV
+
             * 'console'
+
                 * 'gaming_console'
                 * 'blueray_console'
                 * 'dvd_console'
+
             * 'computer'
+
                 * 'laptop_computer'
                 * 'fixed_computer'
                 * 'gaming_computer'
+
             * 'printer'
+
                 * 'fax_printer'
+
             * 'clock'
             * 'hob'
+
                 * 'electric_hob'
                 * 'gaz_hob'
+
             * 'oven'
             * 'microwave'
             * 'kettle'
@@ -606,19 +624,31 @@ class Params:
             * 'dishwasher'
             * 'washingmachine'
             * 'dryer'
+
                 * 'tumble_dryer'
                 * 'washer_dryer'
+                Washing Machine that do both washing and drying.
+
             * 'iron'
             * 'heater'
+
                 * 'water_heater'
+
                     * 'des_water_heater'
-                        Domestic electric storage water heater
+                    Domestic electric storage
+                    water heater
+
                     * 'einst_water_heater'
-                        Instant electric hot water
+                    Instant electric hot water
+
             * 'cleaner'
+
                 * 'vacuum_cleaner'
+
             * 'shower'
+
                 * 'electric_shower'
+
             * 'basin'
             * 'sink'
             * 'bath'
