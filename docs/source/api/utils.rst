@@ -31,6 +31,11 @@ See the following example::
 .. autofunction:: monte_carlo_from_pdf
 
 
+Distibution functions
+~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: demod.utils.distribution_functions
+    :members:
 
 
 Get Methods
