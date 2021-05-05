@@ -20,7 +20,7 @@ When a next release is to come, you need to do the following:
     - " twine upload dist/* "
 
 """
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
@@ -36,7 +36,7 @@ setup(
     url="https://github.com/epfl-herus/demod",
     author="Matteo Barsanti, Lionel Constantin, HERUS, Ecole Polytechnique Fédérale de Lausanne",
     author_email="demod@groupes.epfl.ch",
-    packages=["demod"],
+    packages=find_packages(),
     keywords=[
         'energy', 'demand', 'simulation', 'modelling', 'load', 'electricity',
         'power', 'appliance', 'heating', 'household', 'DSM', 'dataset'
