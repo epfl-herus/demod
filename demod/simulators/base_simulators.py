@@ -1018,7 +1018,7 @@ class TimeAwareExampleSimulator(TimeAwareSimulator):
     """
     def __init__(
             self, n_hh, max_residents, *args,
-            initialization_algo='random', **kwargs
+            initialization_algo='all_inside_at_4am', **kwargs
         ):
         """Initialization of the function parameters and set-up.
 
