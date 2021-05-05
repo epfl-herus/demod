@@ -5,6 +5,7 @@ import unittest
 
 import numpy as np
 
+
 class TestStatesToTransitions(unittest.TestCase):
     def test_simple(self):
         """Test a simple case with one transition."""
