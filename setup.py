@@ -8,7 +8,7 @@ When a next release is to come, you need to do the following:
     - in github:
         click on the tab “releases” and then on “Create a new release”
         define a Tag verion
-        Add a release title and a description (not that important),
+        Add a release title (v0.x) and a description (not that important),
         then click on “publish release”
         Now you see a new release and under Assets a link to Source Code (tar.gz)
         Right-click on this link and chose Copy Link Address.
@@ -28,7 +28,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name="demod",
     version="0.1",
-    download_url = 'https://github.com/user/reponame/archive/v_01.tar.gz',
+    download_url = 'https://github.com/epfl-herus/demod/archive/refs/tags/v0.1.tar.gz',
     description="Domestic Energy Demand Modelling Library",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -49,12 +49,14 @@ setup(
         "openpyxl>=2.6",
     ],
     classifiers=[
-        'Development Status :: 4 - Beta',      #  "4 - Beta" or "5 - Production/Stable" as the current state of your package
+        #  "4 - Beta" or "5 - Production/Stable"
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering',
         'Topic :: Software Development :: Libraries :: Python Modules',
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',   # Again, pick a license
-        'Programming Language :: Python :: 3',      #Specify which pyhton versions that you want to support
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        # Specify which pyhton versions are supported
+        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
