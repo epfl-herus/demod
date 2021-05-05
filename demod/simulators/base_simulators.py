@@ -697,7 +697,9 @@ class TimeAwareSimulator(Simulator):
 
     def __init__(
             self, n_households: int,
-            start_datetime: datetime.datetime = datetime.datetime(2014, 1, 1, 4),
+            start_datetime: datetime.datetime = (
+                datetime.datetime(2014, 1, 1, 4)
+            ),
             step_size: datetime.timedelta = datetime.timedelta(minutes=1),
             logger: SimLogger = None, **kwargs) -> None:
         """Create a Time Aware Simulator.
@@ -724,7 +726,7 @@ class TimeAwareSimulator(Simulator):
 
     def initialize_starting_state(
                 self, *args,
-                initialization_time:InitilizationTime=None,
+                initialization_time: InitilizationTime = None,
                 **kwargs,
             ) -> None:
         """Initialize the starting state of a time aware simulator.
@@ -881,7 +883,7 @@ class Callbacks():
         Args:
             step_method: the step method to decorate.
         """
-        def decorated_step(self:TimeAwareSimulator, *args, **kwargs)-> None:
+        def decorated_step(self: TimeAwareSimulator, *args, **kwargs) -> None:
             previous_day = self.current_time.day
             out = step_method(self, *args, **kwargs)
             if self.current_time.day != previous_day:
@@ -891,23 +893,23 @@ class Callbacks():
         return decorated_step
 
     @ staticmethod
-    def before_next_day_4am(step_method:StepMethod) -> StepMethod:
+    def before_next_day_4am(step_method: StepMethod) -> StepMethod:
         """Set a call back before the next day at 4 am, calling
         'self.on_before_next_day_4am()'
 
         Args:
             step_method: the step method to decorate.
         """
-        def decorated_step(self:TimeAwareSimulator, *args, **kwargs)-> None:
+        def decorated_step(self: TimeAwareSimulator, *args, **kwargs) -> None:
             next_hour = (self.current_time + self.step_size).hour
-            if  next_hour == 4 and self.current_time.hour != 4:
+            if next_hour == 4 and self.current_time.hour != 4:
                 self.on_before_next_day_4am()
             return step_method(self, *args, **kwargs)
         decorated_step.__doc__ = step_method.__doc__
         return decorated_step
 
     @ staticmethod
-    def after_next_day_4am(step_method:StepMethod) -> StepMethod:
+    def after_next_day_4am(step_method: StepMethod) -> StepMethod:
         """Set a call back after the next day at 4 am, calling
         'self.on_after_next_day_4am()'
 
