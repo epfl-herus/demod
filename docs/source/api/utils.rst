@@ -9,19 +9,7 @@ Utility Classes and Functions
 Monte Carlo
 ~~~~~~~~~~~
 
-demod provides some helper function for `Monte Carlo (MC) sampling`_
-with numpy arrays and using discrete domains.
 
-.. _Monte Carlo (MC) sampling: https://en.wikipedia.org/wiki/Monte_Carlo_method
-
-Discrete Probability and Cumlative distribution functions (PDF and CDF)
-can be used for
-sampling.
-See the following example::
-
-    pdf = np.array([0.3, 0.65, 0.05])
-    # 30% chance return 0, 65% chance return 1, 5% chance return 2
-    out = monte_carlo_from_1d_pdf(pdf)
 
 .. module:: demod.utils.monte_carlo
 
@@ -83,6 +71,14 @@ Error messages
 
 .. automodule:: demod.utils.error_messages
     :members:
+
+.. _tou_parse_helpers:
+TOU parsing helpers
+~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: demod.utils.parse_helpers
+    :members:
+
 
 
 Other functions
