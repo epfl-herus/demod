@@ -625,6 +625,9 @@ class RealClimate(ClimateSimulator):
         intialization_time = climate_data['datetime'][0].astype(
             datetime.datetime
         )
+        intialization_time = intialization_time.replace(
+            tzinfo=start_datetime.tzinfo
+        )
         # Checks that the data does not start after the start datetime
         if intialization_time > start_datetime:
             raise ValueError(
@@ -696,7 +699,9 @@ class RealInterpolatedClimate(ClimateSimulator):
     def __init__(
         self,
         data: DataInput = 'Germany',
-        start_datetime=datetime.datetime(1980, 1, 1, 0, 0, 0),
+        start_datetime: datetime.datetime = (
+            datetime.datetime(1980, 1, 1, 0, 0, 0)
+        ),
         interpolation_kind: Union[str, int] = 'linear',
         **kwargs
     ) -> None:
@@ -716,12 +721,17 @@ class RealInterpolatedClimate(ClimateSimulator):
 
         super().__init__(start_datetime=start_datetime, **kwargs)
 
-        self.datetime_values = np.array(
+        self.datetime_values_utc = np.array(
             climate_dict.pop('datetime'), dtype='datetime64[m]')
-        self.initial_time = self.datetime_values[0]
-        self.last_time = self.datetime_values[-1].astype(datetime.datetime)
+        self.initial_time = self.datetime_values_utc[0]
+        # Check where is the end of the data
+        self.last_time = self.datetime_values_utc[-1].astype(datetime.datetime)
+        self.last_time = self.last_time.replace(
+            tzinfo=None if start_datetime.tzinfo is None
+            else datetime.timezone.utc
+        )
         # must use real values for interp1d
-        minutes = (self.datetime_values - self.initial_time).astype(float)
+        minutes = (self.datetime_values_utc - self.initial_time).astype(float)
 
         self.interpolators = {
             key: interp1d(
@@ -738,14 +748,18 @@ class RealInterpolatedClimate(ClimateSimulator):
                 self._make_interpolated_getter(key)
             )
 
-        intialization_time = self.datetime_values[0].astype(
+        intialization_time = self.datetime_values_utc[0].astype(
             datetime.datetime
+        )
+        intialization_time = intialization_time.replace(
+            tzinfo=start_datetime.tzinfo
         )
 
         # Checks that the data does not start after the start datetime
         if intialization_time > start_datetime:
             raise ValueError(
-                "Requested start_datetime is : {}, but dataset {} for"
+                "Requested start_datetime in utc is : {},"
+                " but dataset {} for"
                 " country '{}', starts "
                 "only at {}".format(
                     start_datetime,
@@ -767,15 +781,21 @@ class RealInterpolatedClimate(ClimateSimulator):
                 )
             )
 
-
     def _make_interpolated_getter(self, key: str):
         _key = key
+
         def interpolated_getter():
-            np_current_time = np.array(self.current_time, dtype='datetime64[m]')
+            np_current_time_utc = np.array(
+                datetime.datetime.utcfromtimestamp(
+                    self.current_time.timestamp()
+                ) if self.current_time.tzinfo is not None
+                else self.current_time, dtype='datetime64[m]'
+            )
             # gets the relative position
             minute = (
-                np_current_time
+                np_current_time_utc
                 - self.initial_time
             ).astype(float)
             return self.interpolators[_key](minute)
+
         return interpolated_getter
