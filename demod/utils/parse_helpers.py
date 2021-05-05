@@ -176,23 +176,23 @@ def group_hh_transitions(
         transitions_dict, containing the transitions
 
         * transitions_dict['times']
-        the times at which the transitions
-        occur, index of where the new state is.
+            the times at which the transitions
+            occur, index of where the new state is.
 
         * transitions_dict['households']
-        the household from household_indexes
+            the household from household_indexes
 
         * transitions_dict['new_states']
-        state after transition
+            state after transition
 
         * transitions_dict['old_states']
-        state before transition
+            state before transition
 
         * transitions_dict['counts']
-        The number of persons in the household that do this transition.
+            The number of persons in the household that do this transition.
 
         * transitions_dict['day_nrs']
-        The days_indexes of this transition.
+            The days_indexes of this transition.
 
     """
     if secondary_states is not None:
