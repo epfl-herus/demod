@@ -72,8 +72,8 @@ Error messages
 .. automodule:: demod.utils.error_messages
     :members:
 
-.. _tou_parse_helpers:
-TOU parsing helpers
+.. _parse_helpers:
+Parsing helpers
 ~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: demod.utils.parse_helpers
