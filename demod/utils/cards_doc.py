@@ -5,7 +5,6 @@ in the code.
 """
 
 from __future__ import annotations
-from demod.simulators.heating_simulators import BuildingThermalDynamics, HeatingSystem
 from typing import Any, Dict, List, Tuple, Union
 from datetime import datetime, time, timedelta
 
@@ -13,6 +12,10 @@ from numpy import ndarray
 
 from ..datasets.base_loader import DatasetLoader
 from ..simulators.base_simulators import SimLogger, Simulator
+from ..simulators.heating_simulators import (
+    BuildingThermalDynamics,
+    HeatingSystem,
+)
 
 
 from .sim_types import (
@@ -49,6 +52,7 @@ class Sim:
     def get_occupancy(self) -> ndarray:
         """Return the current :py:attr:`~.Inputs.occupancy`."""
         pass
+
     def get_active_occupancy(self) -> ndarray:
         """Return the current :py:attr:`~.Inputs.active_occupancy`."""
         pass
@@ -232,7 +236,7 @@ class Loader:
     def load_population_subgroups(
         self, population_type: str
     ) -> Tuple[Subgroups, List[float], int]:
-        """Loads the subgroups and their numbers of a population.
+        """Load the subgroups and their numbers of a population.
 
         The population refers to the households population.
         Returns the list of subgroups, the proportion of each
@@ -245,9 +249,6 @@ class Loader:
             subgroups_list, subgroup_prob, total_population
         """
         pass
-
-
-
 
     def load_clearness_tpms(self) -> Tuple[TPM, StateLabels, timedelta]:
         """Return TPM for the clearness of the sky, with the labels.
@@ -262,7 +263,6 @@ class Loader:
         """
         pass
 
-
     def load_temperatures_arma(self) -> Dict[str, float]:
         """Load the parameters for a temperature arma model.
 
@@ -271,9 +271,8 @@ class Loader:
         """
 
 
-
 class Inputs:
-    """Inventory of the possible simulators inputs.
+    r"""Inventory of the possible simulators inputs.
 
     Shows the name of the input and links it to a related getter.
 
@@ -439,8 +438,6 @@ class Inputs:
     external_sh_outputs: ndarray
     external_cylinder_temperature: ndarray
     has_external_cylinder: ndarray
-
-
 
 
 class Params:
@@ -722,7 +719,9 @@ class Params:
 
         interpolation_kind: Specifies the kind of interpolation used by
             the
-            `scipy interpolation function <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html#scipy.interpolate.interp1d>`_.
+            `scipy interpolation function
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html#scipy.interpolate.interp1d>`_
+            .
 
 
     """
@@ -751,7 +750,6 @@ class Params:
     building: BuildingThermalDynamics
     target_temperatures: Tuple[ndarray, Temperatures]
     heatdemand_algo: str
-
 
     initial_active_occupancy: ndarray
     initial_clearness: float

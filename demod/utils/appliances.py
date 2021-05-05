@@ -72,12 +72,12 @@ def get_ownership_from_dict(
         ownership_dict = {'hob': 0.9 , 'hob_2': 0.1]
         output = [0.9, 0.1]
 
-    In the future, other algorithms could by used, as example using
+    In the future, other algorithms could be used, as example using
     correlations of ownership. (you don't have a tv box if you have no
     tv)
 
     Args:
-        appliances_dict
+        appliances_dict: Dictonarry of the appliances.
         ownership_dict: Mapping
             :py:attr:`~demod.utils.cards_doc.Params.appliance_type`
             to a probability.
@@ -141,25 +141,27 @@ def get_ownership_from_dict(
 def assign_ownership_from_prob1_and_number(
     prob_1: float, number: float, algo: str = 'floor'
 ) -> List[float]:
-    """Assign the probability of owning multiple sample of appliances.
+    r"""Assign the probability of owning multiple sample of appliances.
 
     You can choose different assignement algorithms.
 
     'floor':
         :math:`p_0 = prob_1`, :math:`n = number`
         and :math:`\sum_{i}^{} p_i = n`.
-        which produces resuults like::
-            [prob_1, 1., 1., n - 1. - 1. - prob_1]
+        which produces results like::
+
+            [prob_1, 1., 1., n - i - prob_1]
 
 
     Args:
         prob_1: The probability of owning 1 of the appliance
         number: The average number of appliances owned by the hosehold
+        algo: The algorithm name to use
 
     Returns:
-        A variable length list:
-            The element i in the list corresponds to the prob of owning
-            a i-eth copy of the appliance.
+        A variable length list, where the element i in the list
+        corresponds to the prob of owning
+        a i-eth copy of the appliance.
     """
     if number is np.nan:
         number = prob_1
