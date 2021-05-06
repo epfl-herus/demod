@@ -381,6 +381,7 @@ class SimLogger():
         """
         import matplotlib.pyplot as plt
         for attr, aggr in zip(self.attributes_list, self.aggregated):
+            if attr == 'current_time': continue
             serie = self.get(attr)
 
             if not aggr and (len(serie.shape) > 1):
@@ -411,6 +412,8 @@ class SimLogger():
         import matplotlib.pyplot as plt
         if ax is None:
             ax = plt
+        if isinstance(serie, dict):
+            return [ax.plot(s, label=attr+'_'+lab) for lab,s in serie.items()]
         return ax.plot(serie, label=attr)
 
 
