@@ -1,4 +1,5 @@
 from datetime import datetime, time
+from demod.utils.parse_helpers import make_jsonable
 from demod.utils.subgroup_handling import subgroup_string
 import os
 import json
@@ -41,7 +42,9 @@ class LoaderTOU(DatasetLoader):
         if not os.path.exists(self.parsed_path_activity):
             os.mkdir(self.parsed_path_activity)
 
-    def load_tpm(self, subgroup: Subgroup):
+    def load_tpm(
+        self, subgroup: Subgroup
+    ) -> Tuple[TPMs, StateLabels, PDF]:
         """Loads a transition probability matrix for the requested
         subgroup.
 
@@ -51,7 +54,48 @@ class LoaderTOU(DatasetLoader):
         Returns:
             the transition probability matrix, the labels and the initial pdf
         """
+        subgroup_str = subgroup_string(subgroup)
+
+        file_path = os.path.join(self.parsed_path_activity, subgroup_str)
+        file_name = os.path.join(self.activity_type, subgroup_str)
+
+        try:
+            tpm_file = dict(np.load(file_path + '.npz'))
+            tpm, labels, initial_pdf = (
+                tpm_file['tpm'],
+                tpm_file['labels'],
+                tpm_file['initial_pdf']
+            )
+
+        except FileNotFoundError as err:
+            self._warn_could_not_load_parsed(err, file_name)
+            tpm, labels, initial_pdf, legend = self._parse_tpm(
+                subgroup
+            )
+            tpm_dict = {}
+
+            tpm_dict['tpm'] = tpm
+            tpm_dict['labels'] = labels
+            tpm_dict['initial_pdf'] = initial_pdf
+
+            np.savez(file_path, **tpm_dict)
+
+            # Saves a legend of the files created
+            legend_path = (
+                self.parsed_path_activity + os.sep
+                + subgroup_str + '_dict_legend.json'
+            )
+            with open(legend_path, 'w') as fp:
+                json.dump(make_jsonable(legend), fp, indent=4)
+
+        return tpm, labels, initial_pdf
+
+    def _parse_tpm(
+        self, subgroup: Subgroup
+    ) -> Tuple[TPMs, StateLabels, PDF, dict]:
+
         raise NotImplementedError()
+
 
     def load_sparse_tpm(self, subgroup: Subgroup) -> Tuple[
             SparseTPM, StateLabels,
@@ -100,7 +144,7 @@ class LoaderTOU(DatasetLoader):
                 + subgroup_str + '_dict_legend.json'
             )
             with open(legend_path, 'w') as fp:
-                json.dump(legend, fp, indent=4)
+                json.dump(make_jsonable(legend), fp, indent=4)
 
         return sparse_tpm, labels, activity_labels, initial_pdf
 
