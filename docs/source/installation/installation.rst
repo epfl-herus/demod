@@ -1,10 +1,11 @@
 
 .. _installation:
+
 ===============
 Installation
 ===============
 
-Here we explain the installation.
+Demod can be installed as a python library.
 
 
 Requirements
@@ -34,14 +35,15 @@ TODO: check if we can install with conda
     conda install demod
 
 .. _installation_from_source:
+
 Install from source
 -------------------
 
-You can install from our github repository
+You can install demod folder from our github repository
 
 .. code-block::
 
-    git clone TODO:ADDADRESS
+    git clone https://github.com/epfl-herus/demod.git
 
 It is recommended, but not mandatory, to use a
 `virtual environement <https://docs.python.org/3/library/venv.html>`_
