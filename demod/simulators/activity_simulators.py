@@ -164,7 +164,10 @@ class MarkovChain1rstOrder(Simulator):
 
 
 
-    def _set_tpm(self, tpms: np.ndarray, checkcdf: bool = True) -> None:
+    def _set_tpm(
+        self, tpms: np.ndarray, checkcdf: bool = True,
+        new_labels: np.ndarray = None
+    ) -> None:
         """Set TPMs for the Markov Chain.
 
         Generates cumulative distribution functions for the TPMs and
@@ -175,12 +178,43 @@ class MarkovChain1rstOrder(Simulator):
             tpms: Transition probability matrices
             checkcdf: Whether to check that the values of the tpms are
                 okay. Defaults to True.
+            new_labels: if given, will update states and labels according
+                to the new labels.
         """
         #
         cdf = np.cumsum(tpms, axis=-1)
         if checkcdf:
             check_valid_cdf(cdf)
         self._cdf_iterator = itertools.cycle(cdf)  # store cdfs as iterable cycle
+
+        if new_labels is not None:
+            # Updates the states values
+            old_states_labels = self.state_labels[self.current_states]
+            # gets the positions of the different states inthe states labels
+            old_states_labels, inverse = np.unique(
+                old_states_labels, return_inverse=True
+            )
+            # finds where the old labels go in the new labels
+            old_labels_position_in_new = np.asarray(
+                [
+                    np.where(lab == new_labels)[0][0]
+                    if np.where(lab == new_labels)[0].size == 1
+                    else -1
+                    for lab in old_states_labels
+                ],
+                dtype=int,
+            )
+
+            mask_lost_transition = old_labels_position_in_new == -1
+            # Lost transitions are given the 0 new label
+            old_labels_position_in_new[mask_lost_transition] = new_labels[0]
+            print('dead states: ', old_states_labels[mask_lost_transition])
+            # convert states to the new ones
+            self.current_states = old_labels_position_in_new[
+                inverse
+            ].reshape(-1)
+            self.state_labels = new_labels
+
 
 
     def step(self) -> None:
