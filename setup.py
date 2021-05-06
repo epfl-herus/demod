@@ -29,7 +29,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="demod",
-    version="0.1-3",
+    version="0.1-4",
     download_url = 'https://github.com/epfl-herus/demod/archive/refs/tags/v0.1.tar.gz',
     description="Domestic Energy Demand Modelling Library",
     long_description=long_description,
@@ -44,6 +44,8 @@ setup(
     ],
     packages=find_packages(),
     include_package_data=True,
+    # Ignores the raw data folders
+    exclude_package_data={'': ['*'+os.sep+'raw_data'+os.sep+'*']},
     install_requires=[
         "numpy>=1.19",
         "scipy>=1.4",
@@ -62,7 +64,7 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
-  ],
+    ],
 )
 
 
