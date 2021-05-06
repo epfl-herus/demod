@@ -1,3 +1,4 @@
+from demod.datasets.CREST.loader import Crest
 import sys
 from demod.datasets.OpenPowerSystems.loader import OpenPowerSystemClimate
 import unittest
@@ -60,6 +61,13 @@ class CrestClimateSimulatorTests(TimeAwareSimulatorChildrenTests, unittest.TestC
             ValueError,
             super().test_non_default_step_size
         )
+
+    def test_same_step_size_as_data(self):
+        data = Crest()
+        _,_, step_size = data.load_clearness_tpms()
+        sim = self.sim(step_size=step_size)
+        sim.step()
+
     def test_initial_clearness(self):
         self.kwargs['initial_clearness'] = 0.42
         self.run_base_tests()

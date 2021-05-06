@@ -101,11 +101,20 @@ class CrestIrradianceSimulator(ClimateSimulator):
         check_valid_cdf(self.clearness_cdf)
 
         if 'step_size' in kwargs:
-            raise ValueError(
-                "'step_size' cannot be specified in 'CrestIrradianceSimulator'"
-                ". It uses the step size from {}.".format(
-                    data.load_clearness_tpms
-                ))
+
+            if step_size != kwargs['step_size']:
+                raise ValueError(
+                    "'step_size' = {} was specified in {}'"
+                    ". It uses the step_size = {} from {} "
+                    " which are not the same.".format(
+                        kwargs['step_size'],
+                        self,
+                        step_size,
+                        data.load_clearness_tpms
+                    ))
+
+            kwargs = kwargs.copy()
+            kwargs.pop('step_size')
 
         super().__init__(
             step_size=step_size,
