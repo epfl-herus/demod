@@ -93,8 +93,8 @@ class FisherLighitingSimulator(Simulator):
             initial_irradiance: value of initial irradiance
         """
         self.active_occupancy = (
-            initial_active_occupancy
-            or np.ones_like(self.n_households)
+            np.ones_like(self.n_households)
+            if initial_active_occupancy is None else initial_active_occupancy
         )
         self.irradiance = initial_irradiance or 0
 
