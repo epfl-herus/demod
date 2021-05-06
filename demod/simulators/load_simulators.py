@@ -159,13 +159,15 @@ class LoadSimulator(TimeAwareSimulator):
         )
 
         # initialize all simulators in the correct order
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore")
+            self.activity_simulator = _instantiate_activity_simulator(
+                data,
+                subgroups,
+                counts,
+                start_datetime,
+            )
 
-        self.activity_simulator = _instantiate_activity_simulator(
-            data,
-            subgroups,
-            counts,
-            start_datetime,
-        )
         active_occupancy = self.activity_simulator.get_active_occupancy()
 
         self.appliance_simulator = SubgroupApplianceSimulator(
@@ -178,11 +180,13 @@ class LoadSimulator(TimeAwareSimulator):
 
 
         if include_climate:
-            self.climate = _instantiate_climate(
-                data,
-                start_datetime,
-                self.step_size,
-            )
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore")
+                self.climate = _instantiate_climate(
+                    data,
+                    start_datetime,
+                    self.step_size,
+                )
             initial_outside_temperature = (
                 self.climate.get_outside_temperature()
             )
