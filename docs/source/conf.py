@@ -41,6 +41,7 @@ extensions = [
     'sphinx.ext.napoleon',  # Support for google style docstrings
     "sphinx_rtd_theme",     # REad the docs theme https://github.com/readthedocs/sphinx_rtd_theme
     'sphinx.ext.imgmath',   # support for writing maths. use:  :math:`a^2`, requires latex install on computer
+    'sphinx_copybutton',    # Makes availability to copy code cells from icon
 ]
 
 # By default, Sphinx expects the master doc to be contents. Read the Docs will set master doc to index instead
