@@ -1,20 +1,33 @@
+"""Open Power System Data https://open-power-system-data.org/."""
+
 from datetime import timedelta
-from demod.utils.countries import country_name_to_code
 import os
 from typing import Any, Dict
 
 import numpy as np
 import pandas as pd
 from ..base_loader import ClimateLoader
-
-
+from ...utils.countries import country_name_to_code
 
 
 class OpenPowerSystemClimate(ClimateLoader):
+    """Loader of the climate.
+
+    Data comes from
+    `Open Power System Data  <https://open-power-system-data.org/>`_
+    and the raw dataset can be downloaded
+    `here <https://data.open-power-system-data.org/weather_data/>`_
+
+    Loaders:
+        :py:meth:`~demod.datasets.base_loader.ClimateLoader.load_historical_climate_data`
+
+    """
+
     DATASET_NAME = 'OpenPowerSystems'
     step_size = timedelta(hours=1)
-    def __init__(self, country_name) -> Any:
 
+    def __init__(self, country_name) -> Any:
+        """Initialize the climate loader for the country."""
         super().__init__(allow_pickle=False, version=None)
         # Creates the path for the requested country
         self.parsed_path_climate = os.path.join(

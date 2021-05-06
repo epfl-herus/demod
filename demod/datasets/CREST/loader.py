@@ -4,7 +4,6 @@ Loads data from the crest spreadsheet.
 """
 
 from datetime import time, timedelta
-from demod.utils.error_messages import NOT_IMPLEMENTED_IN_DATASET_FOR_VERSION, UNKOWN_POPULATION_TYPE
 import warnings
 import os
 from typing import Any, List, Tuple, Dict, Union
@@ -12,8 +11,20 @@ from typing import Any, List, Tuple, Dict, Union
 import pandas as pd
 import numpy as np
 
-from ..base_loader import ApplianceLoader, ClimateLoader, DatasetLoader, LightingLoader, PopulationLoader
-from ...utils.sim_types import AppliancesDict, StateLabels, Subgroup, Subgroups, TPMs
+from ..base_loader import (
+    ApplianceLoader,
+    ClimateLoader,
+    DatasetLoader,
+    LightingLoader,
+    PopulationLoader,
+)
+from ...utils.sim_types import (
+    AppliancesDict,
+    StateLabels,
+    Subgroup,
+    Subgroups,
+    TPMs,
+)
 from ...utils.subgroup_handling import (
     check_weekend_day_format,
     is_weekday,
@@ -27,28 +38,31 @@ from .utils import (
     crest_act_to_demod,
     crest_appname_to_demod_type,
 )
+from ...utils.error_messages import (
+    NOT_IMPLEMENTED_IN_DATASET_FOR_VERSION,
+    UNKOWN_POPULATION_TYPE,
+)
 
 
 class Crest(
-    ApplianceLoader,
-    LoaderTOU,
-    ClimateLoader,
-    LightingLoader,
-    PopulationLoader
-    ):
+    ApplianceLoader, LoaderTOU, ClimateLoader, LightingLoader, PopulationLoader
+):
     """Crest Data.
+
+    CREST model was developped by Loughborough University, Leicestershire, UK
+
+    The CREST demand model can be accessed
+    `here
+    <https://repository.lboro.ac.uk/articles/dataset/CREST_Demand_Model_v2_0/2001129>`_
 
     Args:
         version: The version of CREST to use. Defaults to '2.2'.
-        allow_pickle: [description]. Defaults to False.
     """
 
     DATASET_NAME = "CREST"
     refresh_time = time(0, 0, 0)
 
-    def __init__(
-        self, version: str = "2.2", /, **kwargs
-    ) -> Any:
+    def __init__(self, version: str = "2.2", /, **kwargs) -> Any:
         """Create a data loader for CREST.
 
         Args:
@@ -60,7 +74,7 @@ class Crest(
         """
         version_name = "v_" + version
         self.version = version
-        super().__init__(version=version_name,  **kwargs)
+        super().__init__(version=version_name, **kwargs)
 
         raw_file_name = "CREST_Demand_Model_v" + version + ".xlsm"
         self.raw_file_path = os.path.join(self.raw_path, raw_file_name)
@@ -68,42 +82,51 @@ class Crest(
     def _parse_population_subgroups(
         self, population_type: str
     ) -> Tuple[Subgroups, List[float], int]:
-        """Read crest data to get the distribution of the population
+        """Parse the subgroups.
+
+        Read crest data to get the distribution of the population
         in dwellings depending on the number of residents in them.
         """
-        if population_type == 'crest' or population_type == 'resident_number':
+        if population_type == "crest" or population_type == "resident_number":
             try:
                 df = pd.read_excel(
-                    self.raw_file_path, 'ActivityStats',
-                    header=11, nrows=5, usecols=[1, 2], engine="openpyxl"
+                    self.raw_file_path,
+                    "ActivityStats",
+                    header=11,
+                    nrows=5,
+                    usecols=[1, 2],
+                    engine="openpyxl",
                 )
             except FileNotFoundError:
                 self._raise_missing_raw()
 
-            if self.version == 'v_2.3.3':
+            if self.version == "v_2.3.3":
+                pdf = df[(
+                    "Probability of dwelling having this number of residents,"
+                    " in the UK"
+                )].to_numpy()
+            elif self.version == "v_2.2":
                 pdf = df[
-                    "Probability of dwelling having this number of residents, in the UK"
-                ].to_numpy()
-            elif self.version == 'v_2.2':
-                pdf = df[
-                    'Probability of dwelling having this number of residents'
+                    "Probability of dwelling having this number of residents"
                 ].to_numpy()
             else:
-                raise ValueError(NOT_IMPLEMENTED_IN_DATASET_FOR_VERSION.format(
-                    not_implemented='_parse_population_subgroups',
-                    dataset=self,
-                    version=self.version,
-                ))
+                raise ValueError(
+                    NOT_IMPLEMENTED_IN_DATASET_FOR_VERSION.format(
+                        not_implemented="_parse_population_subgroups",
+                        dataset=self,
+                        version=self.version,
+                    )
+                )
             n_of_residents = df["Number of residents"].to_numpy()
 
-            subgroups = [{'n_residents': n} for n in n_of_residents]
+            subgroups = [{"n_residents": n} for n in n_of_residents]
 
         else:
-            raise ValueError(UNKOWN_POPULATION_TYPE.format(
-                population_type, self
-            ))
+            raise ValueError(
+                UNKOWN_POPULATION_TYPE.format(population_type, self)
+            )
 
-        return subgroups, pdf, 25e6 # estimate
+        return subgroups, pdf, 25e6  # estimate
 
     def _raise_missing_raw(self, *args, **kwargs):
         return super()._raise_missing_raw(
@@ -276,13 +299,14 @@ class Crest(
             associated_activity_use_profile
         )
 
-
-        appliances['inactive_switch_off'] = np.where(
+        appliances["inactive_switch_off"] = np.where(
             np.logical_or(
-                associated_activity_use_profile == 'ACT_WASHDRESS',
-                associated_activity_use_profile == 'LEVEL',
-                appliances['name'] == 'DISH_WASHER',
-            ), False, True
+                associated_activity_use_profile == "ACT_WASHDRESS",
+                associated_activity_use_profile == "LEVEL",
+                appliances["name"] == "DISH_WASHER",
+            ),
+            False,
+            True,
         )
 
         appliances["mean_duration"] = np.array(df["(min).1"])
@@ -391,14 +415,15 @@ class Crest(
         )
         app_ownership = {}
         for app_type, ownership in zip(
-                crest_dic["type"], crest_dic["equipped_prob"]):
+            crest_dic["type"], crest_dic["equipped_prob"]
+        ):
 
             # checks for multiply represented appliances
             counter = 1
             temp_type = app_type
             while temp_type in app_ownership:
                 counter += 1
-                temp_type = app_type + '_' + str(counter)
+                temp_type = app_type + "_" + str(counter)
 
             app_ownership[temp_type] = ownership
 
@@ -420,11 +445,12 @@ class Crest(
             step_size = timedelta(minutes=1)
 
             labels = np.array(df.columns)
-            labels[labels=='Clear'] = 1.
+            labels[labels == "Clear"] = 1.0
             labels = np.array(labels, dtype=float)
 
             clearness_tpm = df.to_numpy()
-            # corrects a bit the values of clearness TPM for round off erros and non existing state
+            # corrects a bit the values of clearness TPM for round off erros
+            # and non existing state
             clearness_tpm[0, 1] = 1
             clearness_tpm = rescale_pdf(clearness_tpm)
 
@@ -439,19 +465,19 @@ class Crest(
     def _parse_geographic_data(self) -> Dict[str, Union[str, float]]:
         if self.version == "v_2.2":
             return {
-                'country': 'england',
-                'latitude': 52.8,
-                'longitude': -1.2,
-                'meridian': 0.,
-                'use_daylight_saving_time': True,
+                "country": "england",
+                "latitude": 52.8,
+                "longitude": -1.2,
+                "meridian": 0.0,
+                "use_daylight_saving_time": True,
             }
         elif self.version == "v_2.3.3":
             return {
-                'country': 'india',
-                'latitude': 13.1,
-                'longitude': 80.3,
-                'meridian': 82.5,
-                'use_daylight_saving_time': False,
+                "country": "india",
+                "latitude": 13.1,
+                "longitude": 80.3,
+                "meridian": 82.5,
+                "use_daylight_saving_time": False,
             }
         else:
             raise NotImplementedError(
@@ -460,14 +486,14 @@ class Crest(
             )
 
     def _parse_temperatures_arma(self) -> Dict[str, float]:
-        if self.version == 'v_2.2':
+        if self.version == "v_2.2":
             arma_dic = {
-                'T_mean': 9.3,
-                'T_std': 6.5,
-                'T_shift': -115,
-                'AR': 0.81,
-                'MA': 0.62,
-                'SD': 0.5,
+                "T_mean": 9.3,
+                "T_std": 6.5,
+                "T_shift": -115,
+                "AR": 0.81,
+                "MA": 0.62,
+                "SD": 0.5,
             }
         else:
             raise NotImplementedError(
@@ -480,16 +506,17 @@ class Crest(
         if len(subgroup) > 0:
             # Warns that subgroup won't be used.
             warnings.warn(
-                'Crest does not distinguish bulbs config'
-                'based on subgroups.'
+                "Crest does not distinguish bulbs config" "based on subgroups."
             )
-        if self.version in ('v_2.2', 'v_2.3.3'):
+        if self.version in ("v_2.2", "v_2.3.3"):
             df = pd.read_excel(
-                self.raw_file_path, header=9,
-                sheet_name="bulbs", engine="openpyxl",
+                self.raw_file_path,
+                header=9,
+                sheet_name="bulbs",
+                engine="openpyxl",
             )
             # Select the columns of interest
-            bulbs_config =  df.to_numpy()[:100, 2:40]
+            bulbs_config = df.to_numpy()[:100, 2:40]
         else:
             raise NotImplementedError(
                 "'_parse_bulbs_config' is not implemented for CREST "
@@ -507,10 +534,10 @@ class Crest(
             engine="openpyxl",
         )
 
-        if self.version == 'v_2.2':
-            crest_dict['calibration_scalar'] = float(df.columns[5])
-        elif self.version == 'v_2.3.3':
-            crest_dict['calibration_scalar'] = float(df.columns[6])
+        if self.version == "v_2.2":
+            crest_dict["calibration_scalar"] = float(df.columns[5])
+        elif self.version == "v_2.3.3":
+            crest_dict["calibration_scalar"] = float(df.columns[6])
         else:
             raise NotImplementedError(
                 "'_parse_crest_lighting' is not implemented for CREST "
@@ -519,13 +546,13 @@ class Crest(
 
         df = pd.read_excel(
             self.raw_file_path,
-            header=35, sheet_name="light_config",
+            header=35,
+            sheet_name="light_config",
             engine="openpyxl",
         )
-        crest_dict['effective_occupancy'] = (
-            np.array(df["occupancy"][:6], dtype=float)
+        crest_dict["effective_occupancy"] = np.array(
+            df["occupancy"][:6], dtype=float
         )
-
 
         df = pd.read_excel(
             self.raw_file_path,
@@ -533,14 +560,14 @@ class Crest(
             header=53,
             engine="openpyxl",
         )
-        crest_dict['durations_cdf'] = (
-            np.array(df["probability"][:9], dtype=float)
+        crest_dict["durations_cdf"] = np.array(
+            df["probability"][:9], dtype=float
         )
-        crest_dict['durations_minutes_low'] = (
-            np.array(df["(minutes)"][:9], dtype=float)
+        crest_dict["durations_minutes_low"] = np.array(
+            df["(minutes)"][:9], dtype=float
         )
-        crest_dict['durations_minutes_high'] = (
-            np.array(df["(minutes).1"][:9], dtype=float)
+        crest_dict["durations_minutes_high"] = np.array(
+            df["(minutes).1"][:9], dtype=float
         )
 
         df = pd.read_excel(
@@ -549,8 +576,7 @@ class Crest(
             header=3,
             engine="openpyxl",
         )
-        crest_dict['irradiance_threshold_mean'] = float(df.columns[5])
-        crest_dict['irradiance_threshold_std'] = float(df.columns[6])
+        crest_dict["irradiance_threshold_mean"] = float(df.columns[5])
+        crest_dict["irradiance_threshold_std"] = float(df.columns[6])
 
         return crest_dict
-

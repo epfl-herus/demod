@@ -36,8 +36,13 @@ German Time-Of-Use Survey
 
 .. module:: demod.datasets.GermanTOU.loader
 .. autoclass:: GTOU
-    :inherited-members:
-    :members:
+
+
+German data from HERUS
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. module:: demod.datasets.Germany.loader
+.. autoclass:: GermanDataHerus
 
 
 CREST
@@ -45,6 +50,18 @@ CREST
 
 .. module:: demod.datasets.CREST.loader
 .. autoclass:: Crest
-    :members:
+
+
+Open power systems
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. module:: demod.datasets.OpenPowerSystems.loader
+.. autoclass:: OpenPowerSystemClimate
+
+DESTATIS
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. module:: demod.datasets.DESTATIS.loader
+.. autoclass:: Destatis
 
 

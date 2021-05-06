@@ -14,12 +14,23 @@ class Destatis(ApplianceLoader, PopulationLoader):
 
     Different sources.
 
-    * population
-    https://www.destatis.de/EN/Themes/Society-Environment/Population/Households-Families/Tables/lrbev05.html
-    https://www.destatis.de/DE/Themen/Gesellschaft-Umwelt/Bevoelkerung/Haushalte-Familien/Tabellen/2-5-familien.html
-    * appliances
+    * population:
 
-    TODO: add references to this data
+        `english (not all the data)
+        <https://www.destatis.de/EN/Themes/Society-Environment/Population/Households-Families/Tables/lrbev05.html>`_
+
+        `german (full data)
+        <https://www.destatis.de/DE/Themen/Gesellschaft-Umwelt/Bevoelkerung/Haushalte-Familien/Tabellen/2-5-familien.html>`_
+
+    * appliances:
+
+        Was parsed from this `report
+        <https://www.destatis.de/DE/Themen/Gesellschaft-Umwelt/Einkommen-Konsum-Lebensbedingungen/Einkommen-Einnahmen-Ausgaben/Publikationen/Downloads-Einkommen/einnahmen-ausgaben-privater-haushalte-2150100177004.pdf?__blob=publicationFile>`_.
+
+    Loaders:
+        :py:meth:`~demod.datasets.base_loader.PopulationLoader.load_population_subgroups`
+        :py:meth:`~demod.datasets.base_loader.ApplianceLoader.load_appliance_ownership_dict`
+
     """
 
     DATASET_NAME = 'DESTATIS'
@@ -58,9 +69,12 @@ class Destatis(ApplianceLoader, PopulationLoader):
             return self._parse_population_subgroups('household_types_2019')
         elif population_type == 'household_types_2019':
             hh_numbers = [
-                17.067,     # leaving alone,  https://www.destatis.de/EN/Themes/Society-Environment/Population/Households-Families/Tables/unattached-people.html#fussnote-1-54116  ]
-                11.850,     # couple withouth children https://www.destatis.de/EN/Themes/Society-Environment/Population/Households-Families/Tables/couples.html
-                1.007,      # lone parents 1 children https://www.destatis.de/DE/Themen/Gesellschaft-Umwelt/Bevoelkerung/Haushalte-Familien/Tabellen/2-5-familien.html
+                17.067,     # leaving alone,
+                # https://www.destatis.de/EN/Themes/Society-Environment/Population/Households-Families/Tables/unattached-people.html#fussnote-1-54116
+                11.850,     # couple withouth children
+                # https://www.destatis.de/EN/Themes/Society-Environment/Population/Households-Families/Tables/couples.html
+                1.007,      # lone parents 1 children
+                # https://www.destatis.de/DE/Themen/Gesellschaft-Umwelt/Bevoelkerung/Haushalte-Familien/Tabellen/2-5-familien.html
                 0.408,      # lone parents 2 children, (at least one under 18)
                 0.109,      # lone parents 3 children, (at least one under 18)
                 2.553,      # couples with 1 children (at least one under 18)
@@ -73,25 +87,25 @@ class Destatis(ApplianceLoader, PopulationLoader):
                     {
                         'n_residents': 1,
                         'household_type': 1
-                    },{
+                    }, {
                         'n_residents': 2,
                         'household_type': 2
-                    },{
+                    }, {
                         'n_residents': 2,
                         'household_type': 3
-                    },{
+                    }, {
                         'n_residents': 3,
                         'household_type': 3
-                    },{
+                    }, {
                         'n_residents': 4,
                         'household_type': 3
-                    },{
+                    }, {
                         'n_residents': 3,
                         'household_type': 4
-                    },{
+                    }, {
                         'n_residents': 4,
                         'household_type': 4
-                    },{
+                    }, {
                         'n_residents': 5,
                         'household_type': 4
                     }
@@ -107,7 +121,6 @@ class Destatis(ApplianceLoader, PopulationLoader):
                     population_type
                 )
             )
-
 
     def _parse_appliance_ownership_dict(
         self,  subgroup: Subgroup
@@ -144,7 +157,8 @@ class Destatis(ApplianceLoader, PopulationLoader):
 
         # Iterates over the appliances names to create the ownership dict.
         for it, app_type in enumerate(app_types):
-            if it == offset_percent + base_offset:  # once we arrive to percent, stop
+            if it == offset_percent + base_offset:
+                # once we arrive to percent, stop
                 break
             if (app_type is None) or (app_type is np.nan):
                 continue
