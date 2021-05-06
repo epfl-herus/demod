@@ -79,6 +79,12 @@ class Crest(
         raw_file_name = "CREST_Demand_Model_v" + version + ".xlsm"
         self.raw_file_path = os.path.join(self.raw_path, raw_file_name)
 
+    def load_population_subgroups(
+        self, population_type: str = "crest",
+    ) -> Tuple[Subgroups, List[float], int]:
+        # Defaults the population type
+        return super().load_population_subgroups(population_type)
+
     def _parse_population_subgroups(
         self, population_type: str
     ) -> Tuple[Subgroups, List[float], int]:
