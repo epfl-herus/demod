@@ -8,13 +8,17 @@ from .sim_types import States, Any, Union
 
 
 def states_to_transitions(
-    states: States, return_duration: bool = False,
-    include_same_state: bool = False):
+    states: States,
+    return_duration: bool = False,
+    include_same_state: bool = False,
+    ignore_end_start_transitions: bool = False,
+    ):
     """Convert a state array to transitions array.
 
     For the durations of states between the nights, if the first
     states and the last states are the same, the duration is computed
     as the sum. If not, the two durations are kept.
+    transition at time t: new_state = state[t], old_state = state[t-1]
 
     Args:
         states: The array containing the states.
@@ -23,6 +27,8 @@ def states_to_transitions(
             Defaults to False.
         include_same_state: Whether to also include transitions from
             a state to the same state.
+        ignore_end_start_transitions: Whether to ignore the transitions
+            that happens from the end of the diary to the start
 
     Returns:
         transitions_dict, containing the transitions
@@ -44,7 +50,8 @@ def states_to_transitions(
     """
     states = np.array(states).T
 
-    old_states = states[-1]
+    # 1rst state will have no transitions if ignore end start
+    old_states = states[0 if ignore_end_start_transitions else -1]
 
     transition_times = []
     transition_person = []
