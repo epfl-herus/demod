@@ -6,7 +6,9 @@
 Welcome to Demod's documentation!
 ===========================================
 
-Demod is Python library for assembling bottom-up domestic energy demand models.
+Demod is Python library for assembling
+:term:`bottom-up <bottom-up models>`
+domestic energy demand models`.
 
 
 
