@@ -327,8 +327,8 @@ class Crest4StatesModel(TimeAwareSimulator, MultiSimulator):
                 )
             for sim in self.simulators:
                 subgroup['n_residents'] = sim.n_residents
-                tpms, _, _ = self.data.load_tpm(subgroup)
-                sim._set_tpm(tpms)
+                tpms, new_labels, _ = self.data.load_tpm(subgroup)
+                sim._set_tpm(tpms, new_labels=new_labels)
 
     def get_states_labeled(self):
 
@@ -1356,87 +1356,7 @@ class HeatingSystemSimulator(Simulator):
 
         return buildings, emitters
 
-    def CRESTDATA_read_heating_system(self):
-        path = (
-            OLD_DATASET_PATH
-            + os.sep
-            + "CREST_data"
-            + os.sep
-            + "CREST_Demand_Model_v2.3.3.xlsm - PrimaryHeatingSystems.csv"
-        )
-        df = pd.read_csv(path, header=1, nrows=5, skiprows=[2, 3])
 
-        heating_systems = {}
-        heating_systems["equipped probs"] = np.array(
-            [
-                float(i[:-1]) / 100
-                for i in df["Proportion of dwellings with this heating system"]
-            ]
-        )  # remove the percent sign
-        heating_systems["heating type"] = np.array(df["Type of heating unit"])
-        heating_systems["regular/combi"] = np.array(df["Type of system"])
-        heating_systems["fuel type"] = np.array(df["Type of fuel"])
-        heating_systems["fuel flow rate"] = np.array(
-            df["Fuel flow rate (nominal)"]
-        )
-        heating_systems["heat output [W]"] = np.array(
-            df["Heat output of unit"]
-        )
-        heating_systems["standby power"] = np.array(df["Standby power"])
-        heating_systems["pump power"] = np.array(df["Pump power"])
-        heating_systems["thermal efficiency"] = np.array(
-            [float(i[:-1]) for i in df["Thermal efficiency"]]
-        )  # remove the percent sign
-        heating_systems["cylinder volume"] = np.array(
-            df["DHW cylinder volume"]
-        )
-        heating_systems["thermal resistance loss"] = np.array(
-            df["DHW Tank Heat Loss"]
-        )
-
-        return heating_systems
-
-    def GERMANY_read_heating_system(self):
-
-        path = OLD_DATASET_PATH + os.sep + "GermanTOU" + os.sep + "inputs.ods"
-        df = pd.read_excel(
-            path, header=1, skiprows=[2, 3], sheet_name="Heating Systems"
-        )
-
-        heating_systems = {}
-        heating_systems["equipped probs"] = np.array(
-            df["Proportion of dwellings with this heating system"]
-        )  # remove the percent sign
-        heating_systems["heating type"] = np.array(df["Type of heating unit"])
-        heating_systems["regular/combi"] = np.array(df["Type of system"])
-        heating_systems["fuel type"] = np.array(df["Type of fuel"])
-        heating_systems["fuel flow rate"] = np.array(
-            df["Fuel flow rate (nominal)"]
-        )
-        heating_systems["heat output [W]"] = np.array(
-            df["Heat output of unit"]
-        )
-        heating_systems["standby power"] = np.array(df["Standby power"])
-        heating_systems["pump power"] = np.array(df["Pump power"])
-        heating_systems["thermal efficiency"] = np.array(
-            df["Thermal efficiency"]
-        )  # remove the percent sign
-        heating_systems["cylinder volume"] = np.array(
-            df["DHW cylinder volume"]
-        )
-        heating_systems["thermal resistance loss"] = np.array(
-            df["DHW Tank Heat Loss"]
-        )
-
-        return heating_systems
-
-    def read_heating_system(self, data):
-        if data == "CREST":
-            return self.CRESTDATA_read_heating_system()
-        elif data == "GTOU":
-            return self.GERMANY_read_heating_system()
-        else:
-            raise ValueError("Unknonw data :" + data)
 
     def read_buildings(self, data):
         if data == "CREST":
