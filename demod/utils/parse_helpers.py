@@ -7,7 +7,9 @@ import pandas
 from .sim_types import States, Any, Union
 
 
-def states_to_transitions(states: States, return_duration: bool = False):
+def states_to_transitions(
+    states: States, return_duration: bool = False,
+    include_same_state: bool = False):
     """Convert a state array to transitions array.
 
     For the durations of states between the nights, if the first
@@ -19,6 +21,8 @@ def states_to_transitions(states: States, return_duration: bool = False):
             shape=(n_diaries, n_times), dtype=int or str
         return_duration: Wether to return the duration of the states.
             Defaults to False.
+        include_same_state: Whether to also include transitions from
+            a state to the same state.
 
     Returns:
         transitions_dict, containing the transitions
@@ -40,7 +44,7 @@ def states_to_transitions(states: States, return_duration: bool = False):
     """
     states = np.array(states).T
 
-    old_states = states[0]
+    old_states = states[-1]
 
     transition_times = []
     transition_person = []
@@ -50,7 +54,10 @@ def states_to_transitions(states: States, return_duration: bool = False):
     # iterate over time
     for i, s in enumerate(states):
         # check that the state has really disappeared, and not that it changed
-        mask_transition = old_states != s
+        mask_transition = (
+            old_states != s if not include_same_state
+            else ~np.isnan(s)
+        )
         transition_times.append(np.full(np.sum(mask_transition), i))
         transition_person.append(np.where(mask_transition)[0])
         transition_new_state.append(np.array(s[mask_transition]))
