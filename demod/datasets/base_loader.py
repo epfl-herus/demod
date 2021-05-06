@@ -945,7 +945,9 @@ class HeatingLoader(DatasetLoader):
 
         return lists_to_numpy_array(thermostat_dict)
 
-    def _parse_thermostat_dict(self, subgroup: Subgroup):
+    def _parse_thermostat_dict(
+        self, subgroup: Subgroup
+    ) -> Dict[str, np.ndarray]:
         raise NotImplementedError(
             "'_parse_thermostat_dict' requires overriding in "
             "{}.".format(type(self).__name__)

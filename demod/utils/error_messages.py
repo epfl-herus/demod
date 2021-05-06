@@ -34,3 +34,8 @@ NOT_IMPLEMENTED_IN_DATASET_FOR_VERSION = (
 UNIMPLEMENTED_ALGO_IN_METHOD = (
     "Algorithm '{algo}' is not implemeted in {method}"
 )
+
+DATASET_CANNOT_DISTINGUISH_ON_SUBGROUPS = (
+    "{dataset} cannot distinguish {not_distinguishable}  based on subgroups.\n"
+    "{not_distinguishable} will be the same for all subgroups."
+)

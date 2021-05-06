@@ -1,5 +1,6 @@
 """Helper functions for parsing Datasets."""
 
+from typing import Tuple
 import numpy as np
 import pandas
 
@@ -367,3 +368,32 @@ def lists_to_numpy_array(object: Any):
             " 'lists_to_numpy_array' is not defined for object of type: "
             " '{}' ".format(type(object))
         )
+
+
+def bulbs_stats_from_config(
+    config_array: np.ndarray
+) -> Tuple[Tuple[float, float], Tuple[np.ndarray, np.ndarray]]:
+    """Transform the bulb config into, bubls and bulbs stats.
+
+    Args:
+        config_array: The light config array.
+
+    Returns:
+        (mean, std), (consumption, penetration)
+    """
+
+    # The light config is A 2-D array, where Dim0 is the different
+    # houses and Dim1 the different bulbs of each house.
+
+    mask_is_bulb = (config_array > 0) & (~np.isnan(config_array))
+
+    n_bulbs = np.sum(mask_is_bulb, axis=1)
+
+    consumptions, counts = np.unique(
+        config_array[mask_is_bulb], return_counts=True
+    )
+
+    return (
+        (np.mean(n_bulbs), np.std(n_bulbs)),
+        (consumptions, counts/np.sum(counts))
+    )

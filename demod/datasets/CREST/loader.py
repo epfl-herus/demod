@@ -4,6 +4,7 @@ Loads data from the crest spreadsheet.
 """
 
 from datetime import time, timedelta
+from sys import version
 import warnings
 import os
 from typing import Any, List, Tuple, Dict, Union
@@ -15,6 +16,7 @@ from ..base_loader import (
     ApplianceLoader,
     ClimateLoader,
     DatasetLoader,
+    HeatingLoader,
     LightingLoader,
     PopulationLoader,
 )
@@ -32,20 +34,22 @@ from ...utils.subgroup_handling import (
     subgroup_string,
 )
 from ...utils.distribution_functions import rescale_pdf
-from ...utils.parse_helpers import translate_1d
+from ...utils.parse_helpers import remove_spaces, translate_1d, bulbs_stats_from_config
 from ..tou_loader import LoaderTOU
 from .utils import (
     crest_act_to_demod,
     crest_appname_to_demod_type,
 )
 from ...utils.error_messages import (
+    DATASET_CANNOT_DISTINGUISH_ON_SUBGROUPS,
     NOT_IMPLEMENTED_IN_DATASET_FOR_VERSION,
     UNKOWN_POPULATION_TYPE,
 )
 
 
 class Crest(
-    ApplianceLoader, LoaderTOU, ClimateLoader, LightingLoader, PopulationLoader
+    ApplianceLoader, LoaderTOU, ClimateLoader, LightingLoader,
+    PopulationLoader, HeatingLoader
 ):
     """Crest Data.
 
@@ -586,3 +590,196 @@ class Crest(
         crest_dict["irradiance_threshold_std"] = float(df.columns[6])
 
         return crest_dict
+
+    def _parse_installed_bulbs_stats(self, subgroup: Subgroup):
+        warnings.warn(
+            DATASET_CANNOT_DISTINGUISH_ON_SUBGROUPS.format(
+                dataset=self,
+                not_distinguishable='bulbs stats',
+            )
+        )
+        stats, _ = bulbs_stats_from_config(self.load_bulbs_config(subgroup))
+        return stats
+
+    def _parse_bulbs(self):
+        _, bulbs = bulbs_stats_from_config(self.load_bulbs_config())
+        return bulbs
+
+    def _parse_heating_system_dict(self, subgroup: Subgroup = {}):
+        warnings.warn(
+            DATASET_CANNOT_DISTINGUISH_ON_SUBGROUPS.format(
+                dataset=self,
+                not_distinguishable='heating system',
+            )
+        )
+        if self.version == "v_2.2":
+            rows = 3
+        elif self.version == "v_2.3.3":
+            rows = 5
+        else:
+            raise NotImplementedError(
+                NOT_IMPLEMENTED_IN_DATASET_FOR_VERSION.format(
+                    not_implemented=self._parse_heating_system_dict,
+                    dataset=self,
+                    version=self.version
+                )
+            )
+
+        df = pd.read_excel(
+            self.raw_file_path,
+            sheet_name='PrimaryHeatingSystems',
+            header=1, nrows=rows, skiprows=[2, 3]
+        )
+
+        heating_systems = {}
+        heating_systems["equipped_prob"] = np.array(
+             df["Proportion of dwellings with this heating system"]
+        )
+        heating_systems["name"] = np.array(df["Type of heating unit"])
+        heating_systems["is_combi"] = np.array(df["Type of system"]) == 2
+        heating_systems["fuel_type"] = remove_spaces(df["Type of fuel"])
+        heating_systems["fuel_flow_rate"] = np.array(
+            df["Fuel flow rate (nominal)"]
+        )
+        heating_systems["flow_rate_to_W"] = np.array(
+            df["Calorific value of fuel flow rate"]
+        )
+        # Same heat outputs sh and dhw
+        heating_systems["heat_output_sh"] = np.array(
+            df["Heat output of unit"]
+        )
+        heating_systems["heat_output_dhw"] = np.array(
+            df["Heat output of unit"]
+        )
+        heating_systems["standby_power"] = np.array(df["Standby power"])
+        heating_systems["pump_power"] = np.array(df["Pump power"])
+        heating_systems["cyl_volume"] = np.array(
+            df["DHW cylinder volume"]
+        )
+        heating_systems["cyl_loss"] = np.array(
+            df["DHW Tank Heat Loss"]
+        )
+
+        return heating_systems
+
+
+    def _parse_thermostat_dict(self, subgroup: Subgroup):
+        warnings.warn(
+            DATASET_CANNOT_DISTINGUISH_ON_SUBGROUPS.format(
+                dataset=self,
+                not_distinguishable='thermostat dict',
+            )
+        )
+
+        df_home = pd.read_excel(
+            self.raw_file_path,
+            sheet_name='HeatingControls',
+            header=3, nrows=15
+        )
+        df_water = pd.read_excel(
+            self.raw_file_path,
+            sheet_name='HeatingControls',
+            header=22, nrows=12
+        )
+
+        thermostat = {}
+        thermostat["home_temperatures_cdf"] = np.cumsum(
+            np.array(df_home["Percentage of homes"])
+        )
+        thermostat["home_temperatures_values"] = np.array(
+            df_home["Demand temperature"], dtype=float
+        )
+        thermostat["water_temperatures_cdf"] = np.cumsum(
+            np.array(df_water["Percentage of homes"])
+        )
+        thermostat["water_temperatures_values"] = np.array(
+            df_water["Hot water delivery temperature"], dtype=float
+        )
+
+
+
+        # crest value for the emitters
+        thermostat["emitter_setpoints"] = 50.0
+
+        # Set thermostat deadbands
+        deadbands = {}
+        deadbands["space_heating"] = 2
+        deadbands["space_cooling"] = 2
+        deadbands["hot_water"] = 5
+        deadbands["emitter"] = 5
+        thermostat["deadband"] = deadbands
+
+        return thermostat
+
+    def _parse_buildings_dict(self, subgroup: Subgroup):
+
+        df = pd.read_excel(
+            self.raw_file_path,
+            sheet_name='Buildings',
+            header=1, skiprows=[2, 3]
+        )
+
+        buildings = {}
+        buildings["equipped_prob"] = np.array(
+            df["Proportion of dwellings of this building type"]
+        )
+        buildings["name"] = np.array(df["Description"])
+        buildings["out_build_transfer_coef"] = np.array(
+            df[
+                "Thermal transfer coefficient between outside air and external building thermal capacitance"
+            ]
+        )
+        buildings["build_int_transfer_coef"] = np.array(
+            df[
+                "Thermal transfer coefficient between external building thermal capacitance and internal building thermal capacitance"
+            ]
+        )
+        buildings["ventilation_transfer_coef"] = np.array(
+            df[
+                "Thermal transfer coefficient representing ventilation heat loss between outside air and internal building thermal capacitance"
+            ]
+        )
+        buildings["ext_capacitance"] = np.array(
+            df["External building thermal capacitance"]
+        )
+        buildings["int_capacitance"] = np.array(
+            df["Internal building thermal capacitance"]
+        )
+        buildings["irradiance_multiplier"] = np.array(
+            df["Global irradiance multiplier"]
+        )
+        buildings["floor_area"] = np.array(df["Floor area, living space"])
+        buildings["height"] = np.array(df["Height, living space"])
+        print(df.columns)
+        buildings["emitters_target_temperature"] = np.array(
+            df["Nominal temperature of emitters "]
+        )
+        buildings["emitters_transfer_coef"] = np.array(
+            df["Heat transfer coefficient of emitters"]
+            if self.version.startswith('v_2.')
+            else df["Heat transfer coefficient of heat emitters"]
+        )
+        buildings["emitters_capacitance"] = np.array(
+            df["Thermal capacitance of emitters"]
+        )
+
+        return buildings
+
+
+    def _parse_controls_tpm(self):
+        path = (
+            OLD_DATASET_PATH
+            + os.sep
+            + "CREST_data"
+            + os.sep
+            + "CREST_Demand_Model_v2.3.3.xlsm - HeatingControlsTPM.csv"
+        )
+        df_heating = pd.read_csv(
+            path, header=6, nrows=96, usecols=[2, 3, 4, 5]
+        )
+        thermostat["transitions cdf wd"] = np.cumsum(
+            df_heating.to_numpy()[:, :2].reshape((48, 2, 2)), axis=-1
+        )
+        thermostat["transitions cdf we"] = np.cumsum(
+            df_heating.to_numpy()[:, 2:].reshape((48, 2, 2)), axis=-1
+        )

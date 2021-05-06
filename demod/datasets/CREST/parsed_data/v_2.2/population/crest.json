@@ -1,0 +1,27 @@
+{
+  "subgroups_list": [
+    {
+      "n_residents": 1
+    },
+    {
+      "n_residents": 2
+    },
+    {
+      "n_residents": 3
+    },
+    {
+      "n_residents": 4
+    },
+    {
+      "n_residents": 5
+    }
+  ],
+  "subgroups_probs": [
+    0.339045531533327,
+    0.401115871276278,
+    0.137092756799841,
+    0.0880741257347813,
+    0.0346717146557736
+  ],
+  "total_number": 25000000.0
+}

@@ -1,0 +1,62 @@
+{
+  "equipped_prob": [
+    1,
+    0,
+    0
+  ],
+  "name": [
+    "Boiler (regular)",
+    "Boiler (combi)",
+    "Boiler (system)"
+  ],
+  "is_combi": [
+    false,
+    true,
+    false
+  ],
+  "fuel_type": [
+    "Mainsgas",
+    "Mainsgas",
+    "Mainsgas"
+  ],
+  "fuel_flow_rate": [
+    2.61,
+    2.61,
+    1.64
+  ],
+  "flow_rate_to_W": [
+    28999.999999999996,
+    28999.999999999996,
+    18222.22222222222
+  ],
+  "heat_output_sh": [
+    21749.999999999996,
+    21749.999999999996,
+    13666.666666666664
+  ],
+  "heat_output_dhw": [
+    21749.999999999996,
+    21749.999999999996,
+    13666.666666666664
+  ],
+  "standby_power": [
+    10,
+    10,
+    10
+  ],
+  "pump_power": [
+    20,
+    20,
+    20
+  ],
+  "cyl_volume": [
+    125,
+    5,
+    125
+  ],
+  "cyl_loss": [
+    2.8,
+    2.8,
+    2.8
+  ]
+}
