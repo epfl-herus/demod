@@ -31,6 +31,7 @@ Features
    examples/index
    contributing/documentation
    about/index
+   glossary
 
 
 
