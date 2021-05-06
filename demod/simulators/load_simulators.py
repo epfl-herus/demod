@@ -1,7 +1,8 @@
 """Simulators for the full households loads."""
 
-from demod.utils.sim_types import HeatOutputs, Temperatures
-from typing import Union
+from demod.utils.data_types import DataInput
+from demod.utils.sim_types import HeatOutputs, Subgroups, Temperatures
+from typing import Any, List, Union
 from demod.simulators.util import sample_population
 from demod.datasets.base_loader import DatasetLoader
 from demod.datasets.Germany.loader import GermanDataHerus
@@ -11,7 +12,7 @@ import pandas as pd
 import datetime
 
 from .base_simulators import Simulator, TimeAwareSimulator, cached_getter
-from .weather_simulators import ClimateSimulator, RealInterpolatedClimate
+from .weather_simulators import ClimateSimulator, CrestClimateSimulator, RealInterpolatedClimate
 from .sparse_simulators import (
     SparseTransitStatesSimulator,
     SubgroupsActivitySimulator,
@@ -19,7 +20,73 @@ from .sparse_simulators import (
 from .appliance_simulators import AppliancesSimulator, SubgroupApplianceSimulator
 from .lighting_simulators import CrestLightingSimulator
 from .heating_simulators import AbstractHeatingSimulator, FiveModulesHeatingSimulator
+from .crest_simulators import Crest4StatesModel
 
+
+def _instantiate_activity_simulator(
+        data: DataInput,
+        subgroups: Subgroups,
+        counts: List[int],
+        start_datetime: datetime.datetime,
+    ) -> Any:
+
+    errors = []
+    try:
+        return SubgroupsActivitySimulator(
+                subgroups,
+                counts,
+                subsimulator=SparseTransitStatesSimulator,
+                start_datetime=start_datetime,
+                data=data,
+            )
+    except NotImplementedError as err:
+        errors.append(err)
+
+    try:
+        return Crest4StatesModel(
+            sum(counts), data=data, start_datetime=start_datetime
+            )
+    except NotImplementedError as err:
+        errors.append(err)
+
+    raise NotImplementedError((
+        'LoadSimulator could not create activity simulator for this'
+        'dataset : {}. \n Following errors: {}').format(
+            data, errors
+        )
+    )
+
+
+def _instantiate_climate(
+        data: DataInput,
+        start_datetime: datetime.datetime,
+        step_size: datetime.timedelta,
+    ) -> Any:
+
+    errors = []
+    try:
+        return RealInterpolatedClimate(
+            start_datetime=start_datetime,
+            step_size=step_size,
+            data=data,
+        )
+
+    except NotImplementedError as err:
+        errors.append(err)
+
+    try:
+        return CrestClimateSimulator(
+            data, start_datetime, step_size=step_size,
+        )
+    except NotImplementedError as err:
+        errors.append(err)
+
+    raise NotImplementedError((
+        'LoadSimulator could not create climate simulator for this'
+        'dataset : {}. \n Following errors: {}').format(
+            data, errors
+        )
+    )
 
 
 class LoadSimulator(TimeAwareSimulator):
@@ -92,12 +159,12 @@ class LoadSimulator(TimeAwareSimulator):
         )
 
         # initialize all simulators in the correct order
-        self.activity_simulator = SubgroupsActivitySimulator(
+
+        self.activity_simulator = _instantiate_activity_simulator(
+            data,
             subgroups,
             counts,
-            subsimulator=SparseTransitStatesSimulator,
-            start_datetime=start_datetime,
-            data=data,
+            start_datetime,
         )
         active_occupancy = self.activity_simulator.get_active_occupancy()
 
@@ -111,10 +178,10 @@ class LoadSimulator(TimeAwareSimulator):
 
 
         if include_climate:
-            self.climate = RealInterpolatedClimate(
-                start_datetime=start_datetime,
-                step_size=self.step_size,
-                data=data,
+            self.climate = _instantiate_climate(
+                data,
+                start_datetime,
+                self.step_size,
             )
             initial_outside_temperature = (
                 self.climate.get_outside_temperature()

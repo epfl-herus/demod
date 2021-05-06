@@ -1340,7 +1340,10 @@ class HeatingSystem(Simulator):
             check_valid_cdf(cdf)
         except ValueError as e:
             raise Exception(
-                "Incorrect probabilities distribuiton for the heating systems equippememnt probabilities"
+                "Incorrect probabilities distribuiton for the heating systems "
+                " equipememnt probabilities: {} ".format(
+                    self.heating_systems["equipped_prob"]
+                )
             )
         self.heating_types = monte_carlo_from_1d_cdf(
             cdf, n_samples=self.n_households

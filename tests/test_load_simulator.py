@@ -1,11 +1,15 @@
 import datetime
+from demod.datasets.CREST.loader import Crest
 import unittest
 
 # from .context import simulators
 import numpy as np
 from demod.simulators.load_simulators import LoadSimulator
 
-from test_base_simulators import TimeAwareSimulatorChildrenTests
+from test_base_simulators import (
+    TimeAwareSimulatorChildrenTests,
+    BaseSimulatorChildrenTests
+)
 
 
 class TestLoadSimulator(
@@ -117,3 +121,19 @@ class TestLoadSimulator(
             )
         )
         self.assertEqual(sim.current_time_step, 0)
+
+    def test_other_datasets(self):
+
+        self.kwargs['data'] = Crest()
+
+        BaseSimulatorChildrenTests.run_base_tests(self)
+
+        self.test_same_time_init_start_in_test()
+        self.test_instantiation_with_default_datetime()
+        self.test_instantiation_with_other_datetime()
+        self.test_step_updates_time()
+        self.test_initialization_time()
+        self.test_initialization_time_over_day()
+        # self.test_non_default_step_size()
+
+        self.kwargs.pop('data')
