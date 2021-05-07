@@ -18,6 +18,7 @@ Contact email:
 
 `demod@groupes.epfl.ch <demod@groupes.epfl.ch>`_
 
+.. _licence:
 
 License
 -------

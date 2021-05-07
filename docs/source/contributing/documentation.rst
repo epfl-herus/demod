@@ -7,16 +7,23 @@ You can contribute by adding any data or simulator via GitHub.
 There are just few rules that should be respected.
 
 
-PEP guidelines
---------------
+Coding guidelines
+-----------------
 
-Demods respects the following PEP gidelines.
 
-Style
-~~~~~~~~~~~~~~~~
+If you contribute to demod, you must try to make your code
+easy to read and clear.
+You can also try to follow those rules:
 
-The style of the code must match `PEP 8`_.
-In particular a maximum of 79 characters per line.
+* A maximum of 79 characters per line.
+* Naming variables like_this_for_example
+* Naming classes CamelCaseStyle
+* Follow naming that already exists in demod
+* Use demod's utility functions or add new ones when required
+* Use docstring (""") to comment your methods and classes
+* Use inline comments (#) when your code is not obvious
+
+In general the style of the code must match `PEP 8`_.
 
 Type Annotations
 ~~~~~~~~~~~~~~~~
@@ -49,7 +56,8 @@ Docstrings
 We use docstrings of the simulators to simply add new simulators and methods
 in demod'API.
 
-You can follow this example from `sphinx`_.
+You can follow this example from `sphinx: Type annotations
+<https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html#type-annotations>`_.
 
 Google style with Python 3 type annotations::
 
@@ -82,8 +90,7 @@ Google style with Python 3 type annotations::
         attr2: str
 
 
-.. _sphinx:
-    https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html#type-annotations
+
 
 
 Simulators identity cards
@@ -115,8 +122,8 @@ See the following example, on how you can document your simulator:
         Data
             # These lines represent the data that the data object
             # must have
-            :py:meth:`~demod.utils.cards_doc.Loader.load_tpm`
-            :py:meth:`~demod.utils.cards_doc.Loader.load_population_subgroups`
+            :py:meth:`~demod.simulators.tou_loader.load_tpm`
+            :py:meth:`~demod.simulators.base_simulators.PopulationLoader.load_population_subgroups`
         Step input
             # The inputs for the step function
             :py:meth:`~demod.utils.cards_doc.Inputs.occupancy`
@@ -132,8 +139,11 @@ See the following example, on how you can document your simulator:
         """
 
 .. note::
-    The values in the id cards are links written using spinx and
-    rst. They allow the creation of hyper links in the documentation.
+    The values in the id cards are links written using sphinx and
+    reStructuredText (reST).
+    They allow the creation of hyper links in the documentation.
+    `Learn how to use reST
+    <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
 
 
 
@@ -145,3 +155,24 @@ the source where you find the data, or the source where you
 find inspiration for the code.
 
 You can add it in the docstring of the Simulator or of the DatasetLoader.
+
+
+Licence
+-------
+
+Also note that by contributing to demod you need to accept the
+terms of the :ref:`GPLv3 Licence <licence>` .
+Your code has to be published on the same Licence.
+
+
+Integrating your code to GitHub
+-------------------------------
+
+
+
+Once your code is ready and has been tested, you can submit
+a pull request to demods
+`GitHub repository <https://github.com/epfl-herus/demod>`_.
+
+If you are not familar with GitHub, feel free to
+`contact us <demod@groupes.epfl.ch>`_.
