@@ -27,13 +27,13 @@ you can import the library in you python file by doing:
 
     import demod
 
-    from demod.simulators.base_simulators import LoadSimulator
+    from demod.simulators.load_simulators import LoadSimulator
 
     sim = LoadSimulator(n_households=1)
 
     for i in range(24 * 60):
         sim.step()
-        print(sim.get_electric_consumption())
+        print(sim.get_power_demand())
 
 .. _changing_the_dataset:
 
@@ -74,25 +74,28 @@ Shows how to use the SimLogger object from the simulators
     from demod.simulators.base_simulators import SimLogger
 
     sim = LoadSimulator(
-        n_households=10,
-        logger=SimLogger('get_electric_consumption', 'get_water_consumption')
+        n_households=1,
+        logger=SimLogger('current_time', 'get_power_demand', 'get_temperatures')
     )
 
     for i in range(24 * 60):
         sim.step()
 
-    # Plots all the logged data
-    logger.plot()
+    # Plots all the logged data one by one
+    sim.logger.plot()
+    # plots all the data in column
+    sim.logger.plot_column()
     # Gets array of the data, can be used for your own purpose
-    elec_cons = logger.get('get_electric_consumption')
+    elec_cons = sim.logger.get('get_power_demand')
 
 
-By default the data is aggregated over all the households, but you can
+If you simulate many households,
+by default the data is aggregated over all the households, but you can
 also access disaggregated data by setting:
 
 .. code-block:: python
 
-    SimLogger('get_electric_consumption', aggregated=False)
+    SimLogger('get_power_demand', aggregated=False)
 
 
 You can have more information about the logger at
@@ -135,14 +138,14 @@ In this example, we will simulate the lighting in a household.
     start_datetime = datetime.datetime(2014, 3, 1, 0, 0, 0)
 
     climate_sim = RealClimate(
-        OpenPowerSystemClimate('Germany'),  # A climate dataset
+        data=OpenPowerSystemClimate('Germany'),  # A climate dataset
         start_datetime=start_datetime  # Specifiy the start of the simulaiton
     )
 
     activity_sim = Crest4StatesModel(
         n_households,
-        data = GTOU('4_States'),  # Time of use survey for germany
-        start_datetime=start_datetime  # Specifiy the start of the simulaiton
+        data=GTOU('4_States'),  # Time of use survey for germany
+        start_datetime=start_datetime,  # Specifiy the start of the simulaiton
     )
 
     lighting_sim = FisherLighitingSimulator(
@@ -151,7 +154,7 @@ In this example, we will simulate the lighting in a household.
         initial_active_occupancy=activity_sim.get_occupancy(),
         initial_irradiance=climate_sim.get_irradiance()
     )
-    # No data was specifies, it will use a default dataset.
+    # No data was specified, it will use a default dataset.
 
 
 Now that we have intialized the three simulators, with different data
