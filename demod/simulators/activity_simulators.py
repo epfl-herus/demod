@@ -89,6 +89,8 @@ class MarkovChain1rstOrder(Simulator):
                 It must be of shape
                 :py:obj:`n_times` * :py:attr:`n_states` *
                 :py:attr:`n_states`.
+                Transitions probability matrix must start with transtion
+                from t-1 to t. where t is the start.
             labels:
                 optional. A list of labels for the states
 
@@ -103,22 +105,30 @@ class MarkovChain1rstOrder(Simulator):
         # get the transition matrices
         if type(transition_prob_matrices) is not np.ndarray:
             raise TypeError('transition_prob_matrices must be numpy array')
-        if (transition_prob_matrices.shape[-1]
-            != transition_prob_matrices.shape[-2]):
-            raise ValueError('last two elements of transition_prob_matrices'
-                ' must be the same size (n possible states)')
+        if (
+            transition_prob_matrices.shape[-1]
+            != transition_prob_matrices.shape[-2]
+        ):
+            raise ValueError(
+                'last two elements of transition_prob_matrices'
+                ' must be the same size (n possible states)'
+            )
         self.transition_prob_matrices = transition_prob_matrices
 
         if transition_prob_matrices.shape[-1] != n_states:
-            raise ValueError('Shape of the transition matrices must be'
-            ' n_states*n_states')
+            raise ValueError(
+                'Shape of the transition matrices must be'
+                ' n_states*n_states'
+            )
         self.n_states = n_states
 
         # get the labels if correctly given or generates them
         if labels is not None:
             if len(labels) != self.n_states:
-                raise ValueError('Length of labels is not the same as the '
-                'number of States')
+                raise ValueError(
+                    'Length of labels is not the same as the '
+                    'number of States'
+                )
             self.state_labels = labels
         else:
             self.state_labels = np.arange(self.n_states)
@@ -143,7 +153,8 @@ class MarkovChain1rstOrder(Simulator):
         """
         super().initialize_starting_state(start_time_step=start_time_step)
         # generates from the distribution of states
-        assert len(starting_state_pdf) == self.n_states, ('the starting states'
+        assert len(starting_state_pdf) == self.n_states, (
+            'the starting states'
             ' do not correspond to the size of the transition matrices')
 
         # get the starting state cdf
@@ -157,12 +168,15 @@ class MarkovChain1rstOrder(Simulator):
 
         # sample the starting state from its cdf
         starting_state_ = monte_carlo_from_cdf(starting_state_cdf)
-        assert max(starting_state_) < self.n_states and min(starting_state_) >= 0, 'the starting states do not correspond to the size of the transition matrices'
+        assert (
+            max(starting_state_) < self.n_states and min(starting_state_) >= 0
+        ), (
+            'the starting states do not correspond to the size of'
+            'the transition matrices'
+        )
         self.current_states = starting_state_
 
         self._set_tpm(self.transition_prob_matrices, checkcdf=checkcdf)
-
-
 
     def _set_tpm(
         self, tpms: np.ndarray, checkcdf: bool = True,
@@ -181,41 +195,56 @@ class MarkovChain1rstOrder(Simulator):
             new_labels: if given, will update states and labels according
                 to the new labels.
         """
-        #
+        # Transform the tpms into cdf
         cdf = np.cumsum(tpms, axis=-1)
         if checkcdf:
             check_valid_cdf(cdf)
-        self._cdf_iterator = itertools.cycle(cdf)  # store cdfs as iterable cycle
+        # Store cdfs as iterable cycle (will start over at the end)
+        self._cdf_iterator = itertools.cycle(cdf)
+
+        # Call the first cdf as the tpms statrt with transitions
+        # from t-1 to t
+        next(self._cdf_iterator)
 
         if new_labels is not None:
-            # Updates the states values
-            old_states_labels = self.state_labels[self.current_states]
-            # gets the positions of the different states inthe states labels
-            old_states_labels, inverse = np.unique(
-                old_states_labels, return_inverse=True
-            )
-            # finds where the old labels go in the new labels
-            old_labels_position_in_new = np.asarray(
-                [
-                    np.where(lab == new_labels)[0][0]
-                    if np.where(lab == new_labels)[0].size == 1
-                    else -1
-                    for lab in old_states_labels
-                ],
-                dtype=int,
-            )
+            self._assign_new_labels(new_labels)
 
-            mask_lost_transition = old_labels_position_in_new == -1
-            # Lost transitions are given the 0 new label
-            old_labels_position_in_new[mask_lost_transition] = new_labels[0]
-            print('dead states: ', old_states_labels[mask_lost_transition])
-            # convert states to the new ones
-            self.current_states = old_labels_position_in_new[
-                inverse
-            ].reshape(-1)
-            self.state_labels = new_labels
+    def _assign_new_labels(self, new_labels: np.ndarray) -> None:
+        """Convert the current states for the new labels.
 
+        Will use the old labels and the new labels to try to find
+        a matching.
+        This might create some incompatibilities as the old states
+        and the new states might not be the same.
 
+        Args:
+            new_labels: the new labels to assign
+        """
+        # Updates the states values
+        old_states_labels = self.state_labels[self.current_states]
+        # gets the positions of the different states inthe states labels
+        old_states_labels, inverse = np.unique(
+            old_states_labels, return_inverse=True
+        )
+        # finds where the old labels go in the new labels
+        old_labels_position_in_new = np.asarray(
+            [
+                np.where(lab == new_labels)[0][0]
+                if np.where(lab == new_labels)[0].size == 1
+                else -1
+                for lab in old_states_labels
+            ],
+            dtype=int,
+        )
+
+        mask_lost_transition = old_labels_position_in_new == -1
+        # Lost transitions are given the 0 new label
+        old_labels_position_in_new[mask_lost_transition] = new_labels[0]
+        # convert states to the new ones
+        self.current_states = old_labels_position_in_new[
+            inverse
+        ].reshape(-1)
+        self.state_labels = new_labels
 
     def step(self) -> None:
         """Perfom a step Markov chain step.
