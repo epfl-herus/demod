@@ -30,7 +30,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name="demod",
     version="0.1-4",
-    download_url = 'https://github.com/epfl-herus/demod/archive/refs/tags/v0.1.tar.gz',
+    download_url = 'https://github.com/epfl-herus/demod/archive/refs/tags/v_0.1-4.tar.gz',
     description="Domestic Energy Demand Modelling Library",
     long_description=long_description,
     long_description_content_type="text/markdown",
