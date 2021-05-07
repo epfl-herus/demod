@@ -1,10 +1,55 @@
 from demod.utils.parse_helpers import (
-    states_to_transitions
+    states_to_transitions,
+    states_to_tpms
 )
 import unittest
 
 import numpy as np
 
+
+class TestStatesToTPM(unittest.TestCase):
+    def test_simple(self):
+        states = np.array([
+            [0, 0],
+            [0, 1],
+        ], dtype=int)
+        tpms = states_to_tpms(
+            states, first_tpm_modification_algo='nothing'
+        )
+        print(tpms)
+        self.assertTrue(np.all(
+            tpms == np.array([
+                [
+                    [1., 0.],
+                    [1., 0]
+                ],
+                [
+                    [0.5, 0.5],
+                    [0., 1.]
+                ]
+            ])
+        ))
+    def test_last_strategy(self):
+        states = np.array([
+            [0, 0],
+            [0, 1],
+        ], dtype=int)
+        tpms = states_to_tpms(
+            states, first_tpm_modification_algo='last'
+        )
+        print(tpms)
+        self.assertTrue(np.all(
+            tpms == np.array([
+                [
+                    [0.5, 0.5],
+                    [0., 1.]
+                ],
+                [
+                    [0.5, 0.5],
+                    [0., 1.]
+                ]
+            ])
+        ))
 
 class TestStatesToTransitions(unittest.TestCase):
     def test_simple(self):

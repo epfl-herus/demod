@@ -1,6 +1,6 @@
 """Helper functions for parsing Datasets."""
 
-from typing import Tuple
+from typing import Dict, Tuple
 import numpy as np
 import pandas
 
@@ -12,7 +12,7 @@ def states_to_transitions(
     return_duration: bool = False,
     include_same_state: bool = False,
     ignore_end_start_transitions: bool = False,
-    ):
+) -> Dict[str, np.ndarray]:
     """Convert a state array to transitions array.
 
     For the durations of states between the nights, if the first
@@ -395,7 +395,6 @@ def bulbs_stats_from_config(
     Returns:
         (mean, std), (consumption, penetration)
     """
-
     # The light config is A 2-D array, where Dim0 is the different
     # houses and Dim1 the different bulbs of each house.
 
@@ -411,3 +410,90 @@ def bulbs_stats_from_config(
         (np.mean(n_bulbs), np.std(n_bulbs)),
         (consumptions, counts/np.sum(counts))
     )
+
+
+def states_to_tpms(
+    states,
+    first_tpm_modification_algo='last',
+    labels=None
+):
+    """Convert the states to tranistions probability matrices.
+
+    The output tpms have at time t, the transition from
+    t-1 to t.
+
+    Args:
+        states: The states to convert.
+        first_tpm_modification_algo: Algo to use to change the tpm from
+            end of the diary to the start. Defaults to 'last'.
+            See: :py:function:`first_tpm_change` .
+        labels: Optional labels, (useful if some state are not visited).
+            Defaults to None.
+
+    Returns:
+        Transition probability matrices.
+    """
+    states = states.T
+    # this matrix will store the transitions probabilites
+    tpms = []
+    # initialize the first state with the previous state
+    old_states = np.array(states[-1])
+    n_states = (
+        len(labels) if labels is not None
+        else int(np.max(states) + 1)
+    )  # get the number of states from the input
+    for this_states in states:
+
+        # define and counts the transitions
+        states_indices, states_counts = np.unique(
+            np.asarray((old_states, this_states)),
+            axis=1, return_counts=True
+        )
+        # converts the indexes for accessing the matrix later
+        states_indices = [(i) for i in states_indices]
+
+        # compute the sum of the transitions for each states
+        transition_matrice = np.full((n_states, n_states), 0)
+        transition_matrice[states_indices] = states_counts
+        tpms.append(transition_matrice)
+
+        # save the state for old state
+        old_states = np.array(this_states)
+
+    # define what we should do with the first matrix that has false transitions
+    tpms = first_tpm_change(tpms, algo=first_tpm_modification_algo)
+
+    # converts to probs
+    tpms = tpms / np.sum(tpms, axis=2)[:, :, None]
+    # set to the same state when there are nan values
+    tpms[np.isnan(tpms)] = 0.
+    # for the cdfs that have no values, we set unchanging states
+    times, rows = np.where(tpms.sum(axis=2) == 0)
+    tpms[times, rows, rows] = 1.  # make them stay at the same states
+
+    return np.asarray(tpms)
+
+
+def first_tpm_change(tpms, algo='nothing'):
+    """Change the first tpm based on an algorithm.
+
+    Args:
+        algo: The algorithm that should be used to change the first
+            tpm values.
+
+            * 'last', replaces the first by the last matrix
+            * 'nothing', keeps the same
+
+    Returns:
+        The modified tpms.
+
+    """
+    # define what we should do with the first matrix that has false transitions
+    if algo == 'last':
+        tpms[0] = np.array(tpms[-1])
+    elif algo == 'nothing':
+        pass
+    else:
+        raise TypeError('Unknown algo {}.'.format(algo))
+
+    return tpms
