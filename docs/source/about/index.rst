@@ -24,5 +24,5 @@ License
 -------
 
 Demod is published under a
-`GPL 3 Licence <https://www.gnu.org/licenses/gpl-3.0.html>`_ .
+`GPLv3 Licence <https://www.gnu.org/licenses/gpl-3.0.html>`_ .
 
