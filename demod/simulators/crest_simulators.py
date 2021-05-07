@@ -17,6 +17,7 @@ import math
 
 
 from .base_simulators import (
+    Callbacks,
     Simulator,
     MultiSimulator,
     TimeAwareSimulator,
@@ -236,7 +237,7 @@ class Crest4StatesModel(TimeAwareSimulator, MultiSimulator):
         **kwargs
     ):
         """Initialize a simulator for households of different number of
-        residents based on the CREST data
+        residents based on CREST 4 States model.
 
         Args:
             n_households (int): the total number of households to simulate
@@ -303,13 +304,11 @@ class Crest4StatesModel(TimeAwareSimulator, MultiSimulator):
         )
 
         super().initialize_starting_state(
-            initialization_time=datetime.time(0),  # CREST starts at midnight
+            initialization_time=self.data.refresh_time,
         )
 
-    def on_after_next_day(self) -> None:
-        """Update the CREST TPMs for the new daytype.
-
-        TODO Change that to a better data implementation
+    def on_after_refresh_time(self) -> None:
+        """Update the TPMs for the new daytype.
 
         Note:
             It was deduced that the change of TPM must be perform after
@@ -336,7 +335,7 @@ class Crest4StatesModel(TimeAwareSimulator, MultiSimulator):
             [sim.state_labels[sim.current_states] for sim in self.simulators]
         )
 
-    @after_next_day_callback
+    @Callbacks.after_refresh_time
     def step(self) -> None:
         """Updates the states of the residents."""
         return super().step()

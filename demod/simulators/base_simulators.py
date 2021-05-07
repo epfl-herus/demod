@@ -813,7 +813,10 @@ class TimeAwareSimulator(Simulator):
         This function is called by the corresponding set callback
         decorator method: Callbacks.before_next_day().
         """
-        raise NotImplementedError("Method 'on_before_next_day' has no implementation in {}".format(type(self).__name__))
+        raise NotImplementedError(
+            "Method 'on_before_next_day' has no implementation "
+            "in {}".format(type(self).__name__)
+        )
 
     def on_before_next_day_4am(self) -> None:
         """Call back when current time passes a new day.
@@ -829,7 +832,10 @@ class TimeAwareSimulator(Simulator):
         This function is called by the corresponding set callback
         decorator method: Callbacks.after_next_day().
         """
-        raise NotImplementedError("Method 'on_after_next_day' has no implementation in {}".format(type(self).__name__))
+        raise NotImplementedError(
+            "Method 'on_after_next_day' has no implementation "
+            "in {}".format(type(self).__name__)
+        )
 
     def on_after_next_day_4am(self) -> None:
         """Call back when current time passes a new day.
@@ -838,6 +844,28 @@ class TimeAwareSimulator(Simulator):
         decorator method: Callbacks.after_next_day_4am().
         """
         raise NotImplementedError("Method 'on_after_next_day_4am' has no implementation in {}".format(type(self).__name__))
+
+    def on_before_refresh_time(self) -> None:
+        """Call back when current time passes the refresh time form data.
+
+        This function is called by the corresponding set callback
+        decorator method: Callbacks.before_refresh_time().
+        """
+        raise NotImplementedError(
+            "Method 'on_before_refresh_time' has no implementation "
+            "in {}".format(type(self).__name__)
+        )
+
+    def on_after_refresh_time(self) -> None:
+        """Call back when current time passes the refresh time form data.
+
+        This function is called by the corresponding set callback
+        decorator method: Callbacks.after_refresh_time().
+        """
+        raise NotImplementedError(
+            "Method 'on_after_refresh_time' has no implementation "
+            "in {}".format(type(self).__name__)
+        )
 
 # Type for the step method of the simulators (variable input, None output)
 
@@ -862,6 +890,38 @@ class Callbacks():
                 super().step()
 
     """
+    @ staticmethod
+    def before_refresh_time(step_method: StepMethod) -> StepMethod:
+        """Set a call back before the .data.refresh_time, calling
+        'self.on_before_refresh_time()'
+
+        Args:
+            step_method: the step method to decorate.
+        """
+        def decorated_step(self: TimeAwareSimulator, *args, **kwargs) -> None:
+            if self.current_time.time() == self.data.refresh_time:
+                self.on_before_refresh_time()
+            return step_method(self, *args, **kwargs)
+        decorated_step.__doc__ = step_method.__doc__
+        return decorated_step
+
+    @ staticmethod
+    def after_refresh_time(step_method: StepMethod) -> StepMethod:
+        """Set a call back after the .data.refresh_time, calling
+        'self.on_after_refresh_time()'
+
+        Args:
+            step_method: the step method to decorate.
+        """
+        def decorated_step(self: TimeAwareSimulator, *args, **kwargs) -> None:
+            previous_time = self.current_time.time()
+            out = step_method(self, *args, **kwargs)
+            if previous_time == self.data.refresh_time:
+                self.on_after_refresh_time()
+            return out
+        decorated_step.__doc__ = step_method.__doc__
+        return decorated_step
+
     @ staticmethod
     def before_next_day(step_method: StepMethod) -> StepMethod:
         """Set a call back before the next day, calling
