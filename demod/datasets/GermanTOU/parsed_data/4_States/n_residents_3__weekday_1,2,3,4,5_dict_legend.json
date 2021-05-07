@@ -1,0 +1,16 @@
+{
+    "number of households diaries": 1167,
+    "number of persons diaries": 3485,
+    "subgroup_kwargs": {
+        "weekday": [
+            1,
+            2,
+            3,
+            4,
+            5
+        ],
+        "n_residents": 3
+    },
+    "cration date": "2021-05-07 10:46:53.854124",
+    "first_tpm_modification_algo": "last"
+}

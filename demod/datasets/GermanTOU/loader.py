@@ -2,16 +2,18 @@
 Data loader for the german TOU survey.
 """
 from datetime import time
+from demod.datasets.base_loader import PopulationLoader
 import os
 from typing import Tuple
 import numpy as np
 
 from ..tou_loader import LoaderTOU
+from ..DESTATIS.loader import Destatis
 from ...utils.sim_types import *
 from ...utils.sparse import SparseTPM
 
 
-class GTOU(LoaderTOU):
+class GTOU(LoaderTOU, PopulationLoader):
     """German Time-Of-Use Survey dataset loader.
 
     This loads data for different types of activity models.
@@ -25,6 +27,19 @@ class GTOU(LoaderTOU):
 
     DATASET_NAME = 'GermanTOU'
     refresh_time = time(4, 0, 0)
+
+    def _parse_tpm(self, subgroup: Subgroup):
+        if self.activity_type == '4_States':
+            # Imports the raw data parser only here to save time
+            from .parser import get_data_4states
+            return get_data_4states(subgroup)
+        else:
+            err = NotImplementedError(("No sparse parsing defined for" +
+                "'{}' in dataset '{}'").format(
+                    self.activity_type, self.DATASET_NAME
+                ))
+            raise err
+
     def _parse_sparse_tpm(self, subgroup: Subgroup) -> Tuple[
         SparseTPM, StateLabels,
         ActivityLabels, np.ndarray]:
@@ -40,6 +55,15 @@ class GTOU(LoaderTOU):
                 ))
             raise err
 
-    def _parse_activity_profiles(self, subgroup: Subgroup) -> Dict[str, np.ndarray]:
+    def _parse_activity_profiles(
+        self, subgroup: Subgroup
+    ) -> Dict[str, np.ndarray]:
         from .parser import create_data_activity_profile
         return create_data_activity_profile(subgroup)
+
+    def load_population_subgroups(
+        self, population_type: str
+    ) -> Tuple[Subgroups, List[float], int]:
+        # GTOU is the same as Germany so we can use Destatis for the population
+        data = Destatis()
+        return data.load_population_subgroups(population_type)

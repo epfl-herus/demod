@@ -7,7 +7,7 @@ import datetime
 import pandas as pd
 import numpy as np
 from ...utils.sparse import SparseTPM
-from ...utils.parse_helpers import convert_states
+from ...utils.parse_helpers import convert_states, states_to_tpms, states_to_transitions
 
 MAX_PEOPLE_HOUSEHOLD = 6 + 1  # always need to get one above the real max pple
 
@@ -1457,6 +1457,7 @@ def states_to_out_for_what_model(occupancy, primary_states, secondary_states):
     return out, np.array(['In-house', 'HWH', 'HOH'])
 
 
+
 def states_to_sparse_tpm(states, first_matrix_strategy='last'):
     """Convert the states to a sparse TPM.
 
@@ -1570,6 +1571,43 @@ def get_active_occupancy(subgroup_kwargs):
 
     return np.sum(hh_states, axis=0)
 
+
+def get_data_4states(subgroup_kwargs, first_tpm_modification_algo='last',):
+        # gets the concerned households
+    mask_subgroup = get_mask_subgroup( **subgroup_kwargs)
+
+    hh_states = group_in_household_4states(
+        np.array(10 * occ + 1 * act, dtype=int)[mask_subgroup],
+        household_indexes=np.array(df_akt['id_hhx'])[mask_subgroup],
+        days_indexes=np.array(df_akt['tagnr'])[mask_subgroup]
+    )
+
+    states, states_label = convert_states(hh_states)
+    # Adds any missing states for the 4 states model
+    # n_res = subgroup_kwargs['n_residents']
+
+    # all_4_states = np.asarray([
+    #     i*10 + np.arange(0, n_res+1) for i in range(n_res+1)
+    # ]).reshape(-1)
+    # states_label = np.concatenate((  # Finds and adds the missing
+    #     states_label, all_4_states[~np.isin(all_4_states, states_label)]
+    # ))
+
+    tpm = states_to_tpms(states, first_tpm_modification_algo='last')
+
+    # get the pdf of the initial distribution and save it
+    initial_counts = np.bincount( states[:,0], minlength=len(states_label))
+    initial_pdf = initial_counts/ np.sum(initial_counts)
+
+    dict_legend = {}
+    dict_legend['number of households diaries'] = len(hh_states)
+    dict_legend['number of persons diaries'] = int(np.sum(mask_subgroup))
+    dict_legend['subgroup_kwargs'] = subgroup_kwargs
+    dict_legend['cration date'] = str(datetime.datetime.now())
+    dict_legend['first_tpm_modification_algo'] = first_tpm_modification_algo
+
+
+    return tpm, states_label, initial_pdf, dict_legend
 
 def get_data_sparse9states(subgroup_kwargs):
 
