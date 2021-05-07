@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, time
 
 
 from demod.simulators.crest_simulators import CrestOccupancySimulator, Crest4StatesModel
+from demod.datasets.GermanTOU.loader import GTOU
 
 from test_base_simulators import BaseSimulatorChildrenTests, TimeAwareSimulatorChildrenTests
 
@@ -112,6 +113,11 @@ class TestCrestMultiOccupancySimulator(
         kwargs = self.kwargs.copy()
         kwargs['population_sampling_algo'] = 'monte_carlo'
         self.sim(*self.args, **kwargs)
+
+    def test_with_GTOU(self):
+        self.kwargs['data'] = GTOU()
+        BaseSimulatorChildrenTests.run_base_tests(self)
+        self.kwargs.pop('data')
 
 
 
