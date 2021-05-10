@@ -1,9 +1,6 @@
 ===============
-Overview
+Overview 
 ===============
-
-.. https://docutils.sourceforge.io/docs/user/rst/quickref.html#comments
-.. https://docutils.sourceforge.io/docs/user/rst/quickstart.html 
 
 In this section demod is presented, showing main functionalities 
 and available modules.
@@ -72,15 +69,15 @@ demod's main components
 This section presents the modules avialble in demod, their operation, 
 their input and output data, and the data needed to parameterize them in case
 they are to be used for a specific case study other than those available.
-In :numref:'model-framework', a typical demod-based domestic energy demand 
+In :numref:'model-framework', a possible demod-based domestic energy demand 
 model framework is reported. 
 
 
-.. figure:: OverviewFigures/ModelFramework.png
+.. figure:: OverviewFigures/ModelFramework.png 
   :width: 600
-  :alt: Model framework
   :align: center
-  :name: model-framework
+  :name: model-framework 
+  
   
   Potential configuration for domestic energy demand model using demod
   
