@@ -32,7 +32,7 @@ Installed appliances
 
 At the beginning of a run, the model populates each dwelling 
 with a set of appliances.
-For the simulation of the German case, NAME introduces the following 
+For the simulation of the German case, demod introduces the following 
 changes compared to CREST_: 
 
 - Households are initialized with a set of appliances that is dependent 
@@ -107,7 +107,7 @@ of specific appliances:
 - **Dish Washing**
 
 The two last activities in bold where not present in CREST_ 
-but added in NAME.
+but added in demod.
 
 The *Dish Washing* activity is present in the German-time-use_ 
 and corresponds to the dishwasher and the sink. 
@@ -118,7 +118,7 @@ laptops, tablets, printers and gaming consoles.
 Appliance usage and load simulator
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-NAME computes appliance turn-on events following CREST_ approach.
+Demod computes appliance turn-on events following CREST_ approach.
 
 1. first, the activity pdf is multiplied by a calibration scalar, 
    whose value is assigned such that the simulated annual consumption 
@@ -143,7 +143,7 @@ NAME computes appliance turn-on events following CREST_ approach.
 Lighting
 ------------
 
-In NAME, two modules are available for lighting simulation. 
+In demod, two modules are available for lighting simulation. 
 Both depend on two parameters:
 
 - The *number of active occupants*, which counts how many people are 
@@ -177,7 +177,7 @@ and *effective occupancy* as inputs, which takes into account occupants'
 sharing of lights within the same room. 
 It also takes into account any lights that are left on during the day 
 and the diversity of households. 
-In order to better fit NAME to the German case, 
+In order to better fit demod to the German case, 
 two main modifications are made to Richardson et al. model.
 
 - The number of lights in a housheold is initialized following 

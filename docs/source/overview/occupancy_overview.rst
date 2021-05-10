@@ -8,7 +8,7 @@ It uses a Markov chain technique to create stochastic profiles using
 transition probability matrices based on time use survey data.
 
 
-Two alternative modules are currently available in NAME:
+Two alternative modules are currently available in demod:
 
 .. _overview_4_States:
 
@@ -74,7 +74,7 @@ a set of 3 alternatives (i.e., 'home', 'away for work' and 'away for other'),
 Other occupancy/activity simulators
 ------------------------------------
 
-NAME's modular structure allows new simulation modules to be introduced and
+Demod's modular structure allows new simulation modules to be introduced and
 tested for performance, such as explit activity simulation
 (e.g., see [Yamaguchi2020]_ ).
 

@@ -2,7 +2,7 @@
 Initialization
 ======================
 
-At the beginning of each run, the LibraryNAME-based model generates a single 
+At the beginning of each run, the demod-based model generates a single 
 or multiple instances of households.
 Depending on the purpose of the simulation and the modules selected, 
 each household can be associated with a set of devices including appliances, 

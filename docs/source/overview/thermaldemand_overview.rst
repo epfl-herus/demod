@@ -2,31 +2,21 @@
 Thermal demand and heating system 
 ============================================
 
-NAME structures the thermal demand and heating system model into three 
-components: building thermal model, heating control and domestic hot water 
-(see :numref:`thermal-model-framework`).
+Demod structures the thermal demand and heating system model into three 
+components: building thermal model, heating control and domestic hot water.
 
-
-.. figure:: OverviewFigures/ThermalModelFramework.PNG
-    :width: 400
-    :alt: The structure of the thermal demand model
-    :align: center 
-    :name: thermal-model-framework 
-    
-    The structure of the thermal demand model 
-    
-
+   
 
 Building thermal model
 ------------------------
 
-NAME employs simplified lumped-capacitance models
+Demod employs simplified lumped-capacitance models
 to simulate building and heating system thermal behaviour.
 
 4R3C building thermal model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The model currently available in NAME is a 4R3C model 
+The model currently available in demod is a 4R3C model 
 (see :numref:`CREST-thermal-model`) and it consider the same 
 parameters used in CREST_ for the UK building stock. 
 Here the six configuration of building are reported: detached house,
@@ -39,21 +29,15 @@ While, the four thermal resistences account for heat transfer between
 (iii) emitters and indoor air, 
 and (iv) air ventilation between indoor and outdoor.
 
-The emitters currently available in NAME are a radiator system. 
+The emitters currently available in demod are a radiator system. 
 More details on their sizing and characteristics can be found 
 in [McKenna2016]_.   
 
 The parameters for the capacitance and resistences are taken from CREST_, 
 and updated parameters for the German case will be released 
 in future versions. 
-
-.. figure:: OverviewFigures/CRESTBuildingThermalModel.PNG
-    :width: 500
-    :alt: CREST building thermal model
-    :align: center
-    :name: CREST-thermal-model  
     
-    Building thermal model
+
     
 .. note::
    A more appropriate model for the German building stock will be 
@@ -71,14 +55,14 @@ in future versions.
 Domestic hot water
 ------------------------
 
-Currently NAME simulates domestic hot water demand 
+Currently demod simulates domestic hot water demand 
 following the approach developed in [McKenna2016]_.
 
     
 Heating systems
 ------------------------
 
-Currently NAME implements a set of heating systems, following the 
+Currently demod implements a set of heating systems, following the 
 approach developed in [McKenna2016]_.
     
     
@@ -104,13 +88,7 @@ The thermostat setting is regulated using the approach developed in CREST_,
 which stochastically simulates timer setting based on empirical 
 distributions for weekdays and weekends. 
 
-.. figure:: OverviewFigures/HeatingControls.PNG
-    :width: 400
-    :alt: Heating control system
-    :align: center  
-    :name: heating-control 
-    
-    Heating control system
+
 
     
 .. The second method is inspired by the work [Sovacool2020]_ and
