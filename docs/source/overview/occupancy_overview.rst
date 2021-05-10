@@ -21,7 +21,7 @@ According to this approach, the occupancy status of each resident is defined
 by the activity status (*active* or *asleep*)
 and location (*home* or *away from home*).
 
-It follows then that there can be :math:`2^2 = 4` different states:
+Therefore, there can be :math:`2^2 = 4` different states:
 (i) at home and active, (ii) at home and asleep, (iii) away from home and active,
 or (iv) away from home and asleep.
 
@@ -36,7 +36,7 @@ For a household with N members,
 the TPM size can be calculated as :math:`(N + 1)^2`.
 Moreover, this approach does not allow for tracking behavioral profiles
 of individual residents,
-as household occupancy data are provided at the aggregate level.
+as household occupancy data are provided at aggregate level.
 
 For illustrative purposes, a graphic representation of the matrix in
 the case of a two-person household is shown in :numref:`TPM`.
@@ -48,6 +48,8 @@ the case of a two-person household is shown in :numref:`TPM`.
     :name: TPM
 
     Transition probability matrices for a two-person household
+
+
 
 .. _overview_transit_occupancy:
 
@@ -77,6 +79,11 @@ Other occupancy/activity simulators
 Demod's modular structure allows new simulation modules to be introduced and
 tested for performance, such as explit activity simulation
 (e.g., see [Yamaguchi2020]_ ).
+
+At the moment these modules are not available, but they are part of the 
+demod development plan. If you would like to contribute to the 
+development of new modules, please do not hesitate to contact 
+the `demod team <demod@groupes.epfl.ch>`_. 
 
 .. warning:: In this case, however, it is important to consider the
              compatibility of new modules of simulation of the occupancy
@@ -112,21 +119,6 @@ Data requirements summary
 
 
 
-
-References
-----------
-
-.. [Destatis2017]
-    Statistisches Bundesamt - Destatis (2017) Laufende wirtschaftsrechnungen
-    ausstattung privater haushaltemit ausgewahlten gebrauchsgutern.
-
-.. [McKenna2016]
-    E. McKenna, M. Thomson (2016) High-resolution stochastic integrated
-    thermal-electrical domestic demand model
-
-.. [Yamaguchi2020]
-    Y. Yamaguchi, N. Prakash, Y. Simoda (2020) Activity-Based Modeling
-    for Integration of Energy Systems for House and Electric Vehicle
 
 
  .. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LINKs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

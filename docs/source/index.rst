@@ -34,6 +34,7 @@ Features
    contributing/documentation
    about/index
    glossary
+   references
 
 
 

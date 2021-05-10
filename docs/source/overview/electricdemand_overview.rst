@@ -13,7 +13,7 @@ time resolution.
 Heating the building with a heat pump and operating an electric vehicle 
 also contribute to electric demand, however these modules are discussed 
 in :doc:`thermal demand and heating system </overview/thermaldemand_overview>` 
-and :doc:`Mobility </overview/mobility_overview>` sections, respectively. 
+and :doc:`mobility </overview/mobility_overview>` sections, respectively. 
 
 
 
@@ -22,8 +22,8 @@ Appliance use
 
 The appliance usage and load modules draws inspiration from CREST_ model, 
 developed in excel VBA and presented in [Richardson2010]_ and [McKenna2016]_. 
-These modules are compatible with both *4-states* and *transit occupancy 
-simulators*. 
+These modules are compatible with both :ref:`overview_4_States` and 
+:ref:`overview_transit_occupancy` simulators. 
 
 These modules address both the initialization and operation phases. 
 
@@ -80,7 +80,7 @@ these three categorizations.
     
 
 .. figure:: OverviewFigures/AppliancesCategories.PNG
-    :width: 300
+    :width: 500
     :alt: Appliance categories 
     :align: center 
     :name: appliance-categories 

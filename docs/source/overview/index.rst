@@ -94,9 +94,10 @@ model framework is reported.
     mobility_overview
     
 .. initialization_overview
-  
+
+
 .. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LINKs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. _German-time-use: https://www.forschungsdatenzentrum.de/de/haushalte/zve
 
-.. _CREST: https://www.lboro.ac.uk/research/crest/demand-model/ 
+.. _CREST: https://www.lboro.ac.uk/research/crest/demand-model/
