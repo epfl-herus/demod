@@ -90,13 +90,14 @@ model framework is reported.
 .. toctree::
     :maxdepth: 2
 
-    initialization_overview
+    
     occupancy_overview
     electricdemand_overview
     thermaldemand_overview
     mobility_overview
     
-    
+.. initialization_overview
+  
 .. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LINKs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. _German-time-use: https://www.forschungsdatenzentrum.de/de/haushalte/zve
