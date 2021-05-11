@@ -25,7 +25,7 @@ Glossary
       [`tutorialspoint <https://www.tutorialspoint.com/difference-between-bottom-up-model-and-top-down-model>`_]
 
    TPMs
-      Transition probablity matrix defines the probability of a simuulated
+      Transition probablity matrix defines the probability of a simulated
       component in a MArkov chain of channging from on state to another.
       In demod, TPMs (transition probability matrices) are a set of TPM
       that remebers how the matrices evolve with time.
