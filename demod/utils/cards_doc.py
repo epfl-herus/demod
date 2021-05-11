@@ -470,22 +470,69 @@ class Params:
         step_size: A datetime.timedelta object specifying the duration
             of a simulator step.
 
-        subgroup: A dictionary containing information on a certain type
+        subgroup: A python dictionary containing information on a
+            certain types
             of people or households from the dataset.
+            a subgroup has different key-value pairs that specifiy
+            socio-techno-economico-types of the population.
+            The possible keys used in demod's subgroups are defined
+            below.
 
-            :Allowed keys:
+            .. note::
+                Combination of different keys is based on intersection, which
+                means that only households/persons that respect all
+                the conditions implied by the keys will be included.
+
+            :Possible keys:
 
                 * subgroup['n_residents']
                     int, The number of residents in the household
+                * subgroup['household_type']
+                    int, The number of residents in the household
+                    From :py:class:`~demod.datasets.GermanTOU.loader.GTOU`
 
+                    * 1 = One person household
+                    * 2 = Couple without kid
+                    * 3 = Single Parent with at least one kid under 18 and the other under 27
+                    * 4 = Couple with at least one kid under 18 and the other under 27
+                    * 5 = Others
+
+                * subgroup['life_situation']
+                    int, The life siutation of the persons.
+                    From :py:class:`~demod.datasets.GermanTOU.loader.GTOU`
+
+                    * 1 = Self-employed, freelancer, farmer, family worker
+                    * 2 = Employee, worker, civil servant, judge, temporary / professional soldier, voluntary social / ecological / cultural year, voluntary military service, federal voluntary service
+                    * 3 = Trainee (also intern, volunteer)
+                    * 4 = Partial Work Time (work or retirement)
+                    * 5 = On parental leave (with an employment contract that has not been terminated)
+                    * 6 = Student, Pupil
+                    * 7 = Unemployed
+                    * 8 = Retired or early retirement
+                    * 9 = Permanently disabled
+                    * 10 = Housewife / househusband/ houseparent
+                    * 11 = Not gainfully employed for other reasons
+
+                    .. note::
+                        This works better with single persons households
+                        in general.
+
+
+                * subgroup['age']
+                    int or tuple, The age of the participants, if tuple
+                    returns all inside interval.
+                * subgroup['hh_mean_age']
+                    tuple, The mean age of all memeber of the household.
+                    Includes all households with mean age inside the
+                    interval given as tuple.
+                * subgroup['gender']
+                    int, 1 = man, 2 = woman, 3 = other
                 * subgroup['weekday']
                     int or list, The day of the week (1 to 7). If list,
-                    include all days in list.
+                    include all days in list. (1 = Monday, 7 = Sunday).
                 * subgroup['quarter']
                     int or list, The quarter of the year (1 to 4).
 
-            When multiple keys are given, the subgroup is the Union,
-            intersection of all of them.
 
         subgroups: A list of :py:attr:`subgroup`.
 

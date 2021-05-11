@@ -31,3 +31,9 @@ Glossary
       that remebers how the matrices evolve with time.
       By convention, the i-eth TPM define the probabilities for transition from
       state i-1 to i.
+
+   subgroup
+      Represent a set of social, technical, or economical information of
+      a specific kind of the population.
+      See how demod implement subgroups:
+      :py:attr:`~demod.utils.cards_doc.Params.subgroup`.
