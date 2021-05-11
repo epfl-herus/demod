@@ -90,7 +90,16 @@ Domestic hot water demand
 ------------------------
 
 Currently demod simulates domestic hot water demand 
-following the approach developed in [McKenna2016]_.
+following the approach developed in [McKenna2016]_, which follows a similar
+approach to the one applied for electric appliances: 
+first the number of water fixtures in the house is 
+initialized; 
+then based on the probability of associated activities 
+(i.e., washing and cooking) the number of times each water fixtureis used,  
+the  temperature  of  the  hot  water  and  the  withdrawn  volume  
+are determined stochastically.
+
+
 
 
 Heating controls
