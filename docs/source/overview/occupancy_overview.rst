@@ -16,7 +16,11 @@ Two alternative modules are currently available in demod:
 -----------------------------
 
 It is based on a first-order non-homogeneous Markov chain model,
-developed by [McKenna2016]_.
+developed by [McKenna2016]_. For further details about the implementation of 
+this simulator you can visit 
+:py:class:`~demod.simulators.crest_simulators.Crest4StatesModel`.
+    
+
 According to this approach, the occupancy status of each resident is defined
 by the activity status (*active* or *asleep*)
 and location (*home* or *away from home*).
@@ -50,6 +54,9 @@ the case of a two-person household is shown in :numref:`TPM`.
     Transition probability matrices for a two-person household
 
 
+  
+
+
 
 .. _overview_transit_occupancy:
 
@@ -57,11 +64,14 @@ Transit occupancy simulator
 ---------------------------
 
 This approach extend the 4-state occupancy simulator by distinguishing
-between 'away for work' and 'away for other'.
-This new version of the model complicates the parameterization of TPMs
-as it consider three location alternatives.
-However, it may be more appropriate for integrating driving
-and charging modules for electric vehicles.
+between 'away for work' and 'away for other'. For further details about the implementation of 
+this simulator you can visit 
+:py:class:`~demod.simulators.sparse_simulators.SparseTransitStatesSimulator`.
+
+
+This new version of the model considers three location alternatives and thefore,
+it may be more appropriate for integrating driving and charging modules 
+for electric vehicles.
 
 In this case the size of TPMs is equal to
 :math:`(N + 1) \cdot {3 + N - 1 \choose N}`.
@@ -103,13 +113,13 @@ Data requirements summary
 +===========+=============================+=========================+==================+===========+
 | Occupancy | 4-state occupancy simulator | number of residents     | User             | User      |
 |           |                             +-------------------------+------------------+-----------+
-|           |                             | week/weekend day        | User             | User      |
+|           |                             | time                    | User             | User      |
 |           |                             +-------------------------+------------------+-----------+
 |           |                             | 4-states occupancy TPMs | German-time-use_ | CREST_    |
 |           +-----------------------------+-------------------------+------------------+-----------+
 |           | Transit occupancy simulator | number of residents     | User             | n.a.      |
 |           |                             +-------------------------+------------------+           |
-|           |                             | week/weekend day        | User             |           |
+|           |                             | time                    | User             |           |
 |           |                             +-------------------------+------------------+           |
 |           |                             | transit occupancy TPMs  | German-time-use_ |           |
 +-----------+-----------------------------+-------------------------+------------------+-----------+

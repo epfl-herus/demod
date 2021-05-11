@@ -79,7 +79,7 @@ model framework is reported.
   :name: model-framework 
   
   
-  Potential configuration for domestic energy demand model using demod
+  Domestic energy demand model framework using demod: a possible configuration
   
 
 
@@ -87,7 +87,7 @@ model framework is reported.
 .. toctree::
     :maxdepth: 2
 
-    
+    sociotechnical_overview
     occupancy_overview
     electricdemand_overview
     thermaldemand_overview

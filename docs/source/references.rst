@@ -17,6 +17,11 @@ References
     E. McKenna, M. Thomson (2016) High-resolution stochastic integrated 
     thermal-electrical domestic demand model
 
+.. [McKenna2017] 
+    E. McKenna, S. Higginson, P. Grunewald and S. J.Darby (2017) Simulating 
+    residential demand response: Improving socio-technical assumptions 
+    in activity-based models of energy demand
+
 .. [Richardson2009] 
     I. Richardson, M. Thomson, D. Infield, A. Delahunty (2009) Domestic 
     lighting: A high-resolution energy demand model
