@@ -27,11 +27,18 @@ These modules are compatible with both :ref:`overview_4_States` and
 
 These modules address both the initialization and operation phases. 
 
+
+
 Installed appliances
 ~~~~~~~~~~~~~~~~~~~~
 
 At the beginning of a run, the model populates each dwelling 
 with a set of appliances.
+
+For UK case, the model stochastically estimate the appliance set for each 
+household using statistical ownership data from multiple sources 
+[Richardson2010]_.
+
 For the simulation of the German case, demod introduces the following 
 changes compared to CREST_: 
 
@@ -40,6 +47,8 @@ changes compared to CREST_:
 - The full set of available appliances is updated to reflect osbolescence 
   (e.g., answer machine, cassette / CD player) and changes 
   (e.g., tables, game console) in technology.
+
+
 
 Appliance categories
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -87,10 +96,12 @@ these three categorizations.
     
     Appliance categories
     
+
+
 Activity dependent appliance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
-As in CREST_, the electricity demand of *activity-dependent* appliances 
+The electricity demand of *activity-dependent* appliances 
 is estimated based on the probability that the appliance is turned on, 
 which depends on the probability that someone is performing 
 the related domestic activity. 
@@ -114,6 +125,8 @@ and corresponds to the dishwasher and the sink.
 
 *Electronics* has been added and accounts for the use of computers, 
 laptops, tablets, printers and gaming consoles.
+
+
 
 Appliance usage and load simulator
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -140,6 +153,7 @@ Demod computes appliance turn-on events following CREST_ approach.
     
 
 
+
 Lighting
 ------------
 
@@ -151,6 +165,8 @@ Both depend on two parameters:
 - *External radiation* or natural lighting, as human perception of the 
   natural light level within a building is a key factor determining use 
   of artificial lighting.
+
+
 
 Fisher's lighting module
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -168,6 +184,8 @@ are respectively the current irradiation,
 and the boundaries between which the light usage rate increases linearly
 between 0 and 1 as the external irradiation decreases.
 
+
+
 CREST lighting module
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -178,7 +196,7 @@ sharing of lights within the same room.
 It also takes into account any lights that are left on during the day 
 and the diversity of households. 
 In order to better fit demod to the German case, 
-two main modifications are made to Richardson et al. model.
+two main modifications are made to the model of Richardson et al.
 
 - The number of lights in a housheold is initialized following 
   the approach of [Frondel2019]_. Here, the number of installed buls 

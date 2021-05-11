@@ -54,7 +54,9 @@ the case of a two-person household is shown in :numref:`TPM`.
     Transition probability matrices for a two-person household
 
 
-  
+.. note::  This simulator is available for UK and German households.
+    However, modeling behavior heterogeneity based on socio-economic groups
+    is only available for German housheolds.
 
 
 
@@ -81,6 +83,7 @@ is calculated as the combination with repetition of class N and
 a set of 3 alternatives (i.e., 'home', 'away for work' and 'away for other'),
 :math:`C^{'}_{(3,N)}={3 + N - 1 \choose N}`.
 
+.. note::  This simulator is currently only available for German households
 
 
 Other occupancy/activity simulators
@@ -115,11 +118,15 @@ Data requirements summary
 |           |                             +-------------------------+------------------+-----------+
 |           |                             | time                    | User             | User      |
 |           |                             +-------------------------+------------------+-----------+
+|           |                             | type of household       | User             | n.a.      |
+|           |                             +-------------------------+------------------+-----------+
 |           |                             | 4-states occupancy TPMs | German-time-use_ | CREST_    |
 |           +-----------------------------+-------------------------+------------------+-----------+
 |           | Transit occupancy simulator | number of residents     | User             | n.a.      |
 |           |                             +-------------------------+------------------+           |
 |           |                             | time                    | User             |           |
+|           |                             +-------------------------+------------------+           |
+|           |                             | type of household       | User             |           |
 |           |                             +-------------------------+------------------+           |
 |           |                             | transit occupancy TPMs  | German-time-use_ |           |
 +-----------+-----------------------------+-------------------------+------------------+-----------+
