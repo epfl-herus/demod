@@ -464,11 +464,14 @@ class Params:
             for simulators that can update their attributes depending on
             the datetime.
 
-        start_datetime: A datetime.datetime object specifiying the moment of
+        start_datetime: A `datetime.datetime object
+            <https://docs.python.org/3/library/datetime.html#datetime-objects>`_
+            specifiying the moment of
             the start of the simulation.
 
-        step_size: A datetime.timedelta object specifying the duration
-            of a simulator step.
+        step_size: A `datetime.timedelta object
+            <https://docs.python.org/3/library/datetime.html#timedelta-objects>`_
+            specifying the duration of a simulator step.
 
         subgroup: A python dictionary containing information on a
             certain types
