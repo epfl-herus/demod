@@ -1,11 +1,45 @@
 ============================================
-Thermal demand and heating system 
+Thermal demand, control and heating system 
 ============================================
 
-Demod structures the thermal demand and heating system model into three 
-components: building thermal model, heating control and domestic hot water.
-
+Demod structures the thermal demand and heating system model into multiple 
+components: building thermal model, space heating control, 
+consumer thermostat settings, domestic hot water demand and hot water tank.
    
+Consumer thermostat settings
+----------------------------
+
+Currently there are available two modueles for simulating 
+consumer thermostat settings.
+
+
+CREST stochastic setting
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This module implements the approach developed in CREST_.
+In this case, timer setting are stochastically simulated based on empirical 
+distributions for weekdays and weekends.  
+(speak about temperature anm switch on periods)
+
+
+Living Lab thermostat setting simulator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
+The second method is inspired by the work [Sovacool2020]_ and
+attempts to simulate the operation of the heating system by defining 
+six different usage patterns. These six different patterns aim to give 
+more relevance to the heterogeneity of behavior of different users in 
+terms of heating periods and target temperatures. 
+
+For further details about the implementation of this simulator, you can 
+read about 
+:py:class:`~demod.simulators.demod.simulators.heating_simulators.VariableThermostatTemperatureSimulator`.
+
+
+.. note::
+    Demod is flexible and allows to use alternative comfort temperature and 
+    heating switch on profiles. Once these profiles are generated or 
+    empirically measured, they can be given as imput to the 
+    thermal building model to estimate the heating demand. 
 
 Building thermal model
 ------------------------
@@ -52,20 +86,13 @@ in future versions.
 .. For this model, parameters are currently available for a single apartment
 .. configuration, as presented in [Vivian2017]_.
 
-Domestic hot water
+Domestic hot water demand
 ------------------------
 
 Currently demod simulates domestic hot water demand 
 following the approach developed in [McKenna2016]_.
 
-    
-Heating systems
-------------------------
 
-Currently demod implements a set of heating systems, following the 
-approach developed in [McKenna2016]_.
-    
-    
 Heating controls
 ------------------------
 
@@ -84,54 +111,18 @@ the temperature monitoring of the emitters,
 the controller avoids that they can reach temperatures higher than 
 the safety temperature of 55 °C.
 
-The thermostat setting is regulated using the approach developed in CREST_,
-which stochastically simulates timer setting based on empirical 
-distributions for weekdays and weekends. 
-
-
-
     
-.. The second method is inspired by the work [Sovacool2020]_ and
-.. attempts to simulate the operation of the heating system by defining 
-.. six different usage patterns. These six different patterns aim to give 
-.. more relevance to the heterogeneity of behavior of different users in 
-.. terms of heating periods and target temperatures.  
-  
+Heating systems
+------------------------
+
+Currently demod implements a set of heating systems, following the 
+approach developed in [McKenna2016]_.
+    
     
 
 
 
-References
-------------
 
-.. [Destatis2017]
-    Statistisches Bundesamt - Destatis (2017) Laufende wirtschaftsrechnungen 
-    ausstattung privater haushaltemit ausgewahlten gebrauchsgutern.   
-    
-.. [Fisher2015] 
-    D. Fischer, A. Härtl, B. Wille-Haussmann (2015) Model for electric load 
-    profiles with high time resolution for German households
-    
-.. [Frondel2019] 
-    M. Frondel, S. Sommer, C. Vance (2019) Heterogeneity in German 
-    Residential Electricity Consumption: A quantile regression approach    
-
-.. [McKenna2016] 
-    E. McKenna, M. Thomson (2016) High-resolution stochastic integrated 
-    thermal-electrical domestic demand model
-
-.. [Richardson2009] 
-    I. Richardson, M. Thomson, D. Infield, A. Delahunty (2009) Domestic 
-    lighting: A high-resolution energy demand model
-
-.. [Richardson2010] 
-    I. Richardson, M. Thomson, D. Infield, C. Clifford (2010) Domestic 
-    electricity use: A high-resolution energy demand model
-
-.. [Yamaguchi2020] 
-    Y. Yamaguchi, N. Prakash, Y. Simoda (2020) Activity-Based Modeling 
-    for Integration of Energy Systems for House and Electric Vehicle
- 
  
  .. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LINKs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

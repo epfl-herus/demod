@@ -30,10 +30,16 @@ References
     I. Richardson, M. Thomson, D. Infield, C. Clifford (2010) Domestic 
     electricity use: A high-resolution energy demand model
 
+.. [Sovacool2020]
+    B. Sovaccol, J. Osbon, M. Martiskainen, M. Lipson (2020) Testing smarter 
+    control and feedback with users: Time, temperature and space 
+    in household heating preferences and practices in a living laboratory.
+
 .. [Yamaguchi2020]
     Y. Yamaguchi, N. Prakash, Y. Simoda (2020) Activity-Based Modeling
     for Integration of Energy Systems for House and Electric Vehicle
 
+     
  
  .. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LINKs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
