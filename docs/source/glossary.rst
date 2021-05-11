@@ -25,9 +25,15 @@ Glossary
       [`tutorialspoint <https://www.tutorialspoint.com/difference-between-bottom-up-model-and-top-down-model>`_]
 
    TPMs
-      Transition probablity matrix defines the probability of a simuulated
+      Transition probablity matrix defines the probability of a simulated
       component in a MArkov chain of channging from on state to another.
       In demod, TPMs (transition probability matrices) are a set of TPM
       that remebers how the matrices evolve with time.
       By convention, the i-eth TPM define the probabilities for transition from
       state i-1 to i.
+
+   subgroup
+      Represent a set of social, technical, or economical information of
+      a specific kind of the population.
+      See how demod implement subgroups:
+      :py:attr:`~demod.utils.cards_doc.Params.subgroup`.
