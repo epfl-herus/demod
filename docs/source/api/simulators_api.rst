@@ -105,6 +105,7 @@ Heating  simulators
 
 
 
+
 Heating Components
 ~~~~~~~~~~~~~~~~~~~
 
@@ -121,6 +122,10 @@ Heating  simulators can be splitted into different heating components.
 
 Maybe add external cylinder in the future ???
 
+Variable Thermostats
+~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: VariableThermostatTemperatureSimulator
 
 CREST heating
 ~~~~~~~~~~~~~
