@@ -26,8 +26,33 @@ from ..datasets.Germany.loader import GermanDataHerus
 class VariableThermostatTemperatureSimulator(Simulator):
     """Simulator for variable room thermostats.
 
-    Based on the Living lab study that shows 6 different kinds of
+    Based on the Living lab study by
+    [Sovacool2020]_ that shows 6 different kinds of
     heating patterns.
+
+    * *Cool Conservers*, Often adjust temperature to try and cut bills
+    * *Steady and Savvy*, Rarely adjust their heating as they are fine with 18-20c
+    * *Hot and Cold Fluctuators*, Often adjust temperature to get comfortable
+    * *On-Demand Sizzlers*, Some like it hotter or want to spend more than others in their home
+    * *On-off Switchers*, Turn it on and off to try and make sure home is only warm when someone is in
+    * *Toasty Cruisers*,  Love feeling cosy and prefer not to put clothes on if they are cold
+
+
+    Params
+        :py:attr:`~demod.utils.cards_doc.Params.n_households`
+        :py:attr:`~demod.utils.cards_doc.Params.initial_occupancy`
+        :py:attr:`~demod.utils.cards_doc.Params.initial_act_occ`
+        :py:attr:`~demod.utils.cards_doc.Params.start_datetime`
+        :py:attr:`~demod.utils.cards_doc.Params.logger`
+    Data
+        None.
+    Step input
+        :py:attr:`~demod.utils.cards_doc.Inputs.occupancy`
+        :py:attr:`~demod.utils.cards_doc.Inputs.active_occupancy`
+    Output
+        :py:meth:`~demod.utils.cards_doc.Sim.get_thermostat_temperatures`
+    Step size
+        10 Minutes.
     """
 
     LOW_T = 16.0
@@ -158,7 +183,7 @@ class VariableThermostatTemperatureSimulator(Simulator):
         n_households,
         initial_occupancy,
         initial_act_occ,
-        time,
+        start_datetime,
         *args,
         **kwargs
     ):
@@ -176,7 +201,7 @@ class VariableThermostatTemperatureSimulator(Simulator):
         self.attribute_patterns(*args, **kwargs)
         self.last_occupancy = initial_occupancy
         self.last_act_occ = initial_act_occ
-        self.time = time
+        self.time = start_datetime
         self.initialize_starting_state(0)
 
     def initialize_starting_state(self, start_time_step):
