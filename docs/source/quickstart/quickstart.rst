@@ -3,16 +3,16 @@ Quickstart
 ==========
 
 
-You don't want to use Python ?
+You **don't want to use** Python ?
 :ref:`Learn how to use demod without python <withoutpython>`.
 
-You want to add load profiles in your python project ?
+You want to **add load profiles** in your python project ?
 :ref:`Get started with demod <runnig_a_simulation>`.
 
-You want to create your own simulation algorithms ?
+You want to create **your own simulation algorithms** ?
 :doc:`Create your first demod simulator <../tutorials/create_a_simulator>`.
 
-You want to add your data for generating load profiles based on it ?
+You want to **add your data** for generating load profiles based on it ?
 :doc:`Create your demod datset <../tutorials/datasets>`.
 
 .. _runnig_a_simulation:
@@ -66,7 +66,9 @@ introduction in :doc:`../tutorials/create_a_simulator`.
 Using a logger to access the data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Shows how to use the SimLogger object from the simulators
+Shows how to use the
+:py:class:`~demod.simulators.base_simulators.SimLogger`
+object from the simulators
 
 
 .. code-block:: python
@@ -106,7 +108,9 @@ You can have more information about the logger at
 Handling multiple simulators
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The LoadSimulator can be decomposed in different components
+The
+:py:class:`~demod.simulators.load_simulators.LoadSimulator`
+can be decomposed in different components
 as explain in :doc:`the overview section <../overview/index>`.
 
 Here we present how to perform a simulation with multiple
@@ -116,8 +120,8 @@ how to handles the inputs and outputs from the different simulators.
 
 First you need to choose the components among the different
 available simulators, which you can find in the
-:doc:`simulators API documentation <../api/simulators_api>`.
-You can also select a datset from the
+:ref:`simulators API documentation <available_datasets>`.
+You can also select a dataset from the
 :doc:`available datasets <../api/data_api>`.
 
 In this example, we will simulate the lighting in a household.
@@ -183,7 +187,7 @@ for the desired amount of time. In this example we run it for two days.
             )
 
 Note how we connected the inputs of the step function for
-lighting simulator using the the corresponding getter functions.
+lighting simulator using the the corresponding getter methods.
 
 You can find all the inputs and outputs of simulators also in the
 :doc:`simulators API documentation <../api/simulators_api>`.
@@ -203,7 +207,12 @@ You can create simple load profiles by running loadprofile.exe .
 The parameters of the created load profiles can be changed in the
 input excell file : inputs.xls, where you can also decide the location
 and the format of the generated profiles.
-:note:
+
+Please contact us if you would need this tool, so that we can get insights
+about how we can design it better.
+
+.. note::
+
     You will still need to have python and the corresponding
     library installed. See
-:doc:`installation instructions <../installation/installation>`.
+    :doc:`installation instructions <../installation/installation>`.
