@@ -25,9 +25,9 @@ Features
    :maxdepth: 2
    :caption: Contents:
 
+   overview/index
    quickstart/quickstart
    installation/installation
-   overview/index
    api/index
    tutorials/index
    examples/index
