@@ -22,6 +22,7 @@ class GTOU(LoaderTOU, PopulationLoader):
 
     Currently implements activity_types:
         - 'Sparse9States'
+        - '4_States'
 
     """
 
