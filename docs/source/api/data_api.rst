@@ -28,6 +28,9 @@ Datasets Loader
 .. autoclass:: HeatingLoader
     :members:
 
+
+.. _available_datasets:
+
 Available Datasets
 ------------------
 
