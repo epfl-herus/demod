@@ -17,7 +17,7 @@ Each simulator is given different types of parameters:
 * **Data**: the loading methods required from the Dataloader given in the :py:attr:`~demod.utils.cards_doc.Params.data` param.
 * **Step input**: the arguments of the :py:meth:`step` method of the simulator.
 * **Output**: the get methods available.
-* **Step size**: the time between to steps.
+* **Step size**: the time between two steps.
 
 
 With these identity cards, the usage of the simulators and the datasets
