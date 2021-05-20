@@ -48,7 +48,7 @@ Two alternative modules are currently available in demod:
     the case of a two-person household is shown in :numref:`TPM`.
 
 
-.. figure:: OverviewFigures/TPM.PNG
+.. figure:: OverviewFigures/TPM.png
     :width: 400
     :alt: Transition probability matrices
     :align: center

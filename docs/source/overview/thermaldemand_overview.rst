@@ -152,7 +152,7 @@ Low-order building thermal model (4R3C)
 
 
 
-.. figure:: OverviewFigures/4R3Cbuildingthermalmodel.PNG
+.. figure:: OverviewFigures/4R3Cbuildingthermalmodel.png
     :width: 700
     :alt: 4R3C low-order building thermal model
     :align: center
@@ -238,7 +238,7 @@ Low-order hot water tank thermal model (1R1C)
 :Availability: The parameters for the capacitance and resistences are 
   taken from CREST_.
 
-.. figure:: OverviewFigures/1R1Chotwatertankthermalmodel.PNG
+.. figure:: OverviewFigures/1R1Chotwatertankthermalmodel.png
     :width: 700
     :alt: 1R1C low-order hot water tank thermal model
     :align: center
