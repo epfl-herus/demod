@@ -1,5 +1,6 @@
 """Helper functions for parsing Datasets."""
 
+from demod.utils.monte_carlo import PDFs
 from typing import Dict, Tuple
 import numpy as np
 import pandas
@@ -421,6 +422,7 @@ def bulbs_stats_from_config(
         (consumptions, counts/np.sum(counts))
     )
 
+
 def states_to_tpms_with_durations(
     states: np.ndarray,
     first_tpm_modification_algo: str = 'last',
@@ -461,7 +463,7 @@ def states_to_tpms_with_durations(
     durations = np.zeros((n_times, n_states, n_times))
     durations_with_previous = np.zeros((n_times, n_states, n_states, n_times))
 
-    # Adds the transitions (first, find the unique transitions, then add to tpm)
+    # Adds the transitions (first find the unique transitions, then add to tpm)
     uniques, counts = np.unique(np.c_[
         transition_dict['times'],
         transition_dict['old_states'],
@@ -521,6 +523,32 @@ def states_to_tpms_with_durations(
     return tpm, durations, durations_with_previous
 
 
+def get_initial_durations_pdfs(states: States) -> PDFs:
+    """Compute the initial durations depending on the states.
+
+    Dim 0 corresponds to the different possible states,
+    Dim 1 contains the pdfs.
+    """
+    t = 0
+    # Records where the starting states have been found
+    mask_not_found = np.ones(len(states), dtype=bool)
+    # Counts the number of durations
+    counts = np.zeros((len(np.unique(states)), states.shape[-1]))
+    prev_state = states[:, 0]
+    for state in states.T:  # Iterate over the time
+        # Finds where the first change is occuring
+        mask_first_change = (prev_state != state) & mask_not_found
+        unique, count = np.unique(  # Counts how many have this duration
+            prev_state[mask_first_change], return_counts=True
+        )
+        counts[unique, t] = count
+        t += 1  # Increment time variable
+        # Updates the found values
+        mask_not_found[mask_first_change] = False
+
+    return counts_to_pdf(counts)
+
+
 def counts_to_pdf(counts: np.ndarray, ensure_valid_pdf=True):
     """Transform an array countaining counts of an event to pdfs.
 
@@ -541,7 +569,6 @@ def counts_to_pdf(counts: np.ndarray, ensure_valid_pdf=True):
     shape = list(counts.shape)
     shape[-1] = 1
     return counts / counts.sum(axis=-1).reshape(shape)
-
 
 
 def states_to_tpms(

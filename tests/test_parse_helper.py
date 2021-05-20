@@ -1,5 +1,6 @@
 from demod.utils.parse_helpers import (
     counts_to_pdf,
+    get_initial_durations_pdfs,
     states_to_tpms_with_durations,
     states_to_transitions,
     states_to_tpms
@@ -209,3 +210,21 @@ class TestTPMsWithDuration(unittest.TestCase):
                 ]
             ])
         ))
+
+
+class TestInitialDuration(unittest.TestCase):
+    def test_simple(self):
+        states = np.array([
+            [0, 0, 0],
+            [0, 1, 1],
+            [1, 1, 0],
+            [1, 0, 0],
+        ], dtype=int)
+        pdf = get_initial_durations_pdfs(states)
+        print(pdf)
+        self.assertTrue(np.all(pdf == np.array(
+            [
+                [0., 1., 0.],
+                [0., 0.5, 0.5],
+            ]
+        )))
