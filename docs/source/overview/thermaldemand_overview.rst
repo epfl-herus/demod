@@ -64,7 +64,7 @@ CREST thermostat setting simulator
   using a first order Markov chain model, which uses empirical data 
   for weekdays and weekends.  
   If the timer is set on, the heating system keep indoor air temperature 
-  within the deadband of :math:`+ \: - 2^{\circ}C`.
+  within the deadband of :math:`\pm 2^{\circ}C`.
 
 :Availability: This module uses empirical data from CREST, which are derived 
   from a UK study. No equivalent data are currently available for Germany. 
