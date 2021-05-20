@@ -56,7 +56,7 @@ In :numref:`appliance-categories`, appliances are reported considering
 these three categorizations. 
     
 
-.. figure:: OverviewFigures/AppliancesCategories.PNG
+.. figure:: OverviewFigures/AppliancesCategories.png
     :width: 500
     :alt: Appliance categories 
     :align: center 
