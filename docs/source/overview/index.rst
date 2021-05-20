@@ -15,24 +15,12 @@ What's demod supposed to do?
 
 Demod has been developed with the overarching aim of providing
 a flexible and easily customizable tool for 
-simulating domestic energy demand (i.e., electrical and thermal). 
+simulating domestic energy demand (e.g., electrical and thermal). 
 
 Indeed, you can select numerous household characteristics 
 (e.g., appliances, heating system, socio-demographic characteristics) 
 or replace entire simulation modules to generate 
 suitable energy demand profiles for your research interests. 
-
-.. Activity-based model
-
-In general, demod's modules are based on microsimulation of human behavior. 
-In other words, they explicitly take into account household occupancy and 
-activity profiles to reconstruct their thermal and electrical demand profiles. 
-This allows to simulate energy demand profiles in an integrated and
-consistent manner, including dependencies between individual loads 
-and obtaining adequate time diversification. 
-
-
-.. German focus
 
 Currently, demod's modules are parametrized by default using data for Germany. 
 It is also possible to select a UK version, which makes use of data 
@@ -44,6 +32,31 @@ This together with the complete documentation of all the modules
 and the data processing methods allows the application of demod 
 to contexts other than Germany. 
 
+
+Socio-technical modeling
+--------------------------
+
+As discussed in several studies, domestic energy demand is the outcome 
+of diverse individual and shared practices in diverse situations.
+Therefore, investigating how consumers access energy services and undertaken 
+daily activities is key for improving domestic energy demand models. 
+
+In this regard, demod's modules are based on microsimulation of human behavior. 
+In other words, they explicitly take into account household occupancy and 
+activity behavior to reconstruct their thermal and electrical demand profiles. 
+This allows to simulate thermal and electrical demand in an integrated and
+consistent manner, including dependencies between individual loads 
+and obtaining adequate time diversification. 
+
+However, this approach requires certain assumptions and simplifications 
+to be made, e.g. regarding the association between human behaviour and 
+appliance use, behavioural heterogeneity or variable energy service expectation.  
+These assumptions should be considered to make informed choice about the 
+most suitable modules according to the specific application, but also encourage 
+the improvement of those currently available.
+
+For further details, you may be interested in the following readings: 
+[McKenna2017]_
 
 
 Examples of application
@@ -62,13 +75,17 @@ demod can be used in various applications:
   
 
 
-
 demod's main components
 -----------------------
 
-This section presents the modules avialble in demod, their operation, 
-their input and output data, and the data needed to parameterize them in case
-they are to be used for a specific case study other than those available.
+This section presents the modules available in demod, their operation, 
+their input and output data, compatibility with other demod modules, 
+the current available parameterisations and 
+the data required to parameterise them in the event that they are to be used 
+for a specific case study other than those available.
+For more details on their implementation, 
+you will also find the link to the dedicated API section. 
+
 In :numref:`model-framework`, a possible demod-based domestic energy demand 
 model framework is reported. 
 
@@ -82,12 +99,9 @@ model framework is reported.
   Domestic energy demand model framework using demod: a possible configuration
   
 
-
-
 .. toctree::
     :maxdepth: 2
 
-    sociotechnical_overview
     occupancy_overview
     electricdemand_overview
     thermaldemand_overview

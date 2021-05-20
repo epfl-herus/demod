@@ -2,48 +2,51 @@
 Occupancy and activity
 ======================
 
-This module allows to simulate household occupancy and activity behaviour
+These modules allows to simulate household occupancy and activity behaviour
 with a 10 min time resolution.
-It uses a Markov chain technique to create stochastic profiles using
+They uses a Markov chain technique to create stochastic profiles using
 transition probability matrices based on time use survey data.
 
 
 Two alternative modules are currently available in demod:
 
+- :ref:`overview_4_States`
+- :ref:`overview_transit_occupancy`
+
 .. _overview_4_States:
 
 4-states occupancy simulator
 -----------------------------
-
-It is based on a first-order non-homogeneous Markov chain model,
-developed by [McKenna2016]_. For further details about the implementation of 
-this simulator you can visit 
-:py:class:`~demod.simulators.crest_simulators.Crest4StatesModel`.
+:API:  For details about the implementation of
+ this simulator you can visit
+ :py:class:`~demod.simulators.crest_simulators.Crest4StatesModel`.
     
 
-According to this approach, the occupancy status of each resident is defined
-by the activity status (*active* or *asleep*)
-and location (*home* or *away from home*).
+:Description: This module is based on a first-order non-homogeneous Markov 
+    chain model, developed by [McKenna2016]_. 
+    According to this approach, the occupancy status of each resident is defined
+    by the activity status (*active* or *asleep*)
+    and location (*home* or *away from home*).
+    Therefore, there can be :math:`2^2 = 4` different states:
+    (i) at home and active, (ii) at home and asleep, (iii) away from home 
+    and active, or (iv) away from home and asleep.
+    The model is non-homogeneous because the coefficients of the transition
+    probability matrix (TPM) change throughout the day with a timestep
+    of 10 min.
 
-Therefore, there can be :math:`2^2 = 4` different states:
-(i) at home and active, (ii) at home and asleep, (iii) away from home and active,
-or (iv) away from home and asleep.
+    This approach has the advantage of ensuring greater accuracy
+    in simulating shared family activities such as mealtime.
+    However as the number of family members increases the size of TPMs
+    grows exponentially making proper parameterization difficult.
+    For a household with N members,
+    the TPM size can be calculated as :math:`(N + 1)^2`.
+    Moreover, this approach does not allow for tracking behavioral profiles
+    of individual residents,
+    as household occupancy data are provided at aggregate level.
 
-The model is non-homogeneous because the coefficients of the transition
-probability matrix (TPM) change throughout the day with a timestep
-of 10 min.
-This approach has the advantage of ensuring greater accuracy
-in simulating shared family activities such as mealtime.
-However as the number of family members increases the size of TPMs
-grow exponentially making proper parameterization difficult.
-For a household with N members,
-the TPM size can be calculated as :math:`(N + 1)^2`.
-Moreover, this approach does not allow for tracking behavioral profiles
-of individual residents,
-as household occupancy data are provided at aggregate level.
+    For illustrative purposes, a graphic representation of the matrix in
+    the case of a two-person household is shown in :numref:`TPM`.
 
-For illustrative purposes, a graphic representation of the matrix in
-the case of a two-person household is shown in :numref:`TPM`.
 
 .. figure:: OverviewFigures/TPM.PNG
     :width: 400
@@ -54,7 +57,7 @@ the case of a two-person household is shown in :numref:`TPM`.
     Transition probability matrices for a two-person household
 
 
-.. note::  This simulator is available for UK and German households.
+:Availability: This simulator is available for UK and German households.
     However, modeling behavior heterogeneity based on socio-economic groups
     is only available for German housheolds.
 
@@ -65,25 +68,25 @@ the case of a two-person household is shown in :numref:`TPM`.
 Transit occupancy simulator
 ---------------------------
 
-This approach extend the 4-state occupancy simulator by distinguishing
-between 'away for work' and 'away for other'. For further details about the implementation of 
-this simulator you can visit 
-:py:class:`~demod.simulators.sparse_simulators.SparseTransitStatesSimulator`.
+:API:  For details about the implementation of this simulator you can visit
+ :py:class:`~demod.simulators.sparse_simulators.SparseTransitStatesSimulator`.
+    
 
+:Description: This approach extend the :ref:`overview_4_States` 
+    by distinguishing between 'away for work' and 'away for other'. 
+    This new version of the model considers three location alternatives and 
+    thefore, it may be more appropriate for integrating driving 
+    and charging modules for electric vehicles.
 
-This new version of the model considers three location alternatives and thefore,
-it may be more appropriate for integrating driving and charging modules 
-for electric vehicles.
+    In this case the size of TPMs is equal to
+    :math:`(N + 1) \cdot {3 + N - 1 \choose N}`.
+    The first term of the product stands for the number of active/asleep people,
+    while the second term corresponds to their location and
+    is calculated as the combination with repetition of class N and
+    a set of 3 alternatives (i.e., 'home', 'away for work' and 'away for other'),
+    :math:`C^{'}_{(3,N)}={3 + N - 1 \choose N}`.
 
-In this case the size of TPMs is equal to
-:math:`(N + 1) \cdot {3 + N - 1 \choose N}`.
-The first term of the product stands for the number of active/asleep people,
-while the second term corresponds to their location and
-is calculated as the combination with repetition of class N and
-a set of 3 alternatives (i.e., 'home', 'away for work' and 'away for other'),
-:math:`C^{'}_{(3,N)}={3 + N - 1 \choose N}`.
-
-.. note::  This simulator is currently only available for German households
+:Availability: This simulator is currently only available for German households.
 
 
 Other occupancy/activity simulators
@@ -98,47 +101,14 @@ demod development plan. If you would like to contribute to the
 development of new modules, please do not hesitate to contact 
 the `demod team <demod@groupes.epfl.ch>`_. 
 
-.. warning:: In this case, however, it is important to consider the
-             compatibility of new modules of simulation of the occupancy
-             and activity, with those of simulation of the electric and
+.. warning:: For data compatibility reasons, explicit activity modeling requires
+             to develop new dedicated modules for simulating electric and
              thermal demand (see :doc:`API References </api/index>`
              for additional info).
 
 
 
-Data requirements summary
---------------------------
-
-======================
-
-+-----------+-----------------------------+-------------------------+------------------+-----------+
-| Function  | Model                       | Data                    | Source DE        | Source UK |
-+===========+=============================+=========================+==================+===========+
-| Occupancy | 4-state occupancy simulator | number of residents     | User             | User      |
-|           |                             +-------------------------+------------------+-----------+
-|           |                             | time                    | User             | User      |
-|           |                             +-------------------------+------------------+-----------+
-|           |                             | type of household       | User             | n.a.      |
-|           |                             +-------------------------+------------------+-----------+
-|           |                             | 4-states occupancy TPMs | German-time-use_ | CREST_    |
-|           +-----------------------------+-------------------------+------------------+-----------+
-|           | Transit occupancy simulator | number of residents     | User             | n.a.      |
-|           |                             +-------------------------+------------------+           |
-|           |                             | time                    | User             |           |
-|           |                             +-------------------------+------------------+           |
-|           |                             | type of household       | User             |           |
-|           |                             +-------------------------+------------------+           |
-|           |                             | transit occupancy TPMs  | German-time-use_ |           |
-+-----------+-----------------------------+-------------------------+------------------+-----------+
-| activity  | Not yet implemented         | n.a.                    | n.a.             | n.a.      |
-+-----------+-----------------------------+-------------------------+------------------+-----------+
-
-
-
-
-
-
- .. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LINKs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LINKs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. _German-time-use: https://www.forschungsdatenzentrum.de/de/haushalte/zve
 
