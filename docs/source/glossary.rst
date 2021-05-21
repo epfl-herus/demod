@@ -26,7 +26,7 @@ Glossary
 
    TPMs
       Transition probablity matrix defines the probability of a simulated
-      component in a MArkov chain of channging from on state to another.
+      component in a Markov chain of channging from on state to another.
       In demod, TPMs (transition probability matrices) are a set of TPM
       that remebers how the matrices evolve with time.
       By convention, the i-eth TPM define the probabilities for transition from
