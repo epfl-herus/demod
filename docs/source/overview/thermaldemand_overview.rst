@@ -127,11 +127,14 @@ Low-order building thermal model (4R3C)
   semi-detached house and apartment both in the renovated version and not. 
   
   The name 4R3C refers to three thermal capacitances representing
-  the thermal masses of the building, indoor air, and heat emitters and
+  the thermal masses of the building :math:`C_{b}`, 
+  indoor air :math:`C_{ia}`, 
+  and heat emitters and buffer :math:`C_{em} + C_{buf}` and
   the four thermal resistences account for heat transfer between 
-  (i) walls and indoor air, (ii) walls and outdoor air, 
-  (iii) emitters and indoor air, 
-  and (iv) air ventilation between indoor and outdoor.
+  (i) walls and indoor air :math:`U_{bi}`, 
+  (ii) walls and outdoor air :math:`U_{bo}`, 
+  (iii) emitters and indoor air :math:`U_{em}`, 
+  and (iv) air ventilation between indoor and outdoor :math:`U_{v}`.
 
   Here are the equivalent equations:
 
@@ -158,7 +161,7 @@ Low-order building thermal model (4R3C)
     :align: center
     :name: 4R3C-building-thermal-model
 
-    4R3C low-order building thermal model  
+    Low-order building thermal model 4R3C
         
 .. 6R2C building thermal model
     
@@ -211,7 +214,10 @@ CREST domestic hot water demand
 Hot water tank thermal behavior
 --------------------------------
 
-Intro
+Currently in demod, a hot water tank can be simulated using the module
+:py:class:`~demod.simulators.heating_simulators.BuildingThermalDynamics`
+as a component of regular boiler :ref:`overview_system_control`. 
+Dedicated modules will be released in future versions. 
 
 .. _overview_1R1C_hot_water_tank:
 
@@ -227,13 +233,13 @@ Low-order hot water tank thermal model (1R1C)
   (see :numref:`1R1C-hot-water-tank-thermal-model`).
   
   The name 1R1C refers to thermal capacitance representing
-  the thermal masses of hot water and 
+  the thermal mass of hot water :math:`C_{tank}` and 
   the thermal resistences of the hot water tank insulation between 
-  hot water and indoor air. 
+  hot water and indoor air :math:`U_{tank}`. 
 
   Here is the equivalent equation:
 
-  :math:`T_{dhw}^{t+1}=T_{dhw}^t + \frac{dt}{C_{tank}}[Q_{dhw}-m_{dhw}^{t}(T_{dhw}^t-T_{dhw}^{in})-u_{tank}(T_{dhw}^t-T_{ia}^t)]` 
+  :math:`T_{dhw}^{t+1}=T_{dhw}^t + \frac{dt}{C_{tank}}[Q_{dhw}-m_{dhw}^{t}cp_{dhw}(T_{dhw}^t-T_{dhw}^{in})-u_{tank}(T_{dhw}^t-T_{ia}^t)]` 
 
 :Availability: The parameters for the capacitance and resistences are 
   taken from CREST_.
@@ -244,27 +250,61 @@ Low-order hot water tank thermal model (1R1C)
     :align: center
     :name: 1R1C-hot-water-tank-thermal-model
 
-    1R1C low-order hot water tank thermal model 
+    Low-order hot water tank thermal model (1R1C)
 
 
 
 Heat demand
--------------------------
+------------------
 
-Intro 
+These modules convert the demand for domestic energy services 
+such as indoor thermal comfort and domestic hot water withdrawal 
+into heating demand. 
+
 
 .. _overview_heat_demand:
 
-Heat demand
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Integrated heat demand simulator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :API: For details about the implementation of this simulator you can visit
   :py:class:`~demod.simulators.heating_simulators.HeatDemand`.
 
-:Description: It computes the heat demand for both:
-  domestic hot water and space heating.
+:Description: This module estimates the heat demand for space 
+  hetaing :math:`Q_{dhw,tot}` and 
+  domestic hot water heating :math:`Q_{sh}` in an integrated way. 
+
+  For calculating the target heat demand required to deliver hot water 
+  at the appropriate temperature, the module use the following equations,
+
+  :math:`Q_{tank}=\frac{C_{tank}}{dt}(T_{dhw}-T_{tank})`
+
+  :math:`Q_{dhw}=m_{dhw}cp_{dhw}(T_{tank}-T_{w,inlet})`
+
+  :math:`Q_{loss}=u_{tank,loss}(T_{tank}-T_{ia})`
+
+  :math:`Q_{dhw,tot}= Q_{tank} + Q_{dhw} + Q_{loss}`
+
+  where 
+
+  To calculate the heat supply required to achieve the comfort temperature 
+  of the indoor air, the algorithm aims to keep the temperature 
+  of the emitters within the operating range 
+  :math:`50^{\circ}C \: \pm 5^{\circ}C`.
+
+  This algorithm is activated when the indoor temperature of the building 
+  is equal to or lower than the minimum limit of the the 
+  indoor air comfort range :math:`T_{ia,target} - 2^{\circ}C`.
+  On the other hand, it is deactivated when the latter reaches the maximum limit
+  :math:`T_{ia,target} + 2^{\circ}C`. 
+  In this way, typical alternating pattern of the heating system operation
+  and oscillating temperature profiles are observed. 
+
+  :math:`Q_{sh}=C_{em}(T_{em,target}-T_{em})+u_{em}(T_{em}-T_{ia})` 
   
-  There exist different algorithm for computing the heat demand.
+.. 2. the second implementation suggest that we target direclty at
+..   heating the room and we don't focus at heating only the emitters,
+.. :math:`Q_{sh}=C_{ia}(T_{ia,target}-T_{ia})-U_{em}(T_{em}-T_{ia})+(U_{v}+U_{ibo})(T_{ia}-T_{oa})`   
 
 :Compatibility: This module is flexible and allows to use alternative 
   comfort temperature and heating switch on profiles. 
@@ -275,10 +315,11 @@ Heat demand
 
 
 
-Heating system control
-------------------------
+Heating system controllers
+--------------------------
 
-Intro
+This section presents some modules for controlling the heating system
+and its components.
 
 .. _overview_thermostats:
 
@@ -289,39 +330,32 @@ Thermostats
   this simulator you can visit
   :py:class:`~demod.simulators.heating_simulators.Thermostats`.
 
-:Description: Simulates the state of different thermostats (can be ON or OFF
-  = True or False).
-  Thermostat control the temperature of different component.
-  They are switched to on once the temperature of a component is
-  below its target_temperature minus a dead_band.
+:Description: The thermostat monitors the temperature of a thermal component 
+  and accordingly sends an ON or OFF signal to the heating system: 
+  once the temperature of a component reaches the minimum boundary, 
+  which corresponds to its target temperature minus a deadband, 
+  the thermostat is set on ON; on the contrary, 
+  if the temperature reaches the maximum, the thermostat is set to OFF.
 
-:Availability:
-
-:Compatibility:
+:Compatibility: Any thermal component for which a target temperature and 
+  deadband are defined can be controlled by this module. 
 
 .. _overview_system_control:
 
 Heating system control
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 :API:  For details about the implementation of
   this simulator you can visit
   :py:class:`~demod.simulators.heating_simulators.SystemControls`.
 
-:Description: It checks which controls should be sent to the
-  :py:class:`.HeatingSystem`, based on the heat demand and
-  on the thermostats.
-
-  It can handle combi boilers, which means that the boiler does not
-  stay on to keep the cylinder at a high temperature.
-
-  The heating control model simulates an integrated system 
-  with a timer and thermostat (see :numref:`heating-control`). 
+:Description: This module simulates an integrated heating system 
+  with a timer and thermostat, checking which controls should be sent to the
+  :py:class:`.HeatingSystem`. 
   It allows to manage in an integrated way the supply of heating 
   for domestic hot water and space heating, prioritizing the first 
   and ensuring that the heating system works 
-  within the recommended operating conditions. 
-
+  within the recommended operating conditions.
 
   This unit takes the indoor temperature of the building as input and 
   compares it to thermostat setting 
@@ -330,9 +364,25 @@ Heating system control
   the controller avoids that they can reach temperatures higher than 
   the safety temperature of 55 °C.
 
-:Availability:
+  There are currently two heating system configurations available 
+  for which the control system uses two different control methods: 
+  'combi' boiler or normal boiler.
 
-:Compatibility:
+  **Combi boiler** or combination boiler is both a water heater 
+  and central heating boiler in a single unit.
+  Combi boilers heat water directly from the mains 
+  when households turn on a tap, 
+  so a hot water storage cylinder is not required.
+
+  **Regular boiler** provides heat both for space heating and domestic
+  hot water, too. However, the hot water system 
+  is connected to a separate hot water cylinder, 
+  which allows hot water to be stored 
+  without the need for the heating system to be activated 
+  every time households turn on a tap.  
+
+:Compatibility: this module is currently compatible with the 
+  heating system implemented in :py:class:`.HeatingSystem`.
 
 
     
@@ -344,7 +394,7 @@ approach developed in [McKenna2016]_.
 
 .. _overview_CREST_heating_system:
 
-CREST hetaing system
+CREST heating system
 ~~~~~~~~~~~~~~~~~~~~~
    
 :API:  For details about the implementation of
@@ -354,7 +404,19 @@ CREST hetaing system
 :Description: It simulates the energy consumption (i.e., gas or electricity)
   of the heating system for providing requested heat demand.
 
-:Availability:
+  The algorithm used here is relatively simple and estimates the consumption 
+  of electricity or gas :math:`E`on the basis of the heat demand :math:`Q_{th}`, 
+  an efficiency coefficient :math:`\eta`, as follows:
+
+  :math:`E= \frac{Q_{th}}{\eta CV}` 
+
+  Then,according to the type of fuel it is estimated the mass flow rate 
+  considering the calorific value :math:`CV`,
+
+  :math:`m_{fuel}= \frac{E}{CV}` 
+
+  For more details on the data used and the different system 
+  and fuel options available, you can refer to CREST_. 
 
 :Compatibility:    
 
@@ -363,46 +425,49 @@ CREST hetaing system
 Integrated heating demand and supply 
 -------------------------------------
 
-Intro
+The modules in this section combine a set of the modules presented above
+and simplify their use.
+In this way, all links between modules are already implemented 
+and only one module needs to be launched to calculate heating demand and supply. 
 
 .. _overview_FiveModulesHeatingSimulator:
 
-Five modules heating simulator
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CREST five modules heating simulator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :API:  For details about the implementation of
   this simulator you can visit
   :py:class:`~demod.simulators.heating_simulators.FiveModulesHeatingSimulator`.
 
-:Description: It simulates the energy consumption of an household required for
-  heating.
-  The five components simulated:
+:Description: This module estimates domestic heating demand and supply. 
+  It is based on the [CREST]_ model, 
+  but simplifies the operation of thermostat control by users. 
 
-  * The heating system (boiler, heat pump, ...)
-  * The controls of the heating system.
-  * The heat demand of the house.
-  * The thermostats of different components
-  * The temperatures of the building components.
+  As shown in :numref:`CREST5modulesheatingsystem`,
+  the following 5 components are integrated in this module:
 
-  The implementation is based on CREST model, with a simplification of
-  the thermostats and controls.
-
-  This simulator is also compatible with external simulated components.
-
-  * External thermostat
-      the desired indoor temperature can be passed in the
-      step method through
-      :py:attr:`~demod.utils.cards_doc.Inputs.external_target_temperature`
-
-:Availability:
-
-:Compatibility:
-
-(insert a figure)
+  * :ref:`overview_CREST_heating_system`:
+  * :ref:`overview_system_control`
+  * :ref:`overview_heat_demand`
+  * :ref:`overview_thermostats`
+  * :ref:`overview_4R3C_building_thermal_model` and :ref:`overview_1R1C_hot_water_tank`
 
 
+:Compatibility:  This simulator is also compatible 
+  with external simulated components.
 
-.. note::
+  For instance, the desired indoor temperature can be passed in the
+  step method through
+  :py:attr:`~demod.utils.cards_doc.Inputs.external_target_temperature`
+
+
+.. figure:: OverviewFigures/CREST5modulesheatingsystem.png
+  :width: 700
+  :alt: CREST integrated heating demand and supply model
+  :align: center
+  :name: CREST5modulesheatingsystem
+
+  CREST integrated heating demand and supply model
   
 
 
