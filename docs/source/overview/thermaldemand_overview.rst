@@ -285,8 +285,6 @@ Integrated heat demand simulator
 
   :math:`Q_{dhw,tot}= Q_{tank} + Q_{dhw} + Q_{loss}`
 
-  where 
-
   To calculate the heat supply required to achieve the comfort temperature 
   of the indoor air, the algorithm aims to keep the temperature 
   of the emitters within the operating range 
