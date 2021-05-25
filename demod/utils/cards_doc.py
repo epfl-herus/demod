@@ -520,8 +520,8 @@ class Params:
                         This works better with single persons households
                         in general.
 
-                * subgroup['family_situation']
-                    int, The family situation of the person.
+                * subgroup['household_position']
+                    int, The position of the person in the household or family.
                     From :py:class:`~demod.datasets.GermanTOU.loader.GTOU`
 
                     * 1 = Main revenue maker
