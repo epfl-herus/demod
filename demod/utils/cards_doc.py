@@ -530,7 +530,8 @@ class Params:
 
                     .. note::
                         This works better with single persons households
-                        in general.
+                        or person subgroup.
+
 
                 * subgroup['age']
                     int or tuple, The age of the participants, if tuple
