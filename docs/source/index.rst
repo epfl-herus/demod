@@ -3,13 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Demod's documentation!
+Welcome to demod's documentation!
 ===========================================
 
-Demod is Python library for assembling
+Demod is a Python library for assembling
 :term:`bottom-up <bottom-up models>`
 domestic energy demand models.
-
 
 
 Features
