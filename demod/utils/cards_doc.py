@@ -501,7 +501,7 @@ class Params:
                     * 5 = Others
 
                 * subgroup['life_situation']
-                    int, The life siutation of the persons.
+                    int, The life situation of the persons.
                     From :py:class:`~demod.datasets.GermanTOU.loader.GTOU`
 
                     * 1 = Self-employed, freelancer, farmer, family worker
@@ -520,6 +520,17 @@ class Params:
                         This works better with single persons households
                         in general.
 
+                * subgroup['family_situation']
+                    int, The family situation of the person.
+                    From :py:class:`~demod.datasets.GermanTOU.loader.GTOU`
+
+                    * 1 = Main revenue maker
+                    * 2 = Partner or Spouse
+                    * 3 = Kid
+
+                    .. note::
+                        This works better with single persons households
+                        in general.
 
                 * subgroup['age']
                     int or tuple, The age of the participants, if tuple
