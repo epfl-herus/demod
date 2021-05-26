@@ -178,7 +178,8 @@ class TestTPMsWithDuration(unittest.TestCase):
             [0, 1, 0],
         ], dtype=int)
         tpms, dur0, dur1 = states_to_tpms_with_durations(
-            states, first_tpm_modification_algo='nothing'
+            states, first_tpm_modification_algo='nothing',
+            ignore_end_start_transitions=False
         )
         print(states_to_transitions(states, return_duration=True))
         print(tpms, dur0, dur1)
@@ -199,14 +200,14 @@ class TestTPMsWithDuration(unittest.TestCase):
         self.assertTrue(np.all(
             dur0 == np.array([
                 [
-                    [0., 1., 0.],
-                    [1., 0., 0.]
+                    [0., 0.5, 0., 0.5],
+                    [1., 0., 0., 0.]
                 ], [
-                    [1., 0., 0.],
-                    [0., 0.5, 0.5]
+                    [1., 0., 0., 0.],
+                    [0., 0.5, 0.5, 0.]
                 ], [
-                    [0., 0., 1.],
-                    [1., 0., 0.]
+                    [0., 0., 1., 0.],
+                    [1., 0., 0., 0.]
                 ]
             ])
         ))
@@ -224,7 +225,7 @@ class TestInitialDuration(unittest.TestCase):
         print(pdf)
         self.assertTrue(np.all(pdf == np.array(
             [
-                [0., 1., 0.],
-                [0., 0.5, 0.5],
+                [0., 0.5, 0., 0.5],
+                [0., 0.5, 0.5, 0.],
             ]
         )))
