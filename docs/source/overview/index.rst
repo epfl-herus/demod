@@ -81,10 +81,10 @@ demod's main components
 This section presents the modules available in demod, their operation, 
 their input and output data, compatibility with other demod modules, 
 the current available parameterisations and 
-the data required to parameterise them in the event that they are to be used 
+the data required to parameterise them in case they are to be used 
 for a specific case study other than those available.
 For more details on their implementation, 
-you will also find the link to the dedicated API section. 
+you will also find the link of the dedicated API section. 
 
 In :numref:`model-framework`, a possible demod-based domestic energy demand 
 model framework is reported. 

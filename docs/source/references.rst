@@ -3,7 +3,7 @@ References
 
 .. [Destatis2017]
     Statistisches Bundesamt - Destatis (2017) Laufende wirtschaftsrechnungen 
-    ausstattung privater haushaltemit ausgewahlten gebrauchsgutern.   
+    ausstattung privater haushaltemit ausgewahlten gebrauchsgutern  
     
 .. [Fisher2015] 
     D. Fischer, A. Härtl, B. Wille-Haussmann (2015) Model for electric load 
@@ -33,7 +33,11 @@ References
 .. [Sovacool2020]
     B. Sovaccol, J. Osbon, M. Martiskainen, M. Lipson (2020) Testing smarter 
     control and feedback with users: Time, temperature and space 
-    in household heating preferences and practices in a living laboratory.
+    in household heating preferences and practices in a living laboratory
+
+.. [Swan2009]
+    L. Swan, V. Ugursal (2009) Modeling of end-use energy consumption in the residential
+    sector: A review of modeling techniques
 
 .. [Yamaguchi2020]
     Y. Yamaguchi, N. Prakash, Y. Simoda (2020) Activity-Based Modeling
