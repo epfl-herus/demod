@@ -2,14 +2,15 @@
 Data loader for the german TOU survey.
 """
 from datetime import time
-from demod.datasets.base_loader import PopulationLoader
 import os
 from typing import Tuple
 import numpy as np
 
 from ..tou_loader import LoaderTOU
+from ..base_loader import PopulationLoader
 from ..DESTATIS.loader import Destatis
 from ...utils.sim_types import *
+from ...utils.monte_carlo import PDFs
 from ...utils.sparse import SparseTPM
 
 
@@ -35,7 +36,21 @@ class GTOU(LoaderTOU, PopulationLoader):
             from .parser import get_data_4states
             return get_data_4states(subgroup)
         else:
-            err = NotImplementedError(("No sparse parsing defined for" +
+            err = NotImplementedError(("No parsing defined for" +
+                "'{}' in dataset '{}'").format(
+                    self.activity_type, self.DATASET_NAME
+                ))
+            raise err
+
+    def _parse_tpm_with_duration(
+        self, subgroup: Subgroup
+    ) -> Tuple[TPMs, np.ndarray, np.ndarray, StateLabels, PDF, PDFs, dict]:
+        if self.activity_type == '4_States':
+            # Imports the raw data parser only here to save time
+            from .parser import get_data_4states
+            return get_data_4states(subgroup, add_durations=True)
+        else:
+            err = NotImplementedError(("No parsing defined for" +
                 "'{}' in dataset '{}'").format(
                     self.activity_type, self.DATASET_NAME
                 ))

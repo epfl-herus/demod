@@ -6,8 +6,15 @@ import warnings
 import datetime
 import pandas as pd
 import numpy as np
+from ...utils.sim_types import Subgroup
 from ...utils.sparse import SparseTPM
-from ...utils.parse_helpers import convert_states, states_to_tpms, states_to_transitions
+from ...utils.parse_helpers import (
+    convert_states,
+    get_initial_durations_pdfs,
+    states_to_tpms,
+    states_to_tpms_with_durations,
+    states_to_transitions
+)
 
 MAX_PEOPLE_HOUSEHOLD = 6 + 1  # always need to get one above the real max pple
 
@@ -63,6 +70,7 @@ def get_mask_subgroup(
     n_residents=None, household_type=None,
     salary = None, hh_revenue=None,
     hh_work_type = None,
+    family_situation=None,
     life_situation=None, hh_mean_age=None, age=None, geburtsland=None,
     gender=None, household_position=None,
     is_travelling=None):
@@ -705,6 +713,161 @@ GTOU_label_to_energy_activity = {
     999 : 'leisure'
 }
 
+# convert to activity names to this paper https://ieeexplore.ieee.org/document/8573766
+GTOU_label_to_Bottaccioli_act = {
+    0 : '-',
+    110 : 'sleeping',
+    120 : '-',
+    131 : 'self_washing',
+    132 : '-',
+    139 : '-',
+    210 : '-',
+    220 : '-',
+    230 : '-',
+    241 : '-',
+    242 : '-',
+    243 : '-',
+    244 : '-',
+    245 : '-',
+    249 : '-',
+    311 : '-',
+    312 : '-',
+    313 : '-',
+    314 : '-',
+    315 : '-',
+    317 : '-',
+    319 : '-',
+    321 : '-',
+    329 : '-',
+    330 : '-',
+    341 : '-',
+    349 : '-',
+    353 : 'studying',
+    354 : 'studying',
+    361 : '-',
+    362 : '-',
+    363 : '-',
+    364 : '-',
+    369 : '-',
+    411 : 'cooking',
+    413 : 'cooking',
+    412 : 'cooking',
+    414 : 'cooking',
+    419 : 'cooking',
+    421 : 'cleaning',
+    422 : 'cleaning',
+    423 : '-',
+    429 : '-',
+    431 : 'laundry',
+    432 : 'ironing',
+    433 : '-',
+    434 : '-',
+    439 : '-',
+    441 : '-',
+    442 : '-',
+    443 : '-',
+    444 : '-',
+    445 : '-',
+    446 : '-',
+    449 : '-',
+    451 : '-',
+    452 : '-',
+    453 : '-',
+    454 : '-',
+    455 : '-',
+    459 : '-',
+    461 : '-',
+    464 : '-',
+    465 : '-',
+    466 : '-',
+    469 : '-',
+    471 : '-',
+    472 : '-',
+    473 : '-',
+    474 : '-',
+    475 : '-',
+    476 : '-',
+    479 : '-',
+    480 : '-',
+    491 : '-',
+    492 : '-',
+    499 : '-',
+    510 : '-',
+    520 : '-',
+    531 : '-',
+    532 : '-',
+    539 : '-',
+    611 : '-',
+    612 : '-',
+    621 : '-',
+    622 : '-',
+    623 : '-',
+    624 : '-',
+    625 : '-',
+    626 : '-',
+    627 : '-',
+    629 : '-',
+    630 : '-',
+    641 : '-',
+    642 : '-',
+    649 : '-',
+    711 : '-',
+    712 : '-',
+    713 : '-',
+    715 : '-',
+    716 : '-',
+    717 : '-',
+    719 : '-',
+    730 : '-',
+    740 : '-',
+    752 : '-',
+    759 : '-',
+    761 : '-',
+    762 : '-',
+    763 : 'computer',
+    769 : '-',
+    790 : '-',
+    811 : '-',
+    812 : '-',
+    813 : '-',
+    814 : '-',
+    815 : '-',
+    819 : '-',
+    820 : 'watching_tv',
+    830 : 'music',
+    841 : 'electronics',
+    842 : 'electronics',
+    843 : 'electronics',
+    844 : 'electronics',
+    849 : 'electronics',
+    921 : '-',
+    922 : '-',
+    923 : '-',
+    929 : '-',
+    931 : '-',
+    934 : '-',
+    939 : '-',
+    941 : '-',
+    945 : '-',
+    946 : '-',
+    947 : '-',
+    948 : '-',
+    949 : '-',
+    951 : '-',
+    952 : '-',
+    953 : '-',
+    959 : '-',
+    961 : '-',
+    962 : '-',
+    969 : '-',
+    970 : '-',
+    980 : '-',
+    991 : '-',
+    992 : '-',
+    997 : '-',
+    998 : '-',
+    999 : '-'
+}
 # convert to activity names to the CREST consuming activities
 GTOU_label_to_CREST_act = {
     0 : '-',
@@ -1571,9 +1734,76 @@ def get_active_occupancy(subgroup_kwargs):
 
     return np.sum(hh_states, axis=0)
 
+def get_tpms_activity(
+    subgroup: Subgroup,
+    activity_dict=GTOU_label_to_activity,
+    first_tpm_modification_algo='nothing',
+    add_away_state=True,
+    add_durations=False,
+):
+    """Get the tpms of a desired activity dictionray.
 
-def get_data_4states(subgroup_kwargs, first_tpm_modification_algo='last',):
-        # gets the concerned households
+    Attributes:
+        add_away_state:
+            Wether to replace the states by 'away' when there is
+            no one.
+
+    Does NOT group by households.
+    """
+    mask_subgroup = get_mask_subgroup( **subgroup)
+
+    raw_states = primary_states[mask_subgroup]
+
+    if add_away_state:
+        raw_states[~occ[mask_subgroup]] = 0
+        activity_dict = activity_dict.copy()
+        activity_dict[0] = 'away'
+
+
+    states, states_label = convert_states(raw_states, activity_dict)
+
+    states_label[states_label=='-'] = 'other'
+
+    # get the pdf of the initial distribution and save it
+    initial_counts = np.bincount( states[:,0], minlength=len(states_label))
+    initial_pdf = initial_counts/ np.sum(initial_counts)
+
+    dict_legend = {}
+    dict_legend['number of persons diaries'] = int(np.sum(mask_subgroup))
+    dict_legend['subgroup_kwargs'] = subgroup
+    dict_legend['cration date'] = str(datetime.datetime.now())
+    dict_legend['first_tpm_modification_algo'] = first_tpm_modification_algo
+
+    if add_durations:
+
+        tpm, duration, duration_with_previous = states_to_tpms_with_durations(
+            states,
+            first_tpm_modification_algo=first_tpm_modification_algo
+        )
+        # PDFs that should depend on the duration at start depending on
+        # the first state shape = n_states, n_times
+        intial_durations_pdf = get_initial_durations_pdfs(states)
+
+        return (
+            tpm, duration, duration_with_previous, states_label,
+            initial_pdf, intial_durations_pdf, dict_legend
+        )
+    else:
+        # Return the standard tpms algo
+        tpm = states_to_tpms(
+            states, first_tpm_modification_algo=first_tpm_modification_algo
+        )
+
+        return tpm, states_label, initial_pdf, dict_legend
+
+
+
+def get_data_4states(
+    subgroup_kwargs,
+    first_tpm_modification_algo='last',
+    add_durations=False
+):
+    # gets the concerned households
     mask_subgroup = get_mask_subgroup( **subgroup_kwargs)
 
     hh_states = group_in_household_4states(
@@ -1583,17 +1813,7 @@ def get_data_4states(subgroup_kwargs, first_tpm_modification_algo='last',):
     )
 
     states, states_label = convert_states(hh_states)
-    # Adds any missing states for the 4 states model
-    # n_res = subgroup_kwargs['n_residents']
 
-    # all_4_states = np.asarray([
-    #     i*10 + np.arange(0, n_res+1) for i in range(n_res+1)
-    # ]).reshape(-1)
-    # states_label = np.concatenate((  # Finds and adds the missing
-    #     states_label, all_4_states[~np.isin(all_4_states, states_label)]
-    # ))
-
-    tpm = states_to_tpms(states, first_tpm_modification_algo='last')
 
     # get the pdf of the initial distribution and save it
     initial_counts = np.bincount( states[:,0], minlength=len(states_label))
@@ -1606,8 +1826,26 @@ def get_data_4states(subgroup_kwargs, first_tpm_modification_algo='last',):
     dict_legend['cration date'] = str(datetime.datetime.now())
     dict_legend['first_tpm_modification_algo'] = first_tpm_modification_algo
 
+    if add_durations:
 
-    return tpm, states_label, initial_pdf, dict_legend
+        tpm, duration, duration_with_previous = states_to_tpms_with_durations(
+            states, first_tpm_modification_algo=first_tpm_modification_algo
+        )
+        # PDFs that should depend on the duration at start depending on
+        # the first state shape = n_states, n_times
+        intial_durations_pdf = get_initial_durations_pdfs(states)
+
+        return (
+            tpm, duration, duration_with_previous, states_label,
+            initial_pdf, intial_durations_pdf, dict_legend
+        )
+    else:
+        # Return the standard tpms algo
+        tpm = states_to_tpms(
+            states, first_tpm_modification_algo=first_tpm_modification_algo
+        )
+
+        return tpm, states_label, initial_pdf, dict_legend
 
 def get_data_sparse9states(subgroup_kwargs):
 

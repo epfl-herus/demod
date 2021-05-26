@@ -14,7 +14,7 @@ from .base_simulators import Callbacks, MultiSimulator, Simulator, GetMethod, Ti
 from ..utils.distribution_functions import check_valid_cdf
 from ..utils.monte_carlo import monte_carlo_from_cdf, monte_carlo_from_pdf
 from ..datasets.base_loader import DatasetLoader
-from ..datasets.Germany.loader import GermanDataHerus
+from ..datasets.GermanTOU.loader import GTOU
 from ..datasets.tou_loader import LoaderTOU
 from ..utils.subgroup_handling import add_time, subgroup_households_to_persons
 from ..utils.sim_types import Subgroups
@@ -270,6 +270,13 @@ class MarkovChain1rstOrder(Simulator):
         # update the time
         super().step()
 
+    def get_n_doing_state(self, state: int):
+        return self.current_states == state
+
+    def get_n_doing_activity(self, activity: Any):
+        return self.get_n_doing_state(
+            list(self.state_labels).index(activity)
+        )
 
 class SemiMarkovSimulator(MarkovChain1rstOrder):
     """Semi Markov chain Simulator.
@@ -492,12 +499,13 @@ class SubgroupsIndividualsActivitySimulator(
     Step size
         10 Minutes.
     """
+
     def __init__(
         self,
         subgroups_list: Subgroups,
         n_households_list: List[int],
         subsimulator: Simulator = MarkovChain1rstOrder,
-        data: LoaderTOU = GermanDataHerus(),
+        data: LoaderTOU = GTOU(),
         use_week_ends_days: bool = False,
         use_7days: bool = False,
         use_quarters: bool = False,
@@ -508,9 +516,6 @@ class SubgroupsIndividualsActivitySimulator(
         You can simply pass the :py:obj:`subsimulator` class that you
         want to implement, as well as specifiying how many households
         of each subgroups should be simulated.
-        TODO: Time aware simulator. It will know which callbacks should be set
-        depending on the implemented call back methods implemented in
-        the subsimulator class.
         TODO: Make sure that compatible with other simulators.
         TODO: Write test.
 
@@ -533,6 +538,7 @@ class SubgroupsIndividualsActivitySimulator(
         self.use_week_ends_days = use_week_ends_days
         self.use_7days = use_7days
         self.use_quarters = use_quarters
+        self.time_aware = (use_week_ends_days or use_7days or use_quarters)
 
         # Check the subsimulator and define what should be done
         self._parse_subsimulator(subsimulator)
@@ -549,6 +555,7 @@ class SubgroupsIndividualsActivitySimulator(
         )
 
         MultiSimulator.__init__(self, simulators_list)
+        self.n_households = sum(n_households_list)
         TimeAwareSimulator.__init__(self, self.n_households, **kwargs)
         self.initialize_starting_state(
             initialization_time=data.refresh_time
@@ -560,10 +567,14 @@ class SubgroupsIndividualsActivitySimulator(
             self._initialize_subsimulators = (
                 self._initialize_sub_MarkovChain1rstOrder
             )
+            self._update_tpms = self._update_tpms_MarkovChain1rstOrder
+
         elif subsimulator == SemiMarkovSimulator:
             self._initialize_subsimulators = (
                 self._initialize_sub_SemiMarkovSimulator
             )
+            self._update_tpms = self._update_tpms_SemiMarkovSimulator
+
         else:
             raise TypeError(
                 "subsimulator must be an instance of object "
@@ -580,8 +591,8 @@ class SubgroupsIndividualsActivitySimulator(
             subgroups_list,
         )
         # Counts the persons
-        unique_persons, inverse, person_numbers = np.unique(
-            subgroup_persons, return_inverse=True, return_counts=True
+        unique_persons, person_numbers = np.unique(
+            np.concatenate(subgroup_persons), return_counts=True
         )
 
         # Adds an empty list of each person type that maps the persons
@@ -603,7 +614,7 @@ class SubgroupsIndividualsActivitySimulator(
 
             _past_hh_counts += n_hh
 
-        self.hh_of_persons = hh_of_person
+        self.hh_of_persons = np.concatenate(hh_of_person)
 
         return unique_persons, persons_counted
 
@@ -693,6 +704,34 @@ class SubgroupsIndividualsActivitySimulator(
             'the subsimulator used'
             )
 
+    def _update_tpms_MarkovChain1rstOrder(self, sim, subgroup) -> None:
+        (  # Load the data
+            tpm,
+            labels,
+            initial_pdf,
+        ) = self.data.load_tpm(subgroup)
+        # Change TPM
+        sim._set_tpm(tpm, new_labels=labels)
+
+    def _update_tpms_SemiMarkovSimulator(self, sim, subgroup) -> None:
+        # Load the data
+        (
+            tpm,
+            duration_pdfs,
+            labels,
+            _,
+            _
+        ) = self.data.load_tpm_with_duration(subgroup)
+        # Change TPM
+        sim._set_tpm(tpm, new_labels=labels)
+        sim._set_duration_pdfs(duration_pdfs)
+
+    def _update_tpms(self, sim, subgroup) -> None:
+        raise NotImplementedError(
+            'Abstract method that should be changed depending on '
+            'the subsimulator used'
+            )
+
     def _create_multi_getter(self, getter_name: str) -> GetMethod:
         """Create a getter methods that retrieves households from the persons.
 
@@ -720,33 +759,34 @@ class SubgroupsIndividualsActivitySimulator(
 
         return getter
 
-    def get_n_doing_state(self, state):
-        """Return the number of people in the desired state."""
-        if isinstance(state, list):
-            return [self.get_n_doing_state(s) for s in state]
-        elif isinstance(state, int) or isinstance(state, str):
-            # merges the results of all the subsimulators
-            persons_states = np.concatenate(
-                [s.get_n_doing_state(state) for s in self.simulators]
-            )
-            # Assume Persons getter can only return 1s and 0s
-            mask_out = np.array(persons_states, dtype=bool)
-            # Counts how many persons in the households are 1s
-            u, c = np.unique(self.hh_of_persons[mask_out], return_counts=True)
-            states_in_hh = np.zeros(self.n_households, dtype=int)
-            states_in_hh[u] = c
-            return states_in_hh
-        else:
-            raise TypeError(
-                "Invalid type for get_state, must int, str or list of int/str"
-            )
-
     def get_n_doing_activity(self, activity):
-        return self.get_n_doing_state(activity)
+        """Return the number of people in the desired state."""
+        if isinstance(activity, list):
+            return [self.get_n_doing_activity(a) for a in activity]
+        # merges the results of all the subsimulators
+        persons_states = np.concatenate(
+            [s.get_n_doing_activity(activity) for s in self.simulators]
+        )
+        # Assume Persons getter can only return 1s and 0s
+        mask_out = np.array(persons_states, dtype=bool)
+        # Counts how many persons in the households are 1s
+        u, c = np.unique(self.hh_of_persons[mask_out], return_counts=True)
+        states_in_hh = np.zeros(self.n_households, dtype=int)
+        states_in_hh[u] = c
+        return states_in_hh
+
 
     @ Callbacks.after_refresh_time
     def step(self) -> None:
         return super().step()
 
     def on_after_refresh_time(self) -> None:
+        """Update the tpms."""
         # Check if we want to update the tpms
+        if self.time_aware:
+            self._update_subgroups_with_time()
+            # Updates the TPMs
+            [
+                self._update_tpms(sim, subgroup) for sim, subgroup
+                in zip(self.simulators, self.subgroups_persons)
+            ]

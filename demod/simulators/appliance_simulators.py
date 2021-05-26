@@ -14,9 +14,7 @@ import itertools
 import inspect
 
 from .base_simulators import Callbacks, TimeAwareSimulator, cached_getter
-from ..utils.monte_carlo import monte_carlo_from_cdf
-from .util import OLD_DATASET_PATH, subgroup_add_time
-from ..helpers import subgroup_file
+from ..utils.subgroup_handling import add_time
 
 
 class AppliancesSimulator(TimeAwareSimulator):
@@ -440,7 +438,7 @@ class SubgroupApplianceSimulator(AppliancesSimulator):
                 An value to increment the time, usefull if you want to update using another value than the current time. Defaults to datetime.timedelta(seconds=0).
         """
         for subgroup in self.subgroup_list:
-            subgroup_add_time(
+            add_time(
                 subgroup,
                 self.current_time + optional_increment,
                 *args,
