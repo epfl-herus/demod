@@ -3,16 +3,16 @@ Quickstart
 ==========
 
 
-You **don't want to use** Python ?
+Do you **don't want to use** Python ?
 :ref:`Learn how to use demod without python <withoutpython>`.
 
-You want to **add load profiles** in your python project ?
+Do you want to **add load profiles** in your python project ?
 :ref:`Get started with demod <runnig_a_simulation>`.
 
-You want to create **your own simulation algorithms** ?
+Do you want to create **your own simulation algorithms** ?
 :doc:`Create your first demod simulator <../tutorials/create_a_simulator>`.
 
-You want to **add your data** for generating load profiles based on it ?
+Do you want to **add your data** for generating tailored load profiles ?
 :doc:`Create your demod datset <../tutorials/datasets>`.
 
 .. _runnig_a_simulation:
@@ -40,10 +40,9 @@ you can import the library in you python file by doing:
 Change the dataset
 ~~~~~~~~~~~~~~~~~~~
 
-You assign different dataset to your simulator by specifying
-them in the simulator.
+You can assign different datasets to your simulator.
 
-Datasets in Demod are classes and are often refered to
+Datasets in Demod are classes and they are often refered to
 as DatasetLoader.
 
 .. code-block:: python
@@ -66,9 +65,9 @@ introduction in :doc:`../tutorials/create_a_simulator`.
 Using a logger to access the data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Shows how to use the
+The following lines of code show how to use the
 :py:class:`~demod.simulators.base_simulators.SimLogger`
-object from the simulators
+object from the simulators.
 
 
 .. code-block:: python
@@ -87,7 +86,7 @@ object from the simulators
     sim.logger.plot()
     # plots all the data in column
     sim.logger.plot_column()
-    # Gets array of the data, can be used for your own purpose
+    # Gets array of the data, this can be used for your own post-processing
     elec_cons = sim.logger.get('get_power_demand')
 
 

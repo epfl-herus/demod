@@ -217,7 +217,7 @@ Hot water tank thermal behavior
 
 Currently in demod, a hot water tank can be simulated using the module
 :py:class:`~demod.simulators.heating_simulators.BuildingThermalDynamics`
-as a component of regular boiler :ref:`overview_system_control`. 
+as a component of regular boiler :ref:`overview_system_controller`. 
 Dedicated modules will be released in future versions. 
 
 .. _overview_1R1C_hot_water_tank:
@@ -459,7 +459,7 @@ CREST five modules heating simulator
   the following 5 components are integrated in this module:
 
   * :ref:`overview_CREST_heating_system`:
-  * :ref:`overview_system_control`
+  * :ref:`overview_system_controller`
   * :ref:`overview_heat_demand`
   * :ref:`overview_thermostats`
   * :ref:`overview_4R3C_building_thermal_model` and :ref:`overview_1R1C_hot_water_tank`
