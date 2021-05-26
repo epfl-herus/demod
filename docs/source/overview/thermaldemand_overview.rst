@@ -7,7 +7,7 @@ be integrated and jointly executed.
 Below the list of modules available in demod for simulating 
 household indoor temperature settings:
 
-- :ref:`overview_CREST_thermostat_control_setting`
+- :ref:`overview_CREST_thermostat_setting`
 - :ref:`overview_LivingLab_thermostat_setting`
 
 for building thermal behavior:
@@ -49,9 +49,9 @@ Two modules are currently available to simulate
 how each household set indoor temperature set point and switch on/off periods
 of the heating system. 
 
-.. _overview_CREST_thermostat_control_setting:
+.. _overview_CREST_thermostat_setting:
 
-CREST thermostat control setting simulator
+CREST thermostat setting simulator
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :API: This simulator is currently not available. It will be reliased in future 
@@ -347,8 +347,8 @@ Thermostats
   the thermostat is set on ON; on the contrary, 
   if the temperature reaches the maximum, the thermostat is set to OFF.
 
-:Compatibility: Any thermal component for which a target temperature and 
-  deadband are defined can be controlled by this module. 
+:Compatibility: Any thermal component, for which a target temperature and 
+  deadband are defined, can be controlled by this module. 
 
 .. _overview_system_controller:
 
