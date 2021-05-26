@@ -18,6 +18,12 @@ Glossary
    pdf
       probability density function.
 
+   subgroup
+      Represent a set of social, technical, or economical information of
+      a specific kind of the population.
+      See how demod implement subgroups:
+      :py:attr:`~demod.utils.cards_doc.Params.subgroup`.
+
    TPMs
       Transition Probablity Matrixs. It defines the probability
       of a simulated component in a Markov chain of channging
@@ -26,9 +32,3 @@ Glossary
       how the matrices evolve with time.
       By convention, the i-eth TPM define the probabilities for transition from
       state i-1 to i.
-
-   subgroup
-      Represent a set of social, technical, or economical information of
-      a specific kind of the population.
-      See how demod implement subgroups:
-      :py:attr:`~demod.utils.cards_doc.Params.subgroup`.
