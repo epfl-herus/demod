@@ -7,7 +7,7 @@ be integrated and jointly executed.
 Below the list of modules available in demod for simulating 
 household indoor temperature settings:
 
-- :ref:`overview_CREST_thermostat_setting`
+- :ref:`overview_CREST_thermostat_control_setting`
 - :ref:`overview_LivingLab_thermostat_setting`
 
 for building thermal behavior:
@@ -26,10 +26,10 @@ for integrated heat demand for space heating and domestic hot water:
 
 - :ref:`overview_heat_demand`
 
-for heating system control:
+for heating system controllers:
 
 - :ref:`overview_thermostats`
-- :ref:`overview_system_control`
+- :ref:`overview_system_controller`
 
 for heating system operation:
 
@@ -49,12 +49,13 @@ Two modules are currently available to simulate
 how each household set indoor temperature set point and switch on/off periods
 of the heating system. 
 
-.. _overview_CREST_thermostat_setting:
+.. _overview_CREST_thermostat_control_setting:
 
-CREST thermostat setting simulator
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CREST thermostat control setting simulator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:API: For details of the implementation of this simulator you can visit
+:API: This simulator is currently not available. It will be reliased in future 
+  version at 
   :py:class:`~demod.simulators.hetaing_simulators.CRESTcontrols`.
 
 :Description: This module implements the approach developed in CREST_.
@@ -130,11 +131,11 @@ Low-order building thermal model (4R3C)
   the thermal masses of the building :math:`C_{b}`, 
   indoor air :math:`C_{ia}`, 
   and heat emitters and buffer :math:`C_{em} + C_{buf}` and
-  the four thermal resistences account for heat transfer between 
-  (i) walls and indoor air :math:`U_{bi}`, 
-  (ii) walls and outdoor air :math:`U_{bo}`, 
-  (iii) emitters and indoor air :math:`U_{em}`, 
-  and (iv) air ventilation between indoor and outdoor :math:`U_{v}`.
+  the four thermal transmittance account for heat transfer between 
+  (i) walls and indoor air :math:`u_{bi}`, 
+  (ii) walls and outdoor air :math:`u_{bo}`, 
+  (iii) emitters and indoor air :math:`u_{em}`, 
+  and (iv) air ventilation between indoor and outdoor :math:`u_{v}`.
 
   Here are the equivalent equations:
 
@@ -235,11 +236,16 @@ Low-order hot water tank thermal model (1R1C)
   The name 1R1C refers to thermal capacitance representing
   the thermal mass of hot water :math:`C_{tank}` and 
   the thermal resistences of the hot water tank insulation between 
-  hot water and indoor air :math:`U_{tank}`. 
+  hot water and indoor air :math:`u_{tank}`. 
 
   Here is the equivalent equation:
 
   :math:`T_{dhw}^{t+1}=T_{dhw}^t + \frac{dt}{C_{tank}}[Q_{dhw}-m_{dhw}^{t}cp_{dhw}(T_{dhw}^t-T_{dhw}^{in})-u_{tank}(T_{dhw}^t-T_{ia}^t)]` 
+
+  where :math:`m_{dhw}` is the hot water mass flow,
+  :math:`cp_{dhw}` is the thermal capacity of water 
+  (:math:`4.2 \: kJ/kg^{\circ}C`) and
+  :math:`Q_{dhw}` refers to the heat provided from the heating system.
 
 :Availability: The parameters for the capacitance and resistences are 
   taken from CREST_.
@@ -270,20 +276,27 @@ Integrated heat demand simulator
 :API: For details about the implementation of this simulator you can visit
   :py:class:`~demod.simulators.heating_simulators.HeatDemand`.
 
-:Description: This module estimates the heat demand for space 
-  hetaing :math:`Q_{dhw,tot}` and 
-  domestic hot water heating :math:`Q_{sh}` in an integrated way. 
+:Description: This module estimates the heat demand for 
+  domestic hot water heating :math:`Q_{dhw}` and 
+  space heating :math:`Q_{sh}` in an integrated way. 
 
   For calculating the target heat demand required to deliver hot water 
   at the appropriate temperature, the module use the following equations,
 
   :math:`Q_{tank}=\frac{C_{tank}}{dt}(T_{dhw}-T_{tank})`
 
-  :math:`Q_{dhw}=m_{dhw}cp_{dhw}(T_{tank}-T_{w,inlet})`
+  :math:`Q_{flow}=m_{dhw}cp_{dhw}(T_{tank}-T_{w,inlet})`
 
-  :math:`Q_{loss}=u_{tank,loss}(T_{tank}-T_{ia})`
+  :math:`Q_{loss}=u_{tank}(T_{tank}-T_{ia})`
 
-  :math:`Q_{dhw,tot}= Q_{tank} + Q_{dhw} + Q_{loss}`
+  :math:`Q_{dhw}= Q_{tank} + Q_{flow} + Q_{loss}`
+
+  where the heat demand for domestic hot water :math:`Q_{dhw}`
+  is estimated as the some of three components:
+  (1) :math:`Q_{tank}` the heat required to warm the entire tank up to the 
+  target temperature, (2) :math:`Q_{flow}` the heat required to heat up 
+  the water requested by the users
+  and (3) :math:`Q_{loss}` the thermal losses of the tank.
 
   To calculate the heat supply required to achieve the comfort temperature 
   of the indoor air, the algorithm aims to keep the temperature 
@@ -307,9 +320,8 @@ Integrated heat demand simulator
 :Compatibility: This module is flexible and allows to use alternative 
   comfort temperature and heating switch on profiles. 
   Once these profiles are generated or empirically measured, 
-  they can be given as imput to the thermal building model 
+  they can be given as input to the thermal building model 
   to estimate the heating demand. 
-
 
 
 
@@ -338,10 +350,10 @@ Thermostats
 :Compatibility: Any thermal component for which a target temperature and 
   deadband are defined can be controlled by this module. 
 
-.. _overview_system_control:
+.. _overview_system_controller:
 
-Heating system control
-~~~~~~~~~~~~~~~~~~~~~~~~
+Heating system controller
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :API:  For details about the implementation of
   this simulator you can visit
