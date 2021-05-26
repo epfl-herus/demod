@@ -1366,7 +1366,7 @@ class HeatingSystem(Simulator):
         except ValueError as e:
             raise Exception(
                 "Incorrect probabilities distribuiton for the heating systems "
-                " equipememnt probabilities: {} ".format(
+                " equipment probabilities: {} ".format(
                     self.heating_systems["equipped_prob"]
                 )
             )
@@ -1507,11 +1507,11 @@ class HeatingSystem(Simulator):
         target heat demand and the controls of the heating system.
         It also follows the constraints of the heating system, in terms of
         maximum heat outputs.
-        If there is to much heat to provide,
-        priorities the domestic hot water demand.
+        If the heat demand exceeds the maximum capacity,
+        domestic hot water is then prioritised.
 
         Args:
-            heating_controls: Dictronnary containing the conrols arrays.
+            heating_controls: Dictronnary containing the control arrays.
             target_heat_demand: Dictionnary containing the heat demand arrays.
         """
         #  Get the control signals from the heating controller

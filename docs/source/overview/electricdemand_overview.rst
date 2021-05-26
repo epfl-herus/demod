@@ -28,7 +28,7 @@ There are three different ways of categorizing appliances.
 Based on their load profile:
 
 - *Constant load*: an average load value is assigned to the appliance 
-  when it is used.
+  when it is used (e.g., )
 - *Time varying load*: appliances that have their power consumption 
   varying during an operating cycle. 
   For example, the cycle of a washing machine consists of several stages 
@@ -38,7 +38,7 @@ Based on their load profile:
 Based on their usage duration:
 
 - *Fixed duration*: the appliance is always used for the same 
-  number of timesteps.
+  number of timesteps (e.g., kettle and dish washer)
 - *Stochastic duration*: the duration is drawn from a random 
   distribution. Example: the TV duration in CREST is drawn from 
   an exponential distribution, and the hot water durations 
@@ -51,22 +51,16 @@ Based on usage patterns:
 - *Activity dependent*: appliances directly related to an activity. 
   Therefore, their usage occurs when at least one resident is undertaking 
   the corresponding activity. For example the TV or the oven.
-  
-In :numref:`appliance-categories`, appliances are reported considering 
-these three categorizations. 
-    
 
-.. figure:: OverviewFigures/AppliancesCategories.png
-    :width: 500
-    :alt: Appliance categories 
-    :align: center 
-    :name: appliance-categories 
-    
-    Appliance categories
+.. note::
 
+  Please keep in mind that these categories depend 
+  both on the technical characteristics of the device 
+  and the modeling assumptions and simplifications. 
+  For example, the dishwasher can be considered either *constant load*
+  or *time varing load* depending on the accuracy of the profile used. 
 
-
-    
+   
 
 .. _overview_occupancy_based_appliance_usage:
 
@@ -83,7 +77,7 @@ Occupancy-based appliance usage simulator
 
   **Initialization.** At the beginning of a run, the model populates 
   each dwelling with a set of appliances. This process can be based on 
-  generic or socio-demographic-specific statistical ownership data.
+  generic or sociodemographic-specific statistical ownership data.
 
   **Appliance usage and load.**   
   Appliance usage and load profiles are estimated as follows:
@@ -101,7 +95,7 @@ Occupancy-based appliance usage simulator
      
   .. note:: 
       - For *level usage* appliances, whicht do not depend on active occupancy 
-        (e.g.,  fridge and freezer) step 1 assumeS activity pdf 
+        (e.g.,  fridge and freezer) step 1 assumes activity pdf 
         to be equal to one.  
       
       - For appliances with a *fixed duration* step 3 is ignored.
@@ -109,7 +103,7 @@ Occupancy-based appliance usage simulator
 :Availability: This simulator is available for UK and German households. 
   However, few modifications are implemented according to data availability.
 
-  **Initialization.** For UK case, the model stochastically estimate 
+  **Initialization.** For UK case, the model stochastically estimates 
   the appliance set for each household using statistical ownership data 
   from multiple sources [Richardson2010]_.
 
