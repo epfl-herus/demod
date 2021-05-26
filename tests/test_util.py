@@ -1,8 +1,9 @@
 from datetime import date, datetime, timedelta
 
 import numpy as np
-from demod.simulators.util import subgroup_add_time, sample_population
+from demod.simulators.util import  sample_population
 from demod.utils.appliances import get_ownership_from_dict, find_closest_type, remove_start
+from demod.utils.subgroup_handling import add_time
 import unittest
 
 
@@ -63,42 +64,42 @@ class TestAppliancesUtility(unittest.TestCase):
 
 
 
-class TestUtilityFunctions(unittest.TestCase):
+class TestSubgroups(unittest.TestCase):
 
-    def test_subgroup_add_time(self):
+    def test_add_time(self):
         dic = {}
         d = date(2014,1,1)
         # default
-        dic_out = subgroup_add_time(dic, d)
+        dic_out = add_time(dic, d)
         self.assertEqual(dic['weekday'], [1,2,3,4,5])
         # check retuurn is the same
         self.assertEqual(dic, dic_out)
         # try specific day
-        subgroup_add_time(dic, d, use_7days=True, use_week_ends_days=False)
+        add_time(dic, d, use_7days=True, use_week_ends_days=False)
         self.assertEqual(dic['weekday'], 3)
         # try with datetime object as well
         dt = datetime(2014,1,1,0,0,0)
-        subgroup_add_time(dic, dt)
+        add_time(dic, dt)
         self.assertEqual(dic['weekday'], [1,2,3,4,5])
         # try weekend
         d_e = date(2014,1,4)
-        subgroup_add_time(dic, d_e)
+        add_time(dic, d_e)
         self.assertEqual(dic['weekday'], [6,7])
         # try quarter only
         dic_2 = {}
-        subgroup_add_time(dic_2, d, use_quarters=True, use_week_ends_days=False)
+        add_time(dic_2, d, use_quarters=True, use_week_ends_days=False)
         self.assertEqual(dic_2['quarter'], 1)
         self.assertNotIn('weekday', dic_2)
         # try quarter computation
         dates = [date(2014,1,15) + timedelta(days=30*i) for i in range(12)]
-        quarters = [subgroup_add_time({}, d, use_quarters=True)['quarter'] for d in dates]
+        quarters = [add_time({}, d, use_quarters=True)['quarter'] for d in dates]
         self.assertEqual(quarters, sum([3*[i+1] for i in range(4)], []))
         # check that is does not override other attribuutes
         dic_full = {'test':3}
-        subgroup_add_time(dic_full, d, use_7days=True, use_week_ends_days=False)
+        add_time(dic_full, d, use_7days=True, use_week_ends_days=False)
         self.assertEqual(dic_full['test'], 3)
         # check error if uuse both 7 days and weekendays
-        self.assertRaises(ValueError, subgroup_add_time, dic, d, use_7days=True, use_week_ends_days=True)
+        self.assertRaises(ValueError, add_time, dic, d, use_7days=True, use_week_ends_days=True)
 
 
 class TestPopulationSampling(unittest.TestCase):
