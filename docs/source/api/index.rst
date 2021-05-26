@@ -21,5 +21,6 @@ developpement.
     error_metrics
     utils
     appliances
+    subgroups
     cards
     testing
