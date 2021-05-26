@@ -16,13 +16,13 @@ Glossary
       [Swan2009]_
 
    pdf
-      probability density function.
+      **p**robability **d**ensity **f**unction.
 
    TPMs
-      Transition Probablity Matrixs. It defines the probability 
-      of a simulated component in a Markov chain of channging 
+      **T**ransition **P**robablity **M**atrix**s**. It defines the probability
+      of a simulated component in a Markov chain of channging
       from on state to another.
-      In demod, TPMs are a set of TPM that remebers 
+      In demod, TPMs are a set of TPM that remebers
       how the matrices evolve with time.
       By convention, the i-eth TPM define the probabilities for transition from
       state i-1 to i.

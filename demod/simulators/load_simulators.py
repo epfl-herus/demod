@@ -93,8 +93,18 @@ class LoadSimulator(TimeAwareSimulator):
     """Simulates the full load of households.
 
     This simulator accepts different simulator as inputs.
+
+    The simulator can accept an external weather simulator that simulates
+    temperature and irradiation.
+
     It can also accept external heating systems handling the heat
     production.
+
+    The data inputs of this simulator can vary depending wether the
+    heating simulator or the weather simulator is included.
+    Also, the simulator might use a different activity simulator
+    based on the data input. (see the code for more information)
+
 
     Contains:
         - The activity of the residents
@@ -103,9 +113,50 @@ class LoadSimulator(TimeAwareSimulator):
         - Appliances (electric + domestic hot water)
         - Heating (building thermal dynamics + heating system)
 
-    Compatible Simulators:
-        - :py:class:`appliance_simulators.SubgroupApplianceSimulator`
-        - ...
+    Attributes:
+        include_heating: Wether to include the heating of the households
+        include_climate: Wether to simulate internally the climate (requires
+            external inputs if not.)
+
+    Params
+        :py:attr:`~demod.utils.cards_doc.Params.n_households`
+        :py:attr:`~demod.utils.cards_doc.Params.heatdemand_algo`
+        :py:attr:`~demod.utils.cards_doc.Params.data`
+        :py:attr:`~demod.utils.cards_doc.Params.initial_outside_temperature`
+        :py:attr:`include_heating`
+        :py:attr:`include_climate`
+        :py:attr:`~demod.utils.cards_doc.Params.logger`
+    Data
+        :py:meth:`~demod.utils.cards_doc.Loader.load_sparse_tpm`
+        :py:meth:`~demod.utils.cards_doc.Loader.load_tpm`
+        :py:meth:`~demod.utils.cards_doc.Loader.load_population_subgroups`
+        :py:meth:`~demod.datasets.tou_loader.LoaderTOU.load_activity_probability_profiles`
+        :py:meth:`~demod.datasets.base_loader.ApplianceLoader.load_appliance_ownership_dict`
+        :py:meth:`~demod.datasets.base_loader.ApplianceLoader.load_appliance_dict`
+        :py:meth:`~demod.datasets.base_loader.LightingLoader.load_crest_lighting`
+        :py:meth:`~demod.datasets.base_loader.LightingLoader.load_bulbs_config`
+        :py:meth:`~demod.datasets.base_loader.HeatingLoader.load_heating_system_dict`
+        :py:meth:`~demod.datasets.base_loader.HeatingLoader.load_thermostat_dict`
+        :py:meth:`~demod.datasets.base_loader.HeatingLoader.load_buildings_dict`
+    Step input
+        None
+    Optional step input
+        :py:attr:`~demod.utils.cards_doc.Inputs.external_outside_temperature`
+        :py:attr:`~demod.utils.cards_doc.Inputs.external_irradiance`
+        :py:attr:`~demod.utils.cards_doc.Inputs.external_target_temperature`
+        :py:attr:`~demod.utils.cards_doc.Inputs.external_heat_outputs`
+        :py:attr:`~demod.utils.cards_doc.Inputs.external_dhw_outputs`
+        :py:attr:`~demod.utils.cards_doc.Inputs.external_sh_outputs`
+        :py:attr:`~demod.utils.cards_doc.Inputs.external_cylinder_temperature`
+    Output
+        :py:meth:`~demod.utils.cards_doc.Sim.get_room_temperature`
+        :py:meth:`~demod.utils.cards_doc.Sim.get_total_heat_demand`
+        :py:meth:`~demod.utils.cards_doc.Sim.get_dhw_demand`
+        :py:meth:`~demod.utils.cards_doc.Sim.get_sh_demand`
+        :py:meth:`~demod.utils.cards_doc.Sim.get_power_demand`
+        :py:meth:`~demod.utils.cards_doc.Sim.get_controls`
+    Step size
+        1 Minute
     """
 
     climate: ClimateSimulator

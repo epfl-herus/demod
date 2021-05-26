@@ -382,6 +382,18 @@ class Inputs:
             :Unit: binary, :py:obj:`bool`
             :Related Getter: :py:meth:`~.Sim.get_controls`
 
+        external_outside_temperature: Input from an external component for
+            the outside temperature.
+
+            :Unit: temperature, :math:`[^{\circ} C]`
+            :Related Getter: :py:meth:`~.Sim.get_outside_temperature`
+
+        external_irradiance: Input from an external component for
+            the irradiance.
+
+            :Unit: irradiance, :math:`[W/m^2]`
+            :Related Getter: :py:meth:`~.Sim.get_irradiance`
+
         external_target_temperature: Input from an external component for
             the room temperatures.
 
@@ -501,7 +513,7 @@ class Params:
                     * 5 = Others
 
                 * subgroup['life_situation']
-                    int, The life siutation of the persons.
+                    int, The life situation of the persons.
                     From :py:class:`~demod.datasets.GermanTOU.loader.GTOU`
 
                     * 1 = Self-employed, freelancer, farmer, family worker
@@ -519,6 +531,18 @@ class Params:
                     .. note::
                         This works better with single persons households
                         in general.
+
+                * subgroup['household_position']
+                    int, The position of the person in the household or family.
+                    From :py:class:`~demod.datasets.GermanTOU.loader.GTOU`
+
+                    * 1 = Main revenue maker
+                    * 2 = Partner or Spouse
+                    * 3 = Kid
+
+                    .. note::
+                        This works better with single persons households
+                        or person subgroup.
 
 
                 * subgroup['age']
@@ -677,7 +701,7 @@ class Params:
 
                 * 'tumble_dryer'
                 * 'washer_dryer'
-                Washing Machine that do both washing and drying.
+                    Washing Machine that do both washing and drying.
 
             * 'iron'
             * 'heater'
@@ -685,11 +709,11 @@ class Params:
                 * 'water_heater'
 
                     * 'des_water_heater'
-                    Domestic electric storage
-                    water heater
+                        Domestic electric storage
+                        water heater
 
                     * 'einst_water_heater'
-                    Instant electric hot water
+                        Instant electric hot water
 
             * 'cleaner'
 

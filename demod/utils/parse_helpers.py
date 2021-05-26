@@ -1,10 +1,11 @@
 """Helper functions for parsing Datasets."""
 
+from demod.utils.monte_carlo import PDFs
 from typing import Dict, Tuple
 import numpy as np
 import pandas
 
-from .sim_types import States, Any, Union
+from .sim_types import StateLabels, States, Any, TPMs, Union
 
 
 def states_to_transitions(
@@ -26,9 +27,10 @@ def states_to_transitions(
         return_duration: Wether to return the duration of the states.
             Defaults to False.
         include_same_state: Whether to also include transitions from
-            a state to the same state.
+            a state to the same state. This is not meant to be used with
+            'return_duration = True'.
         ignore_end_start_transitions: Whether to ignore the transitions
-            that happens from the end of the diary to the start
+            that happens from the end of the diary to the start.
 
     Returns:
         transitions_dict, containing the transitions
@@ -46,6 +48,10 @@ def states_to_transitions(
 
         * transitions_dict['old_states']
             state before transition
+
+        * transitions_dict['duration']
+            only included if 'return_duration' is True,
+            return the duration of the state after each transition.
 
     """
     states = np.array(states).T
@@ -85,14 +91,19 @@ def states_to_transitions(
             person_times = transitions_dict["times"][mask_person]
             # times are already sorted from previous loop
             person_duration = np.roll(person_times, -1) - person_times
-            # last state is merge with the first if same, else ignored
             person_last_state = transitions_dict["new_states"][mask_person][-1]
-            person_first_state = transitions_dict["new_states"][mask_person][0]
+            person_first_state = transitions_dict["old_states"][mask_person][0]
+
+            # last state is merge with the first if same
             person_duration[-1] = (
                 person_times[0] + (len(states) - person_times[-1])
                 if person_first_state == person_last_state
-                else 0
+                else (  # Else check if we should ignore or count till start
+                    0 if ignore_end_start_transitions else
+                    len(states) - person_times[-1]
+                    )
             )
+
             duration[mask_person] = np.array(person_duration)
 
         transitions_dict["durations"] = np.array(duration)
@@ -412,11 +423,159 @@ def bulbs_stats_from_config(
     )
 
 
+def states_to_tpms_with_durations(
+    states: np.ndarray,
+    first_tpm_modification_algo: str = 'last',
+    labels: StateLabels = None,
+) -> Tuple[TPMs, np.ndarray, np.ndarray]:
+    """Convert the states to tpms for semi markov chains.
+
+    The output tpms have at time t, the transition from
+    t-1 to t.
+    The durations cdf have at index i the prob of a duration of i steps.
+    Note that it is not possible to have a full time period duration.
+
+    Any transition that does not occur in the states array is handled by
+    setting a duration of 0, and the tpm will only have the probability
+    to stay at the same state.
+
+    Args:
+        states: The states to convert.
+        first_tpm_modification_algo: Algo to use to change the tpm from
+            end of the diary to the start. Defaults to 'last'.
+            See: :py:function:`first_tpm_change` .
+        labels: Optional labels, (useful if some state are not visited).
+            Defaults to None.
+
+    Returns:
+        Transition probability matrices, Duration of states pdf,
+        Duration of states pdf with previous states.
+    """
+    transition_dict = states_to_transitions(states, return_duration=True)
+
+    n_times = states.shape[1]  # Axis 1 of states
+    n_states = (
+        # If we don't know states labels, look at all the possible states
+        len(np.unique(states)) if labels is None else len(labels)
+    )
+
+    tpm = np.zeros((n_times, n_states, n_states))
+    durations = np.zeros((n_times, n_states, n_times))
+    durations_with_previous = np.zeros((n_times, n_states, n_states, n_times))
+
+    # Adds the transitions (first find the unique transitions, then add to tpm)
+    uniques, counts = np.unique(np.c_[
+        transition_dict['times'],
+        transition_dict['old_states'],
+        transition_dict['new_states']
+        ], axis=0, return_counts=True)
+    tpm[
+        uniques[:, 0],
+        uniques[:, 1],
+        uniques[:, 2],
+    ] = counts
+    # Adds the durations (first, find the unique transitions, then add to arr)
+    uniques, counts = np.unique(np.c_[
+        transition_dict['times'],
+        transition_dict['new_states'],
+        transition_dict['durations']
+        ], axis=0, return_counts=True)
+    durations[
+        uniques[:, 0],
+        uniques[:, 1],
+        uniques[:, 2],
+    ] = counts
+    # Adds the durations (first, find the unique transitions, then add to arr)
+    uniques, counts = np.unique(np.c_[
+        transition_dict['times'],
+        transition_dict['old_states'],
+        transition_dict['new_states'],
+        transition_dict['durations']
+        ], axis=0, return_counts=True)
+    durations_with_previous[
+        uniques[:, 0],
+        uniques[:, 1],
+        uniques[:, 2],
+        uniques[:, 3],
+    ] = counts
+
+    # Now that we have counted the transitions, we can convert to probs
+    durations = counts_to_pdf(durations, ensure_valid_pdf=True)
+    durations_with_previous = counts_to_pdf(
+        durations_with_previous, ensure_valid_pdf=True
+    )
+    # With ensure valid pdf, unexisting transition will have their duration = 0
+    # For the tpms this could create dead states
+    tpm = counts_to_pdf(tpm, ensure_valid_pdf=False)
+    # Handle the dead states by keeping the same state
+    tpm[np.isnan(tpm)] = 0.
+    times_0, state_0 = np.where(tpm.sum(axis=-1) == 0.)
+    tpm[times_0, state_0, state_0] = 1.
+
+    # Changes the first tpm as it is biased by end-start discontinuities
+    # Assign that
+    tpm = first_tpm_change(tpm, algo=first_tpm_modification_algo)
+    # Can also apply that to the durations
+    durations = first_tpm_change(durations, algo=first_tpm_modification_algo)
+    durations_with_previous = first_tpm_change(
+        durations_with_previous, algo=first_tpm_modification_algo
+    )
+    return tpm, durations, durations_with_previous
+
+
+def get_initial_durations_pdfs(states: States) -> PDFs:
+    """Compute the initial durations depending on the states.
+
+    Dim 0 corresponds to the different possible states,
+    Dim 1 contains the pdfs.
+    """
+    t = 0
+    # Records where the starting states have been found
+    mask_not_found = np.ones(len(states), dtype=bool)
+    # Counts the number of durations
+    counts = np.zeros((len(np.unique(states)), states.shape[-1]))
+    prev_state = states[:, 0]
+    for state in states.T:  # Iterate over the time
+        # Finds where the first change is occuring
+        mask_first_change = (prev_state != state) & mask_not_found
+        unique, count = np.unique(  # Counts how many have this duration
+            prev_state[mask_first_change], return_counts=True
+        )
+        counts[unique, t] = count
+        t += 1  # Increment time variable
+        # Updates the found values
+        mask_not_found[mask_first_change] = False
+
+    return counts_to_pdf(counts)
+
+
+def counts_to_pdf(counts: np.ndarray, ensure_valid_pdf=True):
+    """Transform an array countaining counts of an event to pdfs.
+
+    The last dimension of counts will be the one that is converted to pdf.
+    If there are no counts along the dimension and 'ensure_valid_pdf'
+    is set to True,
+    the pdf will be [1., 0. , ..., 0.]
+    """
+    if ensure_valid_pdf:
+        # Sums all the counts for the pdf
+        s = counts.sum(axis=-1)
+        indexes_zeros = list(np.where(s == 0))
+        indexes_zeros.append(np.zeros_like(indexes_zeros[0]))
+        # Corrects where there are zeros that should be converted
+        counts[tuple(indexes_zeros)] = 1
+
+    # Prepare sum for broadcasting
+    shape = list(counts.shape)
+    shape[-1] = 1
+    return counts / counts.sum(axis=-1).reshape(shape)
+
+
 def states_to_tpms(
-    states,
-    first_tpm_modification_algo='last',
-    labels=None
-):
+    states: States,
+    first_tpm_modification_algo: str = 'last',
+    labels: StateLabels = None
+) -> TPMs:
     """Convert the states to tranistions probability matrices.
 
     The output tpms have at time t, the transition from

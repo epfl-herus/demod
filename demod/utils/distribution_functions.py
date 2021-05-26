@@ -76,9 +76,7 @@ def check_valid_cdf(cdf: np.ndarray, epsilon: float = 1e-6):
     Check that it ends at 1.
 
     Parameters:
-        cdf : ndarray, 2-dim
-            a ndarray with dim0 being the number of sample and dim1 the cdfs of
-            each samples
+        cdf : ndarray, of any size, with last dimension being the cdfs
 
     Returns:
         True if the cdf is valid
