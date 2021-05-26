@@ -412,18 +412,20 @@ CREST heating system
   :py:class:`~demod.simulators.heating_simulators.HeatingSystem`.
 
 :Description: It simulates the energy consumption (i.e., gas or electricity)
-  of the heating system for providing requested heat demand.
+  of the heating system for providing the requested heat demand.
 
   The algorithm used here is relatively simple and estimates the consumption 
-  of electricity or gas :math:`E`on the basis of the heat demand :math:`Q_{th}`, 
-  an efficiency coefficient :math:`\eta`, as follows:
+  of electricity or gas :math:`m_{fuel}` on the basis of 
+  the nominal fuel flow rate :math:`m_{fuel,n}`,
+  the heat demand :math:`Q_{th}` and
+  the heat supply at nominal conditions :math:`Q_{th,n}`, as follows:
 
-  :math:`E= \frac{Q_{th}}{\eta CV}` 
+  :math:`m_{fuel}= m_{fuel,n} \frac{Q_{th}}{Q_{th,n}}` 
 
-  Then,according to the type of fuel it is estimated the mass flow rate 
-  considering the calorific value :math:`CV`,
+  where the heat supply at nominal conditions is estimated using the
+  fuel calorific value :math:`CV` and the thermal efficiency :math:`\eta_{th}`,
 
-  :math:`m_{fuel}= \frac{E}{CV}` 
+  :math:`Q_{th,n} = m_{fuel,n} {CV} \eta_{th}` 
 
   For more details on the data used and the different system 
   and fuel options available, you can refer to CREST_. 
@@ -451,7 +453,7 @@ CREST five modules heating simulator
 
 :Description: This module estimates domestic heating demand and supply. 
   It is based on the [CREST]_ model, 
-  but simplifies the operation of thermostat control by users. 
+  but simplifies the operation of thermostat control setting by the users. 
 
   As shown in :numref:`CREST5modulesheatingsystem`,
   the following 5 components are integrated in this module:
@@ -461,6 +463,9 @@ CREST five modules heating simulator
   * :ref:`overview_heat_demand`
   * :ref:`overview_thermostats`
   * :ref:`overview_4R3C_building_thermal_model` and :ref:`overview_1R1C_hot_water_tank`
+
+  In :numref:`CREST5modulesheatingsystem`, the modules and their connections 
+  are shown schematically.
 
 
 :Compatibility:  This simulator is also compatible 
