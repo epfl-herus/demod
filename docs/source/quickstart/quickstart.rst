@@ -110,12 +110,12 @@ Handling multiple simulators
 The
 :py:class:`~demod.simulators.load_simulators.LoadSimulator`
 can be decomposed in different components
-as explain in :doc:`the overview section <../overview/index>`.
+as explain in the :doc:`overview section <../overview/index>`.
 
 Here we present how to perform a simulation with multiple
-components simulators,
-how to handle different timesteps,
-how to handles the inputs and outputs from the different simulators.
+components or modules,
+how to simulate over different timesteps,
+and handle inputs and outputs from the different simulators.
 
 First you need to choose the components among the different
 available simulators, which you can find in the
@@ -123,7 +123,7 @@ available simulators, which you can find in the
 You can also select a dataset from the
 :doc:`available datasets <../api/data_api>`.
 
-In this example, we will simulate the lighting in a household.
+In this example, we will simulate the lighting in 10 households.
 
 .. code-block:: python
 
@@ -192,9 +192,8 @@ You can find all the inputs and outputs of simulators also in the
 :doc:`simulators API documentation <../api/simulators_api>`.
 
 
-After the simulation is run, you
-can :ref:`use a logger <using_a_logger>` to check what was simulated
-.
+After the simulation is completed, you
+can :ref:`use a logger <using_a_logger>` to retrieve the outputs.
 
 
 .. _withoutpython:
