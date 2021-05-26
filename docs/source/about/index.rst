@@ -23,8 +23,8 @@ Fundings
 ----------
 
 Demod was developed within the MoMeEnT project 
-*"**Mo**deling the sociotechnical **M**ulti-level architecture of the
-**En**ergy system and its **T**ransformation"*,
+"**Mo**deling the sociotechnical **M**ulti-level architecture of the
+**En**ergy system and its **T**ransformation",
 jointly funded by 
 `Swiss National Science Foundation (SNSF) <http://www.snf.ch/en/theSNSF/Pages/default.aspx>`_ 
 and the `Gewrman Research Foundation (DFG) <https://www.dfg.de/en/research_funding/index.html>`_. 

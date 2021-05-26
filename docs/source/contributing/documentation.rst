@@ -11,9 +11,8 @@ Coding guidelines
 -----------------
 
 
-If you contribute to demod, you must try to make your code
-easy to read and clear.
-You can also try to follow those rules:
+If you want contribute to demod, you should try to make your code
+easy to read and clear, according to the following rules:
 
 * A maximum of 79 characters per line.
 * Naming variables like_this_for_example
@@ -54,7 +53,7 @@ Docstrings
 ~~~~~~~~~~
 
 We use docstrings of the simulators to simply add new simulators and methods
-in demod'API.
+in demod's API.
 
 You can follow this example from `sphinx: Type annotations
 <https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html#type-annotations>`_.
