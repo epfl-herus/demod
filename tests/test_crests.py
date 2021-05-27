@@ -77,7 +77,10 @@ class TestCrestOccupancySimulator(BaseSimulatorChildrenTests):
     n_households = 1
     args_step = []  # no step inputs
     kwargs_step = {}
-    unimplemented_getters = ['get_performing_activity']
+    unimplemented_getters = ['get_n_doing_state', 'get_performing_activity']
+    getter_args = {
+        'get_n_doing_activity': [10],  # From a 4 states model as default
+    }
 
     def test_day_types(self):
         args = self.args.copy()
@@ -96,9 +99,13 @@ class TestCrestMultiOccupancySimulator(
     kwargs = {}
     args_step = []  # two step inputs
     kwargs_step = {}
-    unimplemented_getters = ['get_performing_activity']
+    unimplemented_getters = [
+        'get_performing_activity',
+        'get_n_doing_activity',
+        'get_n_doing_state'
+    ]
     getter_args = {
-        'get_mask_subgroup': [{'n_residents': 2}]
+        'get_mask_subgroup': [{'n_residents': 2}],
     }  # dic of the form "get_name_of_getter": [*args]
 
     def test_non_default_step_size(self):

@@ -1,4 +1,5 @@
 from datetime import datetime, time
+from demod.utils.monte_carlo import PDFs
 from demod.utils.parse_helpers import make_jsonable
 from demod.utils.subgroup_handling import subgroup_string
 import os
@@ -94,6 +95,91 @@ class LoaderTOU(DatasetLoader):
         self, subgroup: Subgroup
     ) -> Tuple[TPMs, StateLabels, PDF, dict]:
 
+        raise NotImplementedError()
+
+    def load_tpm_with_duration(
+        self, subgroup: Subgroup, duration_use_previous_state: bool = False,
+    ) -> Tuple[TPMs, np.ndarray, StateLabels, PDF, PDFs]:
+        """Load tpms and durations for the requested subgroup.
+
+        Args:
+            subgroup: The desired subgroup
+
+        Returns:
+            the transition probability matrix, the durations pdfs,
+            the labels, the initial state pdf and the intial durations pdf
+        """
+        subgroup_str = subgroup_string(subgroup) + '_with_duration'
+
+        file_path = os.path.join(self.parsed_path_activity, subgroup_str)
+        file_name = os.path.join(self.activity_type, subgroup_str)
+
+        try:
+            tpm_file = dict(np.load(file_path + '.npz'))
+            (
+                tpm, duration_pdfs, duration_pdfs_with_previous,
+                labels, initial_pdf, initial_duration_pdfs
+            ) = (
+                tpm_file['tpm'],
+                tpm_file['duration_pdfs'],
+                tpm_file['duration_pdfs_with_previous'],
+                tpm_file['labels'],
+                tpm_file['initial_pdf'],
+                tpm_file['initial_duration_pdfs']
+            )
+
+        except FileNotFoundError as err:
+            self._warn_could_not_load_parsed(err, file_name)
+            (
+                tpm, duration_pdfs, duration_pdfs_with_previous, labels,
+                initial_pdf, initial_duration_pdfs, legend
+            ) = self._parse_tpm_with_duration(
+                subgroup
+            )
+            tpm_dict = {}
+            (
+                tpm_dict['tpm'],
+                tpm_dict['duration_pdfs'],
+                tpm_dict['duration_pdfs_with_previous'],
+                tpm_dict['labels'],
+                tpm_dict['initial_pdf'],
+                tpm_dict['initial_duration_pdfs']
+            ) = (
+                tpm, duration_pdfs, duration_pdfs_with_previous,
+                labels, initial_pdf, initial_duration_pdfs
+            )
+
+            np.savez(file_path, **tpm_dict)
+
+            # Saves a legend of the files created
+            legend_path = (
+                self.parsed_path_activity + os.sep
+                + subgroup_str + '_dict_legend.json'
+            )
+            with open(legend_path, 'w') as fp:
+                json.dump(make_jsonable(legend), fp, indent=4)
+
+        return tpm, (
+            duration_pdfs_with_previous if duration_use_previous_state
+            else duration_pdfs
+            ), labels, initial_pdf, initial_duration_pdfs
+
+
+    def _parse_tpm_with_duration(
+        self, subgroup: Subgroup
+    ) -> Tuple[TPMs, np.ndarray, np.ndarray, StateLabels, PDF, PDFs, dict]:
+        """Parse tpms and durations for the requested subgroup.
+
+        Args:
+            subgroup: The desired subgroup
+
+        Returns:
+            the transition probability matrix,
+            the durations pdfs that depend only on new state,
+            the durations pdfs that depend also on the previous state,
+            the labels, the initial state pdf, the intial durations pdf,
+            and a dictionary with metadata of the parsing
+        """
         raise NotImplementedError()
 
 

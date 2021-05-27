@@ -59,33 +59,6 @@ def assign_external_dict(base_dict, external_dict):
     return base_dict
 
 
-def subgroup_add_time(
-        subgroup:dict, time:Union[datetime, date],
-        use_quarters=False, use_7days=False, use_week_ends_days=True,):
-    """Add the time subgroup keyword with its corresponding value
-
-    Args:
-        subgroup (dict): [description]
-        time (Union[datetime, date]): [description]
-        use_quarters (bool, optional): [description]. Defaults to False.
-        use_7days (bool, optional): [description]. Defaults to False.
-        use_week_ends_days (bool, optional): [description]. Defaults to True.
-    """
-        # initialize the use of number of days
-    if use_7days and use_week_ends_days:
-        raise ValueError('Cannot use_7days and use_week_ends_days. You must choose which one is True (default: weekend_days)')
-    elif use_7days:
-        subgroup['weekday'] = time.isoweekday()
-    elif use_week_ends_days:
-        subgroup['weekday'] = [i for i in range(1,6)] if time.isoweekday() <=5 else [6,7]
-    else:
-        pass
-
-    if use_quarters:
-        subgroup['quarter'] = (time.month-1) // 3 + 1
-
-    return subgroup
-
 
 def inherit_getters_docstring(cls):
     """Decorate method to pass the documentation.
