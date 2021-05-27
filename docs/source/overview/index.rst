@@ -106,7 +106,7 @@ model framework is reported.
     electricdemand_overview
     thermaldemand_overview
     mobility_overview
-    climate_overview
+    weather_overview
     
 .. initialization_overview
 
