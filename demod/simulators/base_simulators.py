@@ -7,19 +7,10 @@ implementations of simulations.
 """
 from __future__ import annotations
 
-
-import itertools
 import datetime
 from typing import List, NoReturn, Union, Callable
 
 import numpy as np
-from numpy.core.fromnumeric import shape
-
-from ..utils.monte_carlo import monte_carlo_from_cdf
-from ..utils.distribution_functions import check_valid_cdf
-
-
-
 
 
 def cached_getter(getter: GetMethod) -> GetMethod:
@@ -31,7 +22,8 @@ def cached_getter(getter: GetMethod) -> GetMethod:
     Args:
         getter: The getter method to decorate.
     """
-    def decorated_getter(self: Simulator, n_ieth_hh: Union[None,int]=None):
+
+    def decorated_getter(self: Simulator, n_ieth_hh: Union[None, int] = None):
         # add getter to the cache if not there
         if getter not in self._cache:
             self._cache[getter] = getter(self)
@@ -41,8 +33,8 @@ def cached_getter(getter: GetMethod) -> GetMethod:
 
         return self._cache[getter][n_ieth_hh]
 
-
     return decorated_getter
+
 
 class SimLogger():
     """Specialized logger for any Simulator object.
