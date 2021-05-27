@@ -20,7 +20,7 @@ CREST irradiance simulator
   :py:class:`~demod.simulators.weather_simulators.CrestIrradianceSimulator`.
 
 :Description: This module simulates daily irradiance with 1 min time resolution,
-    following the approach developed in CREST_. 
+    following the approach developed in CREST_ . 
     On one hand, it estimates the irradiance clear sky,
     taking into account geographical position, solar angle and time of year. 
     On the other hand, the clearness of the sky is estimated using 
@@ -47,7 +47,7 @@ CREST climate simulator
 
 :Description: This module simulates the climate 
     (i.e., irradiance and external air temperature) with 1 min time resolution, 
-    following the approach developed in CREST_. 
+    following the approach developed in CREST_ . 
     It is based on :py:class:`.CrestIrradianceSimulator`, and an
     `autoregressive–moving-average (ARMA) model <https://en.wikipedia.org/wiki/Autoregressive%E2%80%93moving-average_model>`_
     for the external air temperature.
@@ -86,14 +86,17 @@ Real climate simulator
   :py:class:`~demod.simulators.weather_simulators.RealClimate`.
 
 :Description: This module allows you to use historical climate data 
-    (i.e. irradiance and temperature) in your simulation. 
+    (i.e., irradiance and temperature) in your simulation. 
     Once the dataset containing the historical climate data has been imported, 
     this module iterates the simulation 
     by selecting the days and hours of interest.  
     
-:Availability: In demod you can use data from Germany, 
-    but several open source sites suitable datasets 
-    (e.g., `Renewables ninja <https://www.renewables.ninja/>`_).
+:Availability: In demod you can use data for Germany with a temporal 
+    resolution of 1 hour derived 
+    from `Renewables ninja <https://www.renewables.ninja/>`_ 
+    and available `here <https://data.open-power-system-data.org/weather_data/2020-09-16>`_. 
+    This dataset also contains data for other European countries that 
+    can therefore be used for new simulations. 
 
 
 
@@ -114,6 +117,9 @@ Real interpolated climate simulator
     but in this case the simulation is iterated 
     over the interpolated climate profiles. 
  
-:Availability: In demod you can use data from Germany, 
-    but several open source sites suitable datasets 
-    (e.g., `Renewables ninja <https://www.renewables.ninja/>`_).
+:Availability: In demod you can use data for Germany with a temporal 
+    resolution of 1 hour derived 
+    from `Renewables ninja <https://www.renewables.ninja/>`_ 
+    and available `here <https://data.open-power-system-data.org/weather_data/2020-09-16>`_. 
+    This dataset also contains data for other European countries that 
+    can therefore be used for new simulations. 
