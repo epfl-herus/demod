@@ -1,3 +1,4 @@
+from unittest import loader
 from demod.datasets.Germany.loader import GermanDataHerus
 import unittest
 import numpy as np
@@ -75,6 +76,21 @@ class TestGTOU(unittest.TestCase):
     def test_load_sparse(self):
         loader = self.loader("Sparse9States")
         loader.load_sparse_tpm({"n_residents": 1, "weekday": [6, 7]})
+
+    def test_load_durations(self):
+        loader = self.loader()
+        (
+            tpm,
+            duration_pdfs,
+            labels,
+            initial_pdf,
+            initial_duration_pdfs
+        ) = loader.load_tpm_with_duration({"n_residents": 1})
+
+    def test_activities(self):
+        loader = self.loader('DemodActivities_0')
+        loader.load_tpm({"n_residents": 1})
+        loader.load_tpm_with_duration({"n_residents": 1})
 
 
 class TestHerus(unittest.TestCase):

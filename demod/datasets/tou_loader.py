@@ -98,7 +98,7 @@ class LoaderTOU(DatasetLoader):
         raise NotImplementedError()
 
     def load_tpm_with_duration(
-        self, subgroup: Subgroup, duration_use_previous_state: bool = False,
+        self, subgroup: Subgroup,
     ) -> Tuple[TPMs, np.ndarray, StateLabels, PDF, PDFs]:
         """Load tpms and durations for the requested subgroup.
 
@@ -117,12 +117,11 @@ class LoaderTOU(DatasetLoader):
         try:
             tpm_file = dict(np.load(file_path + '.npz'))
             (
-                tpm, duration_pdfs, duration_pdfs_with_previous,
+                tpm, duration_pdfs,
                 labels, initial_pdf, initial_duration_pdfs
             ) = (
                 tpm_file['tpm'],
                 tpm_file['duration_pdfs'],
-                tpm_file['duration_pdfs_with_previous'],
                 tpm_file['labels'],
                 tpm_file['initial_pdf'],
                 tpm_file['initial_duration_pdfs']
@@ -131,7 +130,7 @@ class LoaderTOU(DatasetLoader):
         except FileNotFoundError as err:
             self._warn_could_not_load_parsed(err, file_name)
             (
-                tpm, duration_pdfs, duration_pdfs_with_previous, labels,
+                tpm, duration_pdfs, labels,
                 initial_pdf, initial_duration_pdfs, legend
             ) = self._parse_tpm_with_duration(
                 subgroup
@@ -140,12 +139,11 @@ class LoaderTOU(DatasetLoader):
             (
                 tpm_dict['tpm'],
                 tpm_dict['duration_pdfs'],
-                tpm_dict['duration_pdfs_with_previous'],
                 tpm_dict['labels'],
                 tpm_dict['initial_pdf'],
                 tpm_dict['initial_duration_pdfs']
             ) = (
-                tpm, duration_pdfs, duration_pdfs_with_previous,
+                tpm, duration_pdfs,
                 labels, initial_pdf, initial_duration_pdfs
             )
 
@@ -159,15 +157,12 @@ class LoaderTOU(DatasetLoader):
             with open(legend_path, 'w') as fp:
                 json.dump(make_jsonable(legend), fp, indent=4)
 
-        return tpm, (
-            duration_pdfs_with_previous if duration_use_previous_state
-            else duration_pdfs
-            ), labels, initial_pdf, initial_duration_pdfs
+        return tpm, duration_pdfs, labels, initial_pdf, initial_duration_pdfs
 
 
     def _parse_tpm_with_duration(
         self, subgroup: Subgroup
-    ) -> Tuple[TPMs, np.ndarray, np.ndarray, StateLabels, PDF, PDFs, dict]:
+    ) -> Tuple[TPMs, np.ndarray, StateLabels, PDF, PDFs, dict]:
         """Parse tpms and durations for the requested subgroup.
 
         Args:

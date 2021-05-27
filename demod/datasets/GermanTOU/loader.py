@@ -24,6 +24,8 @@ class GTOU(LoaderTOU, PopulationLoader):
     Currently implements activity_types:
         - 'Sparse9States'
         - '4_States'
+        - 'DemodActivities_0'
+        - 'Bottaccioli2018' https://doi.org/10.1109/ACCESS.2018.2886201
 
     """
 
@@ -35,6 +37,26 @@ class GTOU(LoaderTOU, PopulationLoader):
             # Imports the raw data parser only here to save time
             from .parser import get_data_4states
             return get_data_4states(subgroup)
+        elif self.activity_type == 'DemodActivities_0':
+            # Imports the raw data parser only here to save time
+            from .parser import get_tpms_activity, GTOU_label_to_activity
+            return get_tpms_activity(
+                subgroup,
+                activity_dict=GTOU_label_to_activity,
+                first_tpm_modification_algo='last',
+                add_away_state=True,
+                add_durations=False,
+            )
+        elif self.activity_type == 'Bottaccioli2018':
+            # Imports the raw data parser only here to save time
+            from .parser import get_tpms_activity, GTOU_label_to_Bottaccioli_act
+            return get_tpms_activity(
+                subgroup,
+                activity_dict=GTOU_label_to_Bottaccioli_act,
+                first_tpm_modification_algo='last',
+                add_away_state=True,
+                add_durations=False,
+            )
         else:
             err = NotImplementedError(("No parsing defined for" +
                 "'{}' in dataset '{}'").format(
@@ -44,11 +66,31 @@ class GTOU(LoaderTOU, PopulationLoader):
 
     def _parse_tpm_with_duration(
         self, subgroup: Subgroup
-    ) -> Tuple[TPMs, np.ndarray, np.ndarray, StateLabels, PDF, PDFs, dict]:
+    ) -> Tuple[TPMs, np.ndarray, StateLabels, PDF, PDFs, dict]:
         if self.activity_type == '4_States':
             # Imports the raw data parser only here to save time
             from .parser import get_data_4states
             return get_data_4states(subgroup, add_durations=True)
+        elif self.activity_type == 'DemodActivities_0':
+            # Imports the raw data parser only here to save time
+            from .parser import get_tpms_activity, GTOU_label_to_activity
+            return get_tpms_activity(
+                subgroup,
+                activity_dict=GTOU_label_to_activity,
+                first_tpm_modification_algo='nothing',
+                add_away_state=True,
+                add_durations=True,
+            )
+        elif self.activity_type == 'Bottaccioli2018':
+            # Imports the raw data parser only here to save time
+            from .parser import get_tpms_activity, GTOU_label_to_Bottaccioli_act
+            return get_tpms_activity(
+                subgroup,
+                activity_dict=GTOU_label_to_Bottaccioli_act,
+                first_tpm_modification_algo='nothing',
+                add_away_state=True,
+                add_durations=True,
+            )
         else:
             err = NotImplementedError(("No parsing defined for" +
                 "'{}' in dataset '{}'").format(

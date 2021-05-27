@@ -405,10 +405,10 @@ dic_home = {
 # convert to activity names
 GTOU_label_to_activity = {
     0 : 'only main activity',
-    110 : 'sleep',
-    120 : 'eat',
-    131 : 'wash self',
-    132 : 'sleep',
+    110 : 'sleeping',
+    120 : 'eating',
+    131 : 'self_washing',
+    132 : 'sleeping',
     139 : 'personal',
     210 : 'job',
     220 : 'job',
@@ -438,11 +438,11 @@ GTOU_label_to_activity = {
     363 : 'school',
     364 : 'school',
     369 : 'school',
-    411 : 'cook',
-    413 : 'cook',
-    412 : 'cook',
-    414 : 'cook',
-    419 : 'cook',
+    411 : 'cooking',
+    413 : 'cooking',
+    412 : 'cooking',
+    414 : 'cooking',
+    419 : 'cooking',
     421 : 'cleaning',
     422 : 'cleaning',
     423 : 'cleaning',
@@ -522,7 +522,7 @@ GTOU_label_to_activity = {
     814 : 'leisure',
     815 : 'leisure',
     819 : 'leisure',
-    820 : 'TV',
+    820 : 'watching_tv',
     830 : 'music',
     841 : 'computer/smartphone',
     842 : 'computer/smartphone',
@@ -1764,6 +1764,11 @@ def get_tpms_activity(
 
     states_label[states_label=='-'] = 'other'
 
+    # Adds missing activities from dict to states labels
+    all_activities = np.array(list(activity_dict.values()))
+    missing_act = all_activities[~np.isin(all_activities, states_label)]
+    states_label = np.concatenate((states_label, missing_act))
+
     # get the pdf of the initial distribution and save it
     initial_counts = np.bincount( states[:,0], minlength=len(states_label))
     initial_pdf = initial_counts/ np.sum(initial_counts)
@@ -1778,20 +1783,22 @@ def get_tpms_activity(
 
         tpm, duration, duration_with_previous = states_to_tpms_with_durations(
             states,
-            first_tpm_modification_algo=first_tpm_modification_algo
+            first_tpm_modification_algo=first_tpm_modification_algo,
+            labels=states_label
         )
         # PDFs that should depend on the duration at start depending on
         # the first state shape = n_states, n_times
         intial_durations_pdf = get_initial_durations_pdfs(states)
 
         return (
-            tpm, duration, duration_with_previous, states_label,
+            tpm, duration, states_label,
             initial_pdf, intial_durations_pdf, dict_legend
         )
     else:
         # Return the standard tpms algo
         tpm = states_to_tpms(
-            states, first_tpm_modification_algo=first_tpm_modification_algo
+            states, first_tpm_modification_algo=first_tpm_modification_algo,
+            labels=states_label
         )
 
         return tpm, states_label, initial_pdf, dict_legend
@@ -1836,7 +1843,7 @@ def get_data_4states(
         intial_durations_pdf = get_initial_durations_pdfs(states)
 
         return (
-            tpm, duration, duration_with_previous, states_label,
+            tpm, duration,  states_label,
             initial_pdf, intial_durations_pdf, dict_legend
         )
     else:

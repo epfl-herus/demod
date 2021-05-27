@@ -6,14 +6,20 @@ Usually based on Markov Chain models.
 from __future__ import annotations
 import datetime
 import itertools
-from typing import Any, List
+from typing import Any, Dict, List
 
 import numpy as np
 
-from .base_simulators import Callbacks, MultiSimulator, Simulator, GetMethod, TimeAwareSimulator, cached_getter
+from .base_simulators import (
+    Callbacks,
+    MultiSimulator,
+    Simulator,
+    GetMethod,
+    TimeAwareSimulator,
+    cached_getter
+)
 from ..utils.distribution_functions import check_valid_cdf
 from ..utils.monte_carlo import monte_carlo_from_cdf, monte_carlo_from_pdf
-from ..datasets.base_loader import DatasetLoader
 from ..datasets.GermanTOU.loader import GTOU
 from ..datasets.tou_loader import LoaderTOU
 from ..utils.subgroup_handling import add_time, subgroup_households_to_persons
@@ -250,8 +256,8 @@ class MarkovChain1rstOrder(Simulator):
         )
 
         mask_lost_transition = old_labels_position_in_new == -1
-        # Lost transitions are given the 0 new label
-        old_labels_position_in_new[mask_lost_transition] = new_labels[0]
+        # Lost transitions are given the 0 new label, # Dead state label
+        old_labels_position_in_new[mask_lost_transition] = 0
         # convert states to the new ones
         self.current_states = old_labels_position_in_new[
             inverse
@@ -278,16 +284,26 @@ class MarkovChain1rstOrder(Simulator):
             list(self.state_labels).index(activity)
         )
 
+
 class SemiMarkovSimulator(MarkovChain1rstOrder):
     """Semi Markov chain Simulator.
 
     Similar to a first order Markov Chains, but it also
     includes the duration of the states.
     This is sometimes refer to as a 2nd order markov chain.
+
+    In the current implementations,
+    the duration matrices can depend on only the new
+    sampled states, or also on the previous state.
     It would be nice to sample either from duration matrices or from
     duration fuunctions. (ex Weibul)
+
     The SemiMarkovSimulator is not time-homogeneous, as the
     probabilities changes with respect to time.
+
+    Corresponding data loader:
+    :py:meth:`~demod.datasets.tou_loader.LoaderTOU.load_tpm_with_duration`
+
 
     Attributes:
         n_subjects : int
@@ -299,7 +315,6 @@ class SemiMarkovSimulator(MarkovChain1rstOrder):
     """
 
     _use_previous_state_for_duration_flag: bool
-    corresponding_loader: str = 'load_tpm_with_duration'
 
     def __init__(
         self, n_subjects: int, n_states: int,
@@ -341,10 +356,10 @@ class SemiMarkovSimulator(MarkovChain1rstOrder):
                 If the parameters have wrong types
         """
         super().__init__(
-            n_subjects, n_states, transition_prob_matrices, **kwargs
+            n_subjects, n_states, transition_prob_matrices,
+            labels=labels, **kwargs
         )
         self.duration_pdfs = duration_pdfs
-
 
     def initialize_starting_state(
         self,
@@ -470,6 +485,10 @@ class SubgroupsIndividualsActivitySimulator(
     Keeps track of the time and when to updates the internal simulators.
     Handles the data flows from the dataset and the subsimulators.
 
+    Note that it does not take into account the correlation between
+    the residents, as each resident is simulated independently
+    of the others.
+
     :py:attr:`~demod.utils.cards_doc.Params.subgroups_list` and
     :py:attr:`~demod.utils.cards_doc.Params.n_households_list` can be
     loaded from a dataset through
@@ -477,14 +496,39 @@ class SubgroupsIndividualsActivitySimulator(
     and :py:func:`~demod.simulators.util.sample_population`.
 
 
+    You can simply pass the
+    :py:attr:`~demod.utils.cards_doc.Params.subsimulator`
+    class that you
+    want to implement, as well as specifiying how many households
+    of each subgroups should be simulated.
+    At the moment, only :py:class:`.MarkovChain1rstOrder` and
+    :py:class:`.SemiMarkovSimulator` are accepted as subsimulators.
+
+    If at least one of the three parameters
+    :py:attr:`~demod.utils.cards_doc.Params.use_week_ends_days`
+    :py:attr:`~demod.utils.cards_doc.Params.use_7days`
+    :py:attr:`~demod.utils.cards_doc.Params.use_quarters`
+    is True, the simulator will check if it should
+    update its parameters every simulated day.
+
+    This simulator only simulates the activities and how many persons are in
+    it. If you want to simulate occupancy, you need to override the following
+    methods :
+    :py:meth:`~demod.utils.cards_doc.Sim.get_occupancy`
+    :py:meth:`~demod.utils.cards_doc.Sim.get_active_occupancy`
+    :py:meth:`~demod.utils.cards_doc.Sim.get_thermal_gains`
+
+
     Params
         :py:attr:`~demod.utils.cards_doc.Params.subgroups_list`
         :py:attr:`~demod.utils.cards_doc.Params.n_households_list`
         :py:attr:`~demod.utils.cards_doc.Params.subsimulator`
         :py:attr:`~demod.utils.cards_doc.Params.data`
-        :py:attr:`~demod.utils.cards_doc.Params.logger`
-        :py:attr:`~demod.utils.cards_doc.Params.time_aware`
+        :py:attr:`~demod.utils.cards_doc.Params.use_week_ends_days`
+        :py:attr:`~demod.utils.cards_doc.Params.use_7days`
+        :py:attr:`~demod.utils.cards_doc.Params.use_quarters`
         :py:attr:`~demod.utils.cards_doc.Params.start_datetime`
+        :py:attr:`~demod.utils.cards_doc.Params.logger`
     Data
         :py:attr:`~demod.utils.cards_doc.Loader.refresh_time`
         :py:meth:`~demod.datasets.tou_loader.LoaderTOU.load_tpm`
@@ -492,9 +536,6 @@ class SubgroupsIndividualsActivitySimulator(
     Step input
         None.
     Output
-        :py:meth:`~demod.utils.cards_doc.Sim.get_occupancy`
-        :py:meth:`~demod.utils.cards_doc.Sim.get_active_occupancy`
-        :py:meth:`~demod.utils.cards_doc.Sim.get_thermal_gains`
         :py:meth:`~demod.utils.cards_doc.Sim.get_n_doing_activity`
     Step size
         10 Minutes.
@@ -505,7 +546,7 @@ class SubgroupsIndividualsActivitySimulator(
         subgroups_list: Subgroups,
         n_households_list: List[int],
         subsimulator: Simulator = MarkovChain1rstOrder,
-        data: LoaderTOU = GTOU(),
+        data: LoaderTOU = GTOU('DemodActivities_0'),
         use_week_ends_days: bool = False,
         use_7days: bool = False,
         use_quarters: bool = False,
@@ -513,21 +554,13 @@ class SubgroupsIndividualsActivitySimulator(
     ):
         """Create a simulator for multiple sub Activity simulators.
 
-        You can simply pass the :py:obj:`subsimulator` class that you
-        want to implement, as well as specifiying how many households
-        of each subgroups should be simulated.
-        TODO: Make sure that compatible with other simulators.
-        TODO: Write test.
-
-        At the moment, only :py:class:`.MarkovChain1rstOrder` and
-        :py:class:`.SemiMarkovSimulator` are accepted as subsimulators.
-
         Args:
             subgroups_list: List of the subgroups dict, the list can contain
                 hh subgroup dictionaries, or can contains lists of person
                 subgroups.
             n_households_list: The number of housholds in each subgroups.
-            subsimulator: The simulator class to use for simulating the subgroups. Defaults to SparseActivitySimulator.
+            subsimulator: The simulator class to use for simulating the
+                subgroups. Defaults to SparseActivitySimulator.
             logger: A logger object to log the results. Defaults to None.
 
         Raises:
@@ -548,7 +581,7 @@ class SubgroupsIndividualsActivitySimulator(
             subgroups_list, n_households_list,
         )
 
-        self.subgroups_persons = subgroups_list
+        self.subgroups_persons = unique_persons
 
         simulators_list = self._initialize_subsimulators(
             subsimulator, unique_persons, persons_counted
@@ -556,7 +589,30 @@ class SubgroupsIndividualsActivitySimulator(
 
         MultiSimulator.__init__(self, simulators_list)
         self.n_households = sum(n_households_list)
-        TimeAwareSimulator.__init__(self, self.n_households, **kwargs)
+        self.activity_labels = simulators_list[0].state_labels
+        # This could be read from the dataset, but as far as I know,
+        # all TOU are 10 min based ?
+        step_size = datetime.timedelta(minutes=10)
+        if 'step_size' in kwargs:
+
+            if step_size != kwargs['step_size']:
+                raise ValueError(
+                    "'step_size' = {} was specified in {}'"
+                    ". It uses the step_size = {}, "
+                    " which is not the same.".format(
+                        kwargs['step_size'],
+                        self,
+                        step_size,
+                    ))
+
+            kwargs = kwargs.copy()
+            kwargs.pop('step_size')
+
+        TimeAwareSimulator.__init__(
+            self, self.n_households,
+            step_size=step_size,
+            **kwargs
+        )
         self.initialize_starting_state(
             initialization_time=data.refresh_time
         )
@@ -578,7 +634,9 @@ class SubgroupsIndividualsActivitySimulator(
         else:
             raise TypeError(
                 "subsimulator must be an instance of object "
-                "MarkovChain1rstOrder or SemiMarkovSimulator"
+                "MarkovChain1rstOrder or SemiMarkovSimulator not ''{}'".format(
+                    subsimulator
+                )
             )
 
     def _parse_subgroups_input(self, subgroups_list, n_households_list):
@@ -623,9 +681,9 @@ class SubgroupsIndividualsActivitySimulator(
         self.subgroups_persons = [
             add_time(
                 subgroup, self.current_time,
-                use_week_ends_days = self.use_week_ends_days,
-                use_7days = self.use_7days,
-                use_quarters = self.use_quarters,
+                use_week_ends_days=self.use_week_ends_days,
+                use_7days=self.use_7days,
+                use_quarters=self.use_quarters,
             ) for subgroup in self.subgroups_persons
         ]
 
@@ -637,7 +695,7 @@ class SubgroupsIndividualsActivitySimulator(
         The time aware part is intialized, as well as the subsimulators.
         """
         TimeAwareSimulator.initialize_starting_state(
-            self, start_time_step=initialization_time
+            self, initialization_time=initialization_time
         )
 
     def _initialize_sub_MarkovChain1rstOrder(
@@ -671,7 +729,6 @@ class SubgroupsIndividualsActivitySimulator(
 
         This could be used for any simulator that has the same signature.
         """
-
         subsimulators = []
         for subgroup, n_persons in zip(unique_persons, persons_counted):
             (  # Load the data
@@ -741,7 +798,6 @@ class SubgroupsIndividualsActivitySimulator(
         Args:
             getter_name: The name of the getter method
         """
-
         parent_getter = MultiSimulator._create_multi_getter(self, getter_name)
 
         def getter():
@@ -775,9 +831,13 @@ class SubgroupsIndividualsActivitySimulator(
         states_in_hh[u] = c
         return states_in_hh
 
+    def get_performing_activity(self, activity_name: str) -> np.array:
+        return self.get_n_doing_activity(activity_name)
 
     @ Callbacks.after_refresh_time
     def step(self) -> None:
+        """Update the simulator."""
+        # Simply calls the parents (Multi for the sims and TimeAware for time)
         return super().step()
 
     def on_after_refresh_time(self) -> None:
@@ -790,3 +850,9 @@ class SubgroupsIndividualsActivitySimulator(
                 self._update_tpms(sim, subgroup) for sim, subgroup
                 in zip(self.simulators, self.subgroups_persons)
             ]
+
+    def get_states(self) -> Dict[str, np.ndarray]:
+        """Return a dictionary containing the persons in each state."""
+        return {
+            lab: self.get_n_doing_activity(lab) for lab in self.activity_labels
+            }
