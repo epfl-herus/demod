@@ -15,12 +15,21 @@ Glossary
       the representative weight of the modeled sample."
       [Swan2009]_
 
+   module
+      Here the term module (sometimes used interchangeably as simulator) 
+      refers to a python class that performs one or more functions 
+      and can be used independently or in combination with other modules to 
+      generate an output (e.g., occupancy or electric demand profiles).   
+
    pdf
       probability density function.
 
+   simulator
+      (see the term module)
+
    subgroup
-      Represent a set of social, technical, or economical information of
-      a specific kind of the population.
+      It refers to a subset of the population defined on the basis of social, 
+      technical or economic data.
       See how demod implement subgroups:
       :py:attr:`~demod.utils.cards_doc.Params.subgroup`.
 

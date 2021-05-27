@@ -27,7 +27,8 @@ Demod was developed within the MoMeEnT project
 Energy system and its Transformation"* ,
 jointly funded by 
 `Swiss National Science Foundation (SNSF) <http://www.snf.ch/en/theSNSF/Pages/default.aspx>`_ 
-and the `German Research Foundation (DFG) <https://www.dfg.de/en/research_funding/index.html>`_. 
+and the `German Research Foundation (DFG) <https://www.dfg.de/en/research_funding/index.html>`_ 
+- Project number `182878 <http://p3.snf.ch/Project-182878>`_.
 
 .. _licence:
 
