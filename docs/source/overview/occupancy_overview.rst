@@ -103,7 +103,8 @@ the `demod team <demod@groupes.epfl.ch>`_.
 
 .. warning:: For data compatibility reasons, explicit activity modeling requires
              to develop new dedicated modules for simulating electric and
-             thermal demand (see :doc:`API References </api/index>`
+             thermal demand (see
+             :doc:`How appliances are simulated </api/appliances>`
              for additional info).
 
 
