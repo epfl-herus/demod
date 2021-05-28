@@ -69,7 +69,7 @@ It is possible to either use real weather data or to simulate the weather.
 
 .. autoclass:: RealInterpolatedClimate
 
-Ligthing simulators
+Lighting simulators
 ---------------------
 
 .. module:: demod.simulators.lighting_simulators
