@@ -428,6 +428,9 @@ CREST heating system
 
   :math:`Q_{th,n} = m_{fuel,n} {CV} \eta_{th}`
 
+  If the heat requested is larger than the maximum heat providable,
+  the heat outputs will be capped.
+
   For more details on the data used and the different system
   and fuel options available, you can refer to CREST_.
 
