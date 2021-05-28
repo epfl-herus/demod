@@ -25,6 +25,8 @@ suitable energy demand profiles for your research interests.
 Currently, demod's modules are parametrized by default using data for Germany.
 It is also possible to select a UK version, which makes use of data
 from the CREST_ model.
+You can also add a dataset from another country by creating a custom dataset
+module to parametrize demod's simulation modules.
 
 The data employed are usually made available
 for other European and non-European countries.
