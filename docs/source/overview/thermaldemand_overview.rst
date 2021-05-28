@@ -457,7 +457,7 @@ CREST five modules heating simulator
   :py:class:`~demod.simulators.heating_simulators.FiveModulesHeatingSimulator`.
 
 :Description: This module estimates domestic heating demand and supply.
-  It is based on the [CREST]_ model,
+  It is based on the CREST_ model,
   but simplifies the operation of thermostat control setting by the users.
 
   As shown in :numref:`CREST5modulesheatingsystem`,
