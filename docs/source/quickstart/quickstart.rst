@@ -3,8 +3,8 @@ Quickstart
 ==========
 
 
-Do you **don't want to use** Python ?
-:ref:`Learn how to use demod without python <withoutpython>`.
+.. Do you **don't want to use** Python ?
+.. :ref:`Learn how to use demod without python <withoutpython>`.
 
 Do you want to **add load profiles** in your python project ?
 :ref:`Get started with demod <runnig_a_simulation>`.
