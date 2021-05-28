@@ -74,7 +74,7 @@ Lighting simulators
 
 .. module:: demod.simulators.lighting_simulators
 
-.. autoclass:: FisherLighitingSimulator
+.. autoclass:: FisherLightingSimulator
 
 .. autoclass:: CrestLightingSimulator
 

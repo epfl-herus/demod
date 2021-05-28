@@ -153,7 +153,7 @@ Fisher's lighting simulator
 
 :API: For details about the implementation of
   this simulator you can visit
-  :py:class:`~demod.simulators.lighting_simulators.FisherLighitingSimulator`.
+  :py:class:`~demod.simulators.lighting_simulators.FisherLightingSimulator`.
 
 :Description: This model is presented in [Fisher2015]_, an it computes
   lighting power demand at time *t* as:

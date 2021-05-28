@@ -134,7 +134,7 @@ In this example, we will simulate the lighting in 10 households.
 
     from demod.simulators.crest_simulators import Crest4StatesModel
     from demod.simulators.weather_simulators import RealClimate
-    from demod.simulators.lighting_simulators import FisherLighitingSimulator
+    from demod.simulators.lighting_simulators import FisherLightingSimulator
 
     n_households = 10
     # Start of the simulation
@@ -151,7 +151,7 @@ In this example, we will simulate the lighting in 10 households.
         start_datetime=start_datetime,  # Specifiy the start of the simulaiton
     )
 
-    lighting_sim = FisherLighitingSimulator(
+    lighting_sim = FisherLightingSimulator(
         n_households,
         # Gets the initial values from other simulators
         initial_active_occupancy=activity_sim.get_occupancy(),

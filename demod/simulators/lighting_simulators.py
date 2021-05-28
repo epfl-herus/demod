@@ -10,7 +10,7 @@ from ..utils.error_messages import ALGO_REQUIRES_LOADING_METHOD
 
 
 
-class FisherLighitingSimulator(Simulator):
+class FisherLightingSimulator(Simulator):
     """Lighting simulator as described by [Fisher2015]_.
 
     Simulates the electric consumption of lighting using a simple

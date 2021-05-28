@@ -688,7 +688,7 @@ class LightingLoader(DatasetLoader):
 
     def load_fisher_lighting(self) -> Dict[str, Any]:
         """Load data for
-        :py:class:`~demod.simulators.lighting_simulators.FisherLighitingSimulator`
+        :py:class:`~demod.simulators.lighting_simulators.FisherLightingSimulator`
 
         Returns:
             Fisher lighting sim parameters dict.

@@ -8,7 +8,7 @@ from demod.datasets.OpenPowerSystems.loader import OpenPowerSystemClimate
 
 from demod.simulators.crest_simulators import Crest4StatesModel
 from demod.simulators.weather_simulators import RealClimate
-from demod.simulators.lighting_simulators import FisherLighitingSimulator
+from demod.simulators.lighting_simulators import FisherLightingSimulator
 
 n_households = 100
 # Start of the simulation
@@ -28,7 +28,7 @@ activity_sim = Crest4StatesModel(
     logger=SimLogger('get_active_occupancy')
 )
 
-lighting_sim = FisherLighitingSimulator(
+lighting_sim = FisherLightingSimulator(
     n_households,
     # Gets the initial values from other simulators
     initial_active_occupancy=activity_sim.get_occupancy(),

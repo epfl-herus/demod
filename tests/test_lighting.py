@@ -3,7 +3,7 @@
 import unittest
 import numpy as np
 from demod.simulators.lighting_simulators import (
-    FisherLighitingSimulator,
+    FisherLightingSimulator,
     CrestLightingSimulator
 )
 from demod.datasets.CREST.loader import Crest
@@ -28,7 +28,7 @@ class TestDatasets(unittest.TestCase):
 
 
 class FisherLightingTests(BaseSimulatorChildrenTests):
-    sim = FisherLighitingSimulator
+    sim = FisherLightingSimulator
     args = [1]  # n_households
     kwargs = {}
     n_households = 1

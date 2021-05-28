@@ -18,7 +18,10 @@ from ..utils.subgroup_handling import add_time
 
 
 class AppliancesSimulator(TimeAwareSimulator):
-    """Class for the appliances
+    """Class for Simulating appliances usage.
+
+    This class is abstract but provides an interface for simulating
+    step based appliances.
 
     Args:
         Simulator ([type]): [description]
@@ -29,12 +32,11 @@ class AppliancesSimulator(TimeAwareSimulator):
         self,
         n_households,
         appliances_dict,
-        *args,
         equipped_sampling_algo="basic",
         **kwargs
     ):
-        """[summary]"""
-        super().__init__(n_households, *args, **kwargs)
+        """Initialize an appliance simulator with its appliances."""
+        super().__init__(n_households, **kwargs)
         self.appliances = appliances_dict
 
         # give appliances to the households
@@ -54,7 +56,8 @@ class AppliancesSimulator(TimeAwareSimulator):
         self.n_times_left = np.zeros_like(
             self.available_appliances, dtype=float
         )
-        # stores the number of time till the appliances can be used again after refresh period
+        # stores the number of time till the appliances can be used
+        # again after refresh period
         delays = [
             np.random.randint(0, delay, size=self.n_households)
             if delay > 0
