@@ -24,7 +24,7 @@ CREST irradiance simulator
     On one hand, it estimates the irradiance clear sky,
     taking into account geographical position, solar angle and time of year.
     On the other hand, the clearness of the sky is estimated using
-    a Markov-chain tecnique, based on historical clearness values.
+    a Markov-chain technique, based on historical clearness values.
     The product of the two allows to estimate the
     effective global radiation on horizontal surface.
 
@@ -70,7 +70,7 @@ CREST climate simulator
        while keeping the average temperature for the day unchanged.
 
 :Availability: As the model employs historical data
-    (i.e., avarage external air temperature) from the UK,
+    (i.e., average external air temperature) from the UK,
     it can be used for this context.
     However, if you have equivalent data for other regions,
     you can easily extend its application.
