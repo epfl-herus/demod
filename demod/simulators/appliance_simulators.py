@@ -731,13 +731,30 @@ class ActivityApplianceSimulator(AppliancesSimulator):
     def step(self, activities_dict: Dict[str, np.ndarray]) -> None:
         """Perform a step of simulation.
 
-        Check the households where someone started an activity , or when
+        Check the households where someone started an activity, or when
         an activity stopped.
         Updates the appliances in consequence.
+
+        TODO: check how we want to implement secondary appliances.
         """
 
         for act, n_performing in activities_dict.items():
+            # Get the appliances related to that activity
+            mask_app = self.appliances['related_activity'] == act
+            # Gets the number that performed it at last step
+            previous_performing = self.previous_act_dict[act]
+            # Gets the ones that should change
+            mask_change = previous_performing != n_performing
 
+            # Switch off
+            mask_turn_off = mask_change & (n_performing == 0)
+            self.n_times_left[mask_app, mask_turn_off] = 0
+
+            # Switch on
+            mask_start_act = mask_change & (previous_performing == 0)
+            self.switch_on(
+                np.where(mask_start_act),
+                np.where(mask_app)
+            )
 
         self.previous_act_dict.copy()
-        self.switch_on(indexes_household, indexes_appliance)
