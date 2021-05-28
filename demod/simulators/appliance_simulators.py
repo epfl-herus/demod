@@ -1,20 +1,17 @@
 import datetime
-from demod.utils.data_types import DataInput
-from demod.utils.sim_types import Subgroups
-from demod.utils.appliances import get_ownership_from_dict
 
-from typing import List
-from demod.datasets.base_loader import DatasetLoader
-from demod.datasets.Germany.loader import GermanDataHerus
+from typing import Dict, List
 import warnings
 import numpy as np
-import pandas as pd
-import os
 import itertools
-import inspect
 
 from .base_simulators import Callbacks, TimeAwareSimulator, cached_getter
 from ..utils.subgroup_handling import add_time
+from ..utils.data_types import DataInput
+from ..utils.sim_types import Subgroups
+from ..utils.appliances import get_ownership_from_dict
+from ..datasets.base_loader import DatasetLoader
+from ..datasets.Germany.loader import GermanDataHerus
 
 
 class AppliancesSimulator(TimeAwareSimulator):
@@ -22,10 +19,8 @@ class AppliancesSimulator(TimeAwareSimulator):
 
     This class is abstract but provides an interface for simulating
     step based appliances.
-
-    Args:
-        Simulator ([type]): [description]
     """
+
     data: DatasetLoader
 
     def __init__(
@@ -704,3 +699,45 @@ class SubgroupApplianceSimulator(AppliancesSimulator):
         super().step(
             active_occupancy_, self.get_switchon_probs(active_occupancy_)
         )
+
+
+class ActivityApplianceSimulator(AppliancesSimulator):
+    """Appliance simulator based on residents activities.
+
+    Turns the appliances on and keeps them activated while residents
+    are performing corresponding activites.
+    """
+    def __init__(
+        self, n_households, initial_activities_dict,
+        data=GermanDataHerus(),
+        **kwargs
+    ) -> None:
+        """Create the simulator.
+
+        Sample the appliances
+        """
+
+
+        super().__init__(
+            n_households, data.load_appliance_dict(), **kwargs
+        )
+
+        self.initialize_starting_state(initial_activities_dict)
+
+    def initialize_starting_state(self, initial_activities_dict):
+        self.previous_act_dict = initial_activities_dict.copy()
+        super().initialize_starting_state()
+
+    def step(self, activities_dict: Dict[str, np.ndarray]) -> None:
+        """Perform a step of simulation.
+
+        Check the households where someone started an activity , or when
+        an activity stopped.
+        Updates the appliances in consequence.
+        """
+
+        for act, n_performing in activities_dict.items():
+
+
+        self.previous_act_dict.copy()
+        self.switch_on(indexes_household, indexes_appliance)
