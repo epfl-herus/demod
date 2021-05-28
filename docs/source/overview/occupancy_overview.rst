@@ -20,15 +20,15 @@ Two alternative modules are currently available in demod:
 :API:  For details about the implementation of
  this simulator you can visit
  :py:class:`~demod.simulators.crest_simulators.Crest4StatesModel`.
-    
 
-:Description: This module is based on a first-order non-homogeneous Markov 
-    chain model, developed by [McKenna2016]_. 
+
+:Description: This module is based on a first-order non-homogeneous Markov
+    chain model, developed by [McKenna2016]_.
     According to this approach, the occupancy status of each resident is defined
     by the activity status (*active* or *asleep*)
     and location (*home* or *away from home*).
     Therefore, there can be :math:`2^2 = 4` different states:
-    (i) at home and active, (ii) at home and asleep, (iii) away from home 
+    (i) at home and active, (ii) at home and asleep, (iii) away from home
     and active, or (iv) away from home and asleep.
     The model is non-homogeneous because the coefficients of the transition
     probability matrix (TPM) change throughout the day with a timestep
@@ -59,7 +59,7 @@ Two alternative modules are currently available in demod:
 
 :Availability: This simulator is available for UK and German households.
     However, modeling behavior heterogeneity based on socio-economic groups
-    is only available for German housheolds.
+    is only available for German households.
 
 
 
@@ -70,12 +70,12 @@ Transit occupancy simulator
 
 :API:  For details about the implementation of this simulator you can visit
  :py:class:`~demod.simulators.sparse_simulators.SparseTransitStatesSimulator`.
-    
 
-:Description: This approach extend the :ref:`overview_4_States` 
-    by distinguishing between 'away for work' and 'away for other'. 
-    This new version of the model considers three location alternatives and 
-    thefore, it may be more appropriate for integrating driving 
+
+:Description: This approach extend the :ref:`overview_4_States`
+    by distinguishing between 'away for work' and 'away for other'.
+    This new version of the model considers three location alternatives and
+    thefore, it may be more appropriate for integrating driving
     and charging modules for electric vehicles.
 
     In this case the size of TPMs is equal to
@@ -96,10 +96,10 @@ Demod's modular structure allows new simulation modules to be introduced and
 tested for performance, such as explit activity simulation
 (e.g., see [Yamaguchi2020]_ ).
 
-At the moment these modules are not available, but they are part of the 
-demod development plan. If you would like to contribute to the 
-development of new modules, please do not hesitate to contact 
-the `demod team <demod@groupes.epfl.ch>`_. 
+At the moment these modules are not available, but they are part of the
+demod development plan. If you would like to contribute to the
+development of new modules, please do not hesitate to contact
+the `demod team <demod@groupes.epfl.ch>`_.
 
 .. warning:: For data compatibility reasons, explicit activity modeling requires
              to develop new dedicated modules for simulating electric and
