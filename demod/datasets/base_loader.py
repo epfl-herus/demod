@@ -90,12 +90,15 @@ class DatasetLoader:
         self.raw_path = os.path.join(self.DATASET_PATH, "raw_data")
         self.parsed_path = os.path.join(self.DATASET_PATH, "parsed_data")
 
-        if version is not None:
-            self.parsed_path = os.path.join(self.parsed_path, version)
-        self.version = version
-
         if not os.path.isdir(self.parsed_path):
             os.mkdir(self.parsed_path)
+
+        if version is not None:
+            self.parsed_path = os.path.join(self.parsed_path, version)
+            if not os.path.isdir(self.parsed_path):
+                os.mkdir(self.parsed_path)
+
+        self.version = version
 
         if clear_parsed_data:
             self._clear_parsed_data()
@@ -170,8 +173,8 @@ class DatasetLoader:
 
     def _warn_could_not_load_parsed(
         self,
-        exception_raised: Exception,
-        data_name: str,
+        exception_raised: FileNotFoundError,
+        data_name: str = None,
         warning_type: str = "warning",
     ):
         """Send a could not load parsed warning message.
@@ -180,9 +183,11 @@ class DatasetLoader:
         loading the raw data.
 
         Args:
-            exception_raised: The exception that was raised during the
+            exception_raised: The FileNotFoundError
+                exception that was raised during the
                 parsing of the data
-            data_name: The name of the data that was loaded
+            data_name: Deprecated: The name of the data that was loaded
+                (it won't be used, only kept for compatibility)
             warning_type: The type of warning to raise.
                 Curently implemented:
                     - 'warning' : using the warning module
@@ -191,14 +196,21 @@ class DatasetLoader:
                 If warning_type is not registerd, will use 'print'.
                 Defaults to 'warning'.
         """
+
+        if not isinstance(exception_raised, FileNotFoundError):
+            raise ValueError(
+                "{} should be a FileNotFoundError.".format(exception_raised)
+            )
+
         warn_msg = "".join(
             (
                 "Could not load parsed data for '{}', due to: \n '{}'",
-                "with message: '{}'.\nGenerating now from raw_data.",
+                "of file: '{}'.\nGenerating now from raw_data.",
             )
         )
         msg = warn_msg.format(
-            data_name, type(exception_raised).__name__, exception_raised
+            self.DATASET_NAME, type(exception_raised).__name__,
+            exception_raised.filename
         )
 
         if (warning_type == "warning") or (warning_type == "all"):
@@ -455,6 +467,14 @@ class ApplianceLoader(DatasetLoader):
         app_file = self.parsed_path + os.sep + "loadprofiles_" + profiles_type
         try:
             parsed_dict = np.load(app_file + '.npz')
+
+            load_profiles_dict = {}
+
+            for name, load in parsed_dict.items():
+                app_type, profile_name = str.split(name, self._SPLIT_CHAR)
+                if app_type not in load_profiles_dict:
+                    load_profiles_dict[app_type] = {}
+                load_profiles_dict[app_type][profile_name] = load
 
         except FileNotFoundError as err:
             self._warn_could_not_load_parsed(err, app_file)
