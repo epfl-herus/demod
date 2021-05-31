@@ -717,6 +717,9 @@ class Params:
                 * 'christmas_lamp'
 
             * 'clock'
+
+                * 'alarm_clock'
+
             * 'hob'
 
                 * 'electric_hob'
