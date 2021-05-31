@@ -633,10 +633,14 @@ class Params:
 
         appliance_type: A string that represent the type of appliance.
             If the name is followed by '_2', it signifies that the
-            appliance is a secondary appliance of that value.
+            appliance is a secondary appliance of that type.
             Nested levels indicate subtypes.
             Nested name should always finish with '_basename'.
             Types are very important for datset compatibilities.
+            The current naming is purely arbitrary, but it could be
+            changed in the future for compatibilty with an official
+            naming convention from other sources.
+
             Possible values:
 
             * 'freezer'
@@ -660,13 +664,24 @@ class Params:
                 * 'cd_speaker'
                 * 'radio_speaker'
                 * 'hifi_speaker'
+
             * 'tv'
+
+                * 'crt_tv'
+                * 'tft_tv'
+                * 'lcd_tv'
+                * 'led_tv'
+                * 'dlp_tv'
+                * 'plasma_tv'
+                * 'oled_tv'
+
             * 'box'
 
                 * 'tv_box'
                 * 'internet_box'
                 * 'dual_box'
                 Internet + TV
+                * 'wifi_box'
 
             * 'console'
 
@@ -677,12 +692,29 @@ class Params:
             * 'computer'
 
                 * 'laptop_computer'
-                * 'fixed_computer'
+                * 'fixed_computer' (Desktop)
                 * 'gaming_computer'
+
+            * 'monitor'
+
+                * 'crt_monitor'
+                * 'tft_monitor'
+                * 'lcd_monitor'
+                * 'led_monitor'
+                * 'dlp_monitor'
+                * 'touchscreen_monitor'
+                * 'plasma_monitor'
+                * 'oled_monitor'
+
+            * 'projector'
 
             * 'printer'
 
                 * 'fax_printer'
+
+            * 'lamp'
+
+                * 'christmas_lamp'
 
             * 'clock'
             * 'hob'
@@ -693,6 +725,12 @@ class Params:
             * 'oven'
             * 'microwave'
             * 'kettle'
+            * 'waterboiler'
+            * 'coffemachine'
+
+                * 'beans_coffemachine'
+                * 'capsule_coffemachine'
+
             * 'toaster'
             * 'fitnessmachine'
             * 'dishwasher'
