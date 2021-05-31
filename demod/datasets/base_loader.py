@@ -94,6 +94,9 @@ class DatasetLoader:
             self.parsed_path = os.path.join(self.parsed_path, version)
         self.version = version
 
+        if not os.path.isdir(self.parsed_path):
+            os.mkdir(self.parsed_path)
+
         if clear_parsed_data:
             self._clear_parsed_data()
 
@@ -394,6 +397,8 @@ class ApplianceLoader(DatasetLoader):
     * :py:meth:`_parse_appliance_dict`
     """
 
+    _SPLIT_CHAR: str = '&'  # A special char used to split names for save
+
     def load_appliance_dict(self) -> AppliancesDict:
         """Load the appliance dictionary.
 
@@ -427,9 +432,54 @@ class ApplianceLoader(DatasetLoader):
 
         return lists_to_numpy_array(appliance_dict)
 
+    def load_real_profiles_dict(
+        self, profiles_type: str = 'full'
+    ) -> Dict[str, Dict[str, np.ndarray]]:
+        """Load the a dictionary containing real load profiles.
+
+        Try to call self. :py:meth:`_parse_real_profiles_dict` if the
+        parsed data is not available.
+
+        Args:
+            profiles_type: The type of profile to load. Possibilities:
+
+                * 'full', the wholes profiles are returned
+                * 'switchedON', only profiles when appliances are ON
+                * 'switchedOFF', only profiles when appliances are OFF
+
+        Returns:
+            The appliance dictionary, of the form
+            {app_type: {app_name: array}}, such that it is easy to retrieve
+            the profiles based on the type of the appliances
+        """
+        app_file = self.parsed_path + os.sep + "loadprofiles_" + profiles_type
+        try:
+            parsed_dict = np.load(app_file + '.npz')
+
+        except FileNotFoundError as err:
+            self._warn_could_not_load_parsed(err, app_file)
+
+            load_profiles_dict = self._parse_real_profiles_dict(profiles_type)
+
+            parsed_dict = {}
+
+            for app_type, names_dict in load_profiles_dict.items():
+                for name, load in names_dict.items():
+                    parsed_dict[app_type + self._SPLIT_CHAR + name] = load
+            # Compress as the load profiles might be quite heavy
+            np.savez_compressed(app_file, **parsed_dict)
+
+        return load_profiles_dict
+
     def _parse_appliance_dict(self):
         raise NotImplementedError(
             "'_parse_appliance_dict' requires overriding in "
+            "{}.".format(type(self).__name__)
+        )
+
+    def _parse_real_profiles_dict(self, profiles_type: str):
+        raise NotImplementedError(
+            "'_parse_real_profiles_dict' requires overriding in "
             "{}.".format(type(self).__name__)
         )
 
