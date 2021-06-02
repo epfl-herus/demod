@@ -5,8 +5,9 @@ import warnings
 import numpy as np
 import itertools
 
-from .base_simulators import Callbacks, TimeAwareSimulator, cached_getter
+from .base_simulators import Callbacks, Simulator, TimeAwareSimulator, cached_getter
 from ..utils.subgroup_handling import add_time
+from ..utils.error_messages import UNIMPLEMENTED_ALGO_IN_METHOD
 from ..utils.data_types import DataInput
 from ..utils.sim_types import Subgroups
 from ..utils.appliances import get_ownership_from_dict
@@ -41,11 +42,9 @@ class AppliancesSimulator(TimeAwareSimulator):
 
     def initialize_starting_state(self, *args, **kwargs):
         """Initialize the starting states of the appliances.
+
         Calls as well the parents methods for initialization, passing
         args and kwargs.
-
-        Returns:
-            [type]: [description]
         """
         # stores the number of times before the appliance stops being used
         self.n_times_left = np.zeros_like(
@@ -126,6 +125,96 @@ class AppliancesSimulator(TimeAwareSimulator):
 
     def _sample_from_subgroup(self):
         raise NotImplementedError()
+
+    def _sample_real_load_profiles(
+        self, real_profiles_algo: str = 'uniform',
+    ) -> np.ndarray:
+        """Assign a load profile for each appliance.
+
+        Uses :py:method`load_real_profiles` to get real profiles for the
+        appliances.
+
+
+        Samples the load profiles of each appliance based on the
+        real_profiles_algo value.
+        Note that the appliance types that do not have real load profiles
+        will have constant loads.
+
+        Arguments:
+            real_profiles_algo: the method used to sample the real profiles
+                currently implemented
+                - 'uniform', sample uniformly based on
+                    the :py:attr:`~demod.utils.cards_doc.Params.appliance_type`
+        """
+        if real_profiles_algo != 'uniform':
+            raise ValueError(UNIMPLEMENTED_ALGO_IN_METHOD.format(
+                real_profiles_algo,
+                type(self).__name__ + '.sample_real_load_profiles'
+            ) + "Only 'uniform' is implemented at the moment.")
+        # Loads from the dataset
+        real_loads_app_dict = self.data.load_real_profiles_dict('switchedON')
+        # real_loads is a dictionarry of the load profiles:
+        # {app_type: {app_name: array}}
+        # For each type, different appliances
+        hh_id, app_id = np.where(self.available_appliances)
+        # Store the load id, duration of loads
+        self.corresponding_load_id = np.zeros_like(
+            self.available_appliances, dtype=int
+        )
+        self.load_duration = np.zeros_like(
+            self.available_appliances, dtype=int
+        )
+        self.loads_dict = {}
+        # Tracks which appliances will be using variable loads
+        self.appliances['use_variable_loads'] = np.isin(
+            self.appliances['type'], real_loads_app_dict.keys()
+        )
+        # Check all types of appliances
+        for app_type in np.unique(self.appliances['type']):
+
+            if app_type not in real_loads_app_dict:
+                warnings.warn((  # When the type is not in the real loads
+                    "Appliance type '{}' is not present in real_loads_app_dict"
+                    " from dataset '{}'"
+                ).format(app_type, self.data))
+                continue  # Go to the next type
+
+            # Finds the appliances of this type
+            mask_this_type = self.appliances['type'][app_id] == app_type
+            # Sample which load is assigned to each appliance
+            sampled_app_id = np.random.randint(
+                0, len(real_loads_app_dict[app_type]),
+                size=np.sum(mask_this_type)
+            )
+            # Assign the sampled ids
+            self.corresponding_load_id[
+                hh_id[mask_this_type], app_id[mask_this_type]
+            ] = sampled_app_id
+
+            load_durations = np.array([
+                len(load) for load  # Finds the duration of each load
+                in real_loads_app_dict[app_type].values()
+            ], dtype=int)
+            # Assign the duration of each appliance load
+            self.load_duration[
+                hh_id[mask_this_type], app_id[mask_this_type]
+            ] = load_durations[sampled_app_id]
+            # Store the loads available of each app type
+            self.loads_dict[app_type] = np.zeros((
+                len(real_loads_app_dict[app_type]),  # number of diff. loads
+                # Take the longest load as they have different lengths
+                max(load_durations)
+            ))
+
+    def _initialize_real_loads(self):
+        """Init the appliances that use real loads."""
+        mask_real_loads_on = (
+            (self.load_duration > 0) & self.get_current_usage()
+        )
+        # Sets the initial duration randomly sampled in the profiles
+        self.n_times_left[mask_real_loads_on] = np.random.randint(
+            0, self.load_duration[mask_real_loads_on]
+        )
 
     def get_mask_available_appliances(self):
         # available if in the house and not already used and not in refresh time
@@ -209,6 +298,55 @@ class AppliancesSimulator(TimeAwareSimulator):
         """
 
         raise NotImplementedError()
+
+    def _switch_on_variable_loads(self, indexes_household, indexes_appliance):
+        # Finds which of the inputs are variable loads
+        mask_variable_loads = np.isin(
+            indexes_appliance,
+            np.where(self.appliances['use_variable_loads'])[0],
+        )
+
+        hh_id = indexes_household[mask_variable_loads]
+        app_id = indexes_appliance[mask_variable_loads]
+
+        # Start the corresponding appliances
+        self.n_times_left[hh_id, app_id] = self.load_duration[hh_id, app_id]
+
+    def _get_variable_loads_consumptions(self) -> np.ndarray:
+        """Get the consumption of the variable loads appliances."""
+
+        mask_variable_load_used = (
+            self.get_current_usage() & (self.load_duration > 0)
+        )
+
+        hh_id, app_id = np.where(mask_variable_load_used)
+
+        # Find at which step of the pattern the appliances are
+        time_in_pattern = self.load_duration - self.n_times_left
+
+        # Will store the current load
+        current_load = np.zeros_like(self.n_times_left, dtype=float)
+
+        for app_type in np.unique(self.appliances['type']):
+            apps_id_this_type = np.where(
+                self.appliances['type'] == app_type
+            )[0]
+            mask_this_type = np.isin(app_id, apps_id_this_type)
+
+            current_loads_this_type = self.loads_dict[app_type][
+                # Access the load values id of these types of appliances
+                self.corresponding_load_id[
+                    hh_id[mask_this_type], app_id[mask_this_type]
+                ],
+                # Finds the time in the load of the appliances
+                time_in_pattern[hh_id[mask_this_type], app_id[mask_this_type]]
+            ]
+            # Set the consumption
+            current_load[
+                hh_id[mask_this_type], app_id[mask_this_type]
+            ] = current_loads_this_type
+
+        return current_load
 
     def get_power_demand(self):
 
@@ -706,6 +844,29 @@ class ActivityApplianceSimulator(AppliancesSimulator):
 
     Turns the appliances on and keeps them activated while residents
     are performing corresponding activites.
+
+    Params
+        :py:attr:`~demod.utils.cards_doc.Params.subgroups_list`
+        :py:attr:`~demod.utils.cards_doc.Params.n_households_list`
+        :py:attr:`~demod.utils.cards_doc.Params.data`
+        :py:attr:`~demod.utils.cards_doc.Params.logger`
+        :py:attr:`~demod.utils.cards_doc.Params.equipped_sampling_algo`
+        :py:attr:`~demod.utils.cards_doc.Params.initial_activities_dict`
+    Data
+        :py:meth:`~demod.datasets.tou_loader.LoaderTOU.load_activity_probability_profiles`
+        :py:meth:`~demod.datasets.base_loader.ApplianceLoader.load_appliance_ownership_dict`
+        :py:meth:`~demod.datasets.base_loader.ApplianceLoader.load_appliance_dict`
+    Step input
+        :py:attr:`~demod.utils.cards_doc.Inputs.active_occupancy`
+    Output
+        :py:meth:`~demod.utils.cards_doc.Sim.get_power_demand`
+        :py:meth:`~.AppliancesSimulator.get_current_usage`
+        :py:meth:`~.AppliancesSimulator.get_current_power_consumptions`
+        :py:meth:`~.AppliancesSimulator.get_current_water_consumptions`
+        :py:meth:`~demod.utils.cards_doc.Sim.get_thermal_gains`
+        :py:meth:`~demod.utils.cards_doc.Sim.get_dhw_heating_demand`
+    Step size
+        From the dataset.
     """
     def __init__(
         self, n_households, initial_activities_dict,
@@ -722,11 +883,30 @@ class ActivityApplianceSimulator(AppliancesSimulator):
             n_households, data.load_appliance_dict(), **kwargs
         )
 
+
         self.initialize_starting_state(initial_activities_dict)
 
     def initialize_starting_state(self, initial_activities_dict):
         self.previous_act_dict = initial_activities_dict.copy()
-        super().initialize_starting_state()
+
+        # Records which appliance is used
+        self.is_used = np.zeros_like(
+            self.available_appliances, dtype=bool
+        )
+        # Records the position in the pattern of this appliance
+
+        for act, n_performing in initial_activities_dict.items():
+            # Gets indices of the appliances of act and the performing act
+            app_ind = np.where(self.appliances['related_activity'] == act)[0]
+            hh_ind = np.where(n_performing > 0)[0]
+
+            self.switch_on(
+                # Start all appliances corresponding to act in all hhs
+                np.tile(app_ind, len(hh_ind)),
+                np.repeat(hh_ind, len(app_ind))
+            )
+
+        Simulator.initialize_starting_state(self)
 
     def step(self, activities_dict: Dict[str, np.ndarray]) -> None:
         """Perform a step of simulation.
@@ -736,25 +916,58 @@ class ActivityApplianceSimulator(AppliancesSimulator):
         Updates the appliances in consequence.
 
         TODO: check how we want to implement secondary appliances.
+
+
         """
 
         for act, n_performing in activities_dict.items():
             # Get the appliances related to that activity
-            mask_app = self.appliances['related_activity'] == act
+            apps_this_act = np.where(
+                self.appliances['related_activity'] == act
+            )[0]
             # Gets the number that performed it at last step
             previous_performing = self.previous_act_dict[act]
             # Gets the ones that should change
             mask_change = previous_performing != n_performing
 
             # Switch off
-            mask_turn_off = mask_change & (n_performing == 0)
-            self.n_times_left[mask_app, mask_turn_off] = 0
+            hh_turn_off = np.where(mask_change & (n_performing == 0))[0]
+            self.is_used[  # turn off all appliances of this act and a
+                np.repeat(hh_turn_off, len(apps_this_act)),
+                np.tile(apps_this_act, len(hh_turn_off)),
+            ] = 0
 
             # Switch on
-            mask_start_act = mask_change & (previous_performing == 0)
+            hh_act_start = np.where(
+                mask_change & (previous_performing == 0)
+            )[0]
             self.switch_on(
-                np.where(mask_start_act),
-                np.where(mask_app)
+                np.repeat(hh_act_start, len(apps_this_act)),
+                np.tile(apps_this_act, len(hh_act_start)),
             )
 
-        self.previous_act_dict.copy()
+        self.previous_act_dict = activities_dict.copy()
+
+        Simulator.step(self)
+
+    def switch_on(self, indexes_household, indexes_appliance):
+        # Don't know for how long they will stay on
+        self.is_used[indexes_household, indexes_appliance] = True
+
+    def get_current_usage(self):
+        # Usage is determined only by activity
+        return self.is_used & self.available_appliances
+
+    def get_current_power_consumptions(self):
+        power_consumptions = np.zeros_like(self.is_used, dtype=float)
+        # check the appliances that are on or off and determine the values of power for on and off
+        power_consumptions += (
+            (self.get_current_usage() == False)
+            * self.appliances["standby_consumption"]
+            * self.available_appliances
+        )
+        power_consumptions += self.get_current_usage() * self.appliances[
+            "mean_elec_consumption"
+        ]
+
+        return power_consumptions

@@ -56,7 +56,14 @@ class GermanDataHerus(
         Args:
             version: The version of the datset to load. Defaults to "v0.1".
         """
-        self.activity_data = GTOU("Sparse9States")
+        if version == "v0.1":
+            self.activity_data = GTOU("Sparse9States")
+        elif version == "vBottaccioli":
+            self.activity_data = GTOU("Bottaccioli2018")
+        else:
+            raise ValueError("Unkown version :'{}' for '{}'".format(
+                version, self
+            ))
         self.destatis = Destatis()
         self.climate = OpenPowerSystemClimate("Germany")
         super().__init__(version=version, **kwargs)
@@ -83,6 +90,9 @@ class GermanDataHerus(
         self, subgroup: Subgroup
     ) -> Dict[str, np.ndarray]:
         return self.activity_data.load_activity_probability_profiles(subgroup)
+
+    def load_tpm(self, *args, **kwargs):
+        return self.activity_data.load_tpm(*args, **kwargs)
 
     def load_sparse_tpm(self, subgroup: Subgroup):
         return self.activity_data.load_sparse_tpm(subgroup)

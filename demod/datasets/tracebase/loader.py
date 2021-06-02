@@ -79,7 +79,12 @@ class Tracebase(ApplianceLoader):
 
     It then parses the profiles to demod.
 
-    It also resample the data to the desired step size using interpolation.
+    It also resample the data to the desired step size using interpolation
+    and averageing over time.
+
+    Note that the 'switchedON' profiles are not available for all
+    appliances, only for
+    dishwasher, washing machine, dryer, iron, microwave
 
     Contains information from the tracebase data set,
     which is made available at http://www.tracebase.org
@@ -127,8 +132,12 @@ class Tracebase(ApplianceLoader):
                 zip_obj.extractall(self.raw_path)
 
     def _parse_real_profiles_dict(self, profiles_type: str):
-        if profiles_type != 'full':
+        if profiles_type == 'switchedON':
+            return self._parse_real_profiles_dict_ON()
+
+        elif profiles_type != 'full':
             raise NotImplementedError(profiles_type)
+
 
         profiles_dict = {}
         appliances_path = os.path.join(
@@ -178,8 +187,68 @@ class Tracebase(ApplianceLoader):
             seconds_interp = np.arange(
                 seconds[0],
                 seconds[-1],
-                step=self.step_size.total_seconds(),
+                step=1, # one second
                 dtype=int
             )
-            return np.interp(seconds_interp, seconds, df[1])
+            # Interpolate to get the load at each second step
+            load_second = np.interp(seconds_interp, seconds, df[1])
+            if int(self.step_size.total_seconds()) == 1:
+                return load_second
+            else:
+                # Need to average over the load
+                sec_avg = int(self.step_size.total_seconds())
+                # Pad the array for resahping
+                n_pad = sec_avg - (len(load_second) % sec_avg)
+                padded_load = np.append(load_second, np.zeros(n_pad))
+                # Compute the mean over the step size intervals
+                return padded_load.reshape((-1, sec_avg)).mean(axis=-1)
+
+
+
+    def _parse_real_profiles_dict_ON(self):
+        # Those load profiles where looked at if it was possible to
+        # crop them using only the start and end of consumption
+        # Also they were selected by different devices or cycle pattern
+        load_profiles_satisfying = [
+            # dishwashers
+            'dev_995BAC_2012.06.11.csv',
+            'dev_B7E6F4_2012.02.03.csv',
+            'dev_B7E6FA_2012.01.18.csv',
+            'dev_B81D04_2012.05.23.csv',
+            'dev_B82F81_2011.08.15.csv',
+            # washing machines
+            'dev_11F01E_2011.12.10.csv',
+            'dev_7297E3_2012.01.16.csv',
+            'dev_B8121D_2012.02.01.csv',
+            'dev_D31FFD_2012.06.11.csv',
+            'dev_D3230E_2011.12.18.csv',
+            'dev_D338C9_2012.05.16.csv',
+            'Washingmachine_2011.11.30.csv',
+            # Dryer, (only one seemed to fit sadly)
+            'dev_B7E43D_2012.01.24.csv',
+            # Iron
+            'dev_D337C2_2011.12.26.csv',
+            # Microvawe
+            'dev_995FCC_2012.01.21.csv',
+            'dev_D32309_2011.12.25.csv',
+            'dev_D32309_2012.01.08.csv',
+            'Microwave_2011.12.28.csv',
+            'Microwave_2011.12.30.csv',
+            'Microwave_2012.01.02.csv',
+
+        ]
+        profiles_dict = self.load_real_profiles_dict('full')
+        dict_ON_profiles = {}
+        for app_type, load_dict in profiles_dict.items():
+            for load_name, load in load_dict.items():
+                if load_name in load_profiles_satisfying:
+                    # Assume the load is where there are enough watts in profils
+                    mask = np.where(load > 6)[0]
+                    # Take the boundaries of where the on load is
+                    a, b = mask[[0, -1]]
+                    if app_type not in dict_ON_profiles:
+                        dict_ON_profiles[app_type] = {}
+                    # Adds the profile to the dictionary
+                    dict_ON_profiles[app_type][load_name] = load[int(a):int(b+1)]
+        return dict_ON_profiles
 
