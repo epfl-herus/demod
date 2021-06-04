@@ -38,6 +38,7 @@ sim = SubgroupsIndividualsActivitySimulator(
 
 sim_app = ActivityApplianceSimulator(
     n_households, initial_activities_dict=sim.get_states(),
+    data=data,
     logger=SimLogger('get_current_power_consumptions', aggregated=False)
 )
 
@@ -62,6 +63,7 @@ axes[0].plot(power_consumptions[:, n_ieth_hh, :])
 for state, array in sim.logger.get('get_states').items():
     axes[1].plot(array[:, n_ieth_hh], label = state)
 plt.legend()
+plt.show()
 
 # %%
 

@@ -101,7 +101,7 @@ class GermanDataHerus(
         return self.destatis.load_appliance_ownership_dict(subgroup)
 
     def _parse_appliance_dict(self) -> AppliancesDict:
-        if self.version == "v0.1":
+        if self.version in ["v0.1", "vBottaccioli"]:
 
             df = pd.read_excel(
                 self.raw_file_path,
@@ -130,6 +130,10 @@ class GermanDataHerus(
         if "uses_water" in appliances:
             appliances["uses_water"] = np.array(
                 appliances["uses_water"], dtype=bool
+            )
+        if "probabilistic" in appliances:
+            appliances["probabilistic"] = np.array(
+                appliances["probabilistic"], dtype=bool
             )
 
         appliances["number"] = len(appliances["name"])
