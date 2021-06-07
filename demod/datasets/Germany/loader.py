@@ -21,6 +21,7 @@ from ..ExcellInputFile.loader import InputFileLoader
 from ..OpenPowerSystems.loader import OpenPowerSystemClimate
 from ..GermanTOU.loader import GTOU
 from ..DESTATIS.loader import Destatis
+from ..tracebase.loader import Tracebase
 
 
 class GermanDataHerus(
@@ -66,6 +67,7 @@ class GermanDataHerus(
             ))
         self.destatis = Destatis()
         self.climate = OpenPowerSystemClimate("Germany")
+        self.tracebase_profiles = Tracebase()
         super().__init__(version=version, **kwargs)
 
         self.raw_file_path = (
@@ -94,11 +96,17 @@ class GermanDataHerus(
     def load_tpm(self, *args, **kwargs):
         return self.activity_data.load_tpm(*args, **kwargs)
 
+    def load_tpm_with_duration(self, *args, **kwargs):
+        return self.activity_data.load_tpm_with_duration(*args, **kwargs)
+
     def load_sparse_tpm(self, subgroup: Subgroup):
         return self.activity_data.load_sparse_tpm(subgroup)
 
     def load_appliance_ownership_dict(self, subgroup: Subgroup) -> np.ndarray:
         return self.destatis.load_appliance_ownership_dict(subgroup)
+
+    def load_real_profiles_dict(self, *args, **kwargs):
+        return self.tracebase_profiles.load_real_profiles_dict(*args, **kwargs)
 
     def _parse_appliance_dict(self) -> AppliancesDict:
         if self.version in ["v0.1", "vBottaccioli"]:
