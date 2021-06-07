@@ -604,7 +604,7 @@ class Params:
                 in :math:`[l/min]`
             * appliances_dict['inactive_switch_off']
                 *bool*, Whether the appliance should switch off if the
-                occpupants leave or sleep.
+                occupants stop the activity, leave or sleep.
             * appliances_dict['equipped_prob']
                 *float*, Probability that a household is equipped with
                 this appliance.
