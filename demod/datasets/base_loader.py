@@ -7,7 +7,7 @@ from os.path import isfile
 from ..utils.parse_helpers import lists_to_numpy_array, make_jsonable
 from ..utils.sim_types import AppliancesDict, StateLabels, Subgroup, Subgroups, TPM, TPMs
 from ..utils.appliances import get_ownership_from_dict
-from ..utils.subgroup_handling import subgroup_string
+from ..utils.subgroup_handling import remove_time_attributues, subgroup_string
 
 import os
 import json
@@ -531,7 +531,7 @@ class ApplianceLoader(DatasetLoader):
         Return:
             pdf of ownership for each appliance
         """
-        subgroup_str = subgroup_string(subgroup)
+        subgroup_str = subgroup_string(remove_time_attributues(subgroup))
 
         # put in a dedicated folder
         folder_name = "appliance_ownership"
