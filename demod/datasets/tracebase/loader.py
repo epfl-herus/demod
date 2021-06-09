@@ -120,13 +120,12 @@ class Tracebase(ApplianceLoader):
             os.remove(raw_zip_filepath)
         if not os.path.isfile(raw_zip_filepath):
             download_url = 'https://github.com/areinhardt/tracebase/archive/refs/heads/master.zip'
-            print('Downloading the raw data from {}.'.format(download_url))
+            print('Downloading tracebase raw data from {}.'.format(download_url))
             print('This can take some time.')
-            with (  # Reads the url and
-                urllib.request.urlopen(download_url) as response,
-                open(raw_zip_filepath, 'wb') as f
-            ):
-                shutil.copyfileobj(response, f)
+            # Reads the url and  download the zip archive
+            with  urllib.request.urlopen(download_url) as response:
+                with open(raw_zip_filepath, 'wb') as f:
+                    shutil.copyfileobj(response, f)
             # Now the file is downloaded
             with zipfile.ZipFile(raw_zip_filepath, 'r') as zip_obj:
                 zip_obj.extractall(self.raw_path)
@@ -251,4 +250,3 @@ class Tracebase(ApplianceLoader):
                     # Adds the profile to the dictionary
                     dict_ON_profiles[app_type][load_name] = load[int(a):int(b+1)]
         return dict_ON_profiles
-
