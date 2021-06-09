@@ -21,7 +21,7 @@ from .base_simulators import Callbacks, TimeAwareSimulator, cached_getter
 from ..utils.subgroup_handling import add_time
 from ..utils.error_messages import UNIMPLEMENTED_ALGO_IN_METHOD
 from ..utils.data_types import DataInput
-from ..utils.sim_types import AppliancesDict, Subgroups
+from ..utils.sim_types import ActivitiesDict, AppliancesDict, Subgroups
 from ..utils.appliances import get_ownership_from_dict
 from ..datasets.base_loader import DatasetLoader
 from ..datasets.Germany.loader import GermanDataHerus
@@ -29,6 +29,7 @@ from demod.utils import appliances
 
 # Activities that imply the appliance to be used always
 ALWAYS_ON_ACTIVITES = ['level', 'constant']
+
 
 class AppliancesSimulator(TimeAwareSimulator):
     """Class for Simulating appliances usage.
@@ -173,7 +174,51 @@ class AppliancesSimulator(TimeAwareSimulator):
             )
 
     def _sample_from_subgroup(self):
-        raise NotImplementedError()
+        # load the ownership probs for appliances and each subgroup
+        dicts_probs = [
+            self.data.load_appliance_ownership_dict(subgroup)
+            for subgroup in self.subgroup_list
+            ]
+        # Ignore the warning raised by get_ownership_from_dict
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            probs = np.asarray(
+                [get_ownership_from_dict(
+                    self.appliances, dic
+                ) for dic in dicts_probs]
+            )
+        # Gets probs corresponding to each household
+        available_probs = probs[self.hh_types]
+        if probs.shape[-1] != self.appliances["number"]:
+            raise ValueError(
+                "Appliance ownership does not match the number of appliances."
+            )
+        rand = np.random.uniform(
+            size=(self.n_households, self.appliances["number"])
+        )
+        return rand < available_probs
+
+    def _parse_subgroups(self, n_households, subgroup_list, n_households_list):
+        if (subgroup_list is None) and (n_households_list is None):
+            return
+        if (subgroup_list is None) or (n_households_list is None):
+            raise AttributeError(
+                "If you are using subgroups, you need to specify both "
+                "'subgroup_list' and 'n_households_list'."
+            )
+        if sum(n_households_list) != n_households:
+            raise ValueError(
+                "'n_households' must be equal to "
+                "the sum of 'n_households_list' "
+            )
+
+        self.subgroup_list = subgroup_list
+
+        n_households_list = np.array(n_households_list, dtype=int)
+        # keep in memory from which subgroup the hh are
+        self.hh_types = np.concatenate(
+            [i * np.ones(n, dtype=int) for i, n in enumerate(n_households_list)]
+        ).reshape(-1)
 
     def sample_real_load_profiles(
         self, real_profiles_algo: str = 'uniform',
@@ -257,7 +302,6 @@ class AppliancesSimulator(TimeAwareSimulator):
             if app_type not in real_loads_app_dict:
                 not_found_types.append(app_type)
                 continue  # Go to the next type
-            print('normal ', app_type)
             # Finds the appliances of this type
             mask_this_type = self.appliances['type'][app_id] == app_type
             # Sample which load is assigned to each appliance
@@ -318,7 +362,6 @@ class AppliancesSimulator(TimeAwareSimulator):
             if app_type not in real_loads_app_dict:
                 not_found_types.append(app_type)
                 continue  # Go to the next type
-            print('always on ', app_type)
             # Finds the appliances of this type
             mask_this_type = self.appliances['type'][app_id] == app_type
             # Sample which load is assigned to each appliance
@@ -462,7 +505,7 @@ class AppliancesSimulator(TimeAwareSimulator):
             (n_household, n_appliances) with value being the power
             in Watts.
         """
-        power_consumptions = np.zeros_like(self._is_used, dtype=float)
+        power_consumptions = np.zeros_like(self.n_times_left, dtype=float)
 
         # Standby consumption
         power_consumptions += (
@@ -574,6 +617,13 @@ class AppliancesSimulator(TimeAwareSimulator):
 class SubgroupApplianceSimulator(AppliancesSimulator):
     """Simulator for appliances differentiating subgroups.
 
+    It uses
+        - the simulated household occupancy
+        - the activity profiles of different subgroups
+    to compute
+    the switch on probability of each appliance.
+
+
     This simulators is an improvement of the original Crest Appliance
     simulation.
     Its improvements are mainly the compatibility for any subgroup
@@ -627,21 +677,14 @@ class SubgroupApplianceSimulator(AppliancesSimulator):
     ):
         """Create a simulator for the appliances."""
 
-
         self.data = data
 
         appliances_dict = self.data.load_appliance_dict()
 
-        self.subgroup_list = subgroup_list
-
-        # keep in memory from which subgroup the hh are
-        n_households_list = np.array(n_households_list, dtype=int)
-        self.hh_types = np.concatenate(
-            [i * np.ones(n, dtype=int) for i, n in enumerate(n_households_list)]
-        ).reshape(-1)
-
         # Total number of households
         n_hh = np.sum(n_households_list)
+
+        self._parse_subgroups(n_hh, subgroup_list, n_households_list)
 
         # checks the step size
         if step_size != datetime.timedelta(minutes=1):
@@ -693,30 +736,6 @@ class SubgroupApplianceSimulator(AppliancesSimulator):
         self.activities_labels = activities_labels
         self.activities_inverse = inverse
 
-    def _sample_from_subgroup(self):
-        # load the ownership probs for appliances and each subgroup
-        dicts_probs = [
-            self.data.load_appliance_ownership_dict(subgroup)
-            for subgroup in self.subgroup_list
-            ]
-        # Ignore the warning raised by get_ownership_from_dict
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            probs = np.asarray(
-                [get_ownership_from_dict(
-                    self.appliances, dic
-                ) for dic in dicts_probs]
-            )
-        # Gets probs corresponding to each household
-        available_probs = probs[self.hh_types]
-        if probs.shape[-1] != self.appliances["number"]:
-            raise ValueError(
-                "Appliance ownership does not match the number of appliances."
-            )
-        rand = np.random.uniform(
-            size=(self.n_households, self.appliances["number"])
-        )
-        return rand < available_probs
 
     def on_before_next_day_4am(self):
         if self.data.refresh_time == datetime.time(4, 0, 0):
@@ -1045,7 +1064,6 @@ class SubgroupApplianceSimulator(AppliancesSimulator):
             self.current_activity_pdf = next(self.activities_pdf_iterator)
             # DIM0: subgroups, DIM1: activity, DIM2: active_occupancy
 
-
         switchon_probs = self.get_switchon_probs(active_occupancy_)
         # make switch on impossible
         # if appliance not available (probs of non available are 0)
@@ -1070,6 +1088,9 @@ class ActivityApplianceSimulator(AppliancesSimulator):
     are performing corresponding activites.
     The appliances are always ON while the activity is performed in
     the household.
+    Appliances that are turned ON and OFF randomly depending on
+    the activity can be simulated by
+    :py:class`.ProbabiliticActivityAppliancesSimulator`
 
     Params
         :py:attr:`~demod.utils.cards_doc.Params.subgroups_list`
@@ -1098,8 +1119,10 @@ class ActivityApplianceSimulator(AppliancesSimulator):
     _is_used: np.ndarray  # Boolean array that records which app is used
 
     def __init__(
-        self, n_households, initial_activities_dict,
+        self, n_households: int, initial_activities_dict,
         data=GermanDataHerus(),
+        subgroup_list: Subgroups = None,
+        n_households_list: List[int] = None,
         **kwargs
     ) -> None:
         """Create the simulator.
@@ -1110,31 +1133,52 @@ class ActivityApplianceSimulator(AppliancesSimulator):
         appliance_dict = data.load_appliance_dict()
         self.data = data
 
+        self._parse_subgroups(n_households, subgroup_list, n_households_list)
+
         super().__init__(
             n_households,
-            self._remove_non_compatible_appliances(appliance_dict),
+            self._remove_non_compatible_appliances(
+                appliance_dict, initial_activities_dict
+            ),
             **kwargs
         )
-
 
         self.initialize_starting_state(initial_activities_dict, **kwargs)
 
     def _remove_non_compatible_appliances(
-        self, appliance_dict: AppliancesDict
+        self,
+        appliance_dict: AppliancesDict,
+        initial_activities_dict: ActivitiesDict
     ) -> AppliancesDict:
         """Remove appliances that cannot be simulated by this."""
-        if 'probabilistic' not in appliance_dict:
+
+        # Makes sure all related activities are included
+        mask_app_for_this_sim = np.isin(
+            appliance_dict['related_activity'],
+            list(initial_activities_dict.keys()) + ALWAYS_ON_ACTIVITES
+            )
+        if sum(~mask_app_for_this_sim) > 0:
+            warnings.warn((
+                "{} have missing related activities : {} "
+                " from the ones given in the "
+                " 'initial_activities_dict' with activities {}."
+            ).format(
+                appliance_dict['name'][~mask_app_for_this_sim],
+                appliance_dict['related_activity'][~mask_app_for_this_sim],
+                initial_activities_dict.keys()
+            ))
+
+        if 'probabilistic' in appliance_dict:
             # Needs probabilitic key to remove these appliances
-            return appliance_dict
-        activity_appliance_dict = {}
-        mask_app_for_this_sim = (
-            appliance_dict['probabilistic'] == False
-        )
+            mask_app_for_this_sim &= (~appliance_dict['probabilistic'])
+
+        activity_appliance_dict = {}  # Dict with only compatible apps
         for key, items in appliance_dict.items():
             if key == 'number':
                 # Number is not an array, account for removed act
                 activity_appliance_dict[key] = int(sum(mask_app_for_this_sim))
                 continue
+            # Copy all items of appliance dict to the new dict
             activity_appliance_dict[key] = items[mask_app_for_this_sim]
 
         return activity_appliance_dict
@@ -1165,6 +1209,12 @@ class ActivityApplianceSimulator(AppliancesSimulator):
             self.appliances['related_activity'], ALWAYS_ON_ACTIVITES
         )] = True
 
+    def _check_simulated_activities(self, activities_dict):
+        """One time check of matching simulated activities with appliances.
+
+        Warns if some appliances related activities are not simulated, ie
+        are not present.
+        """
 
     def step(self, activities_dict: Dict[str, np.ndarray]) -> None:
         """Perform a step of simulation.
@@ -1229,7 +1279,6 @@ class ActivityApplianceSimulator(AppliancesSimulator):
         self.n_times_left[mask_reload] += durations
         self.n_times_till_refresh[mask_reload] += durations
 
-
     def _switch_on_constant_loads(self, indexes_household, indexes_appliance):
         # Don't know for how long they will stay on
         self._is_used[indexes_household, indexes_appliance] = True
@@ -1260,6 +1309,10 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
     corresponding activity is performed, or during the duration
     sampled.
 
+    Attributes:
+        occured_cycles, An array storing how many cycles already occurred
+            this week
+
     .. note::
         This methods allows only for a single use per day of the probabilistic
         appliances.
@@ -1288,49 +1341,76 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         From the dataset.
     """
 
-    def __init__(self, *args, **kwargs):
-        ActivityApplianceSimulator.__init__(self, *args, **kwargs)
-        # Initalize the target used per week
+    occured_cycles: np.ndarray
+
+    def __init__(
+        self, n_households, initial_activities_dict,
+        data=GermanDataHerus(),
+        subgroup_list: Subgroups = None,
+        n_households_list: List[int] = None,
+        **kwargs
+    ) -> None:
+        """Create the simulator.
+
+        Sample the appliances, but only the ones that are related to the
+        activity.
+        """
+        appliance_dict = data.load_appliance_dict()
+        self.data = data
+
+        self._parse_subgroups(n_households, subgroup_list, n_households_list)
+
+        super().__init__(
+            n_households,
+            self._remove_non_compatible_appliances(
+                appliance_dict, initial_activities_dict
+            ),
+            **kwargs
+        )
+
+        # Assign the target used per week
         self.target_weekly_cycle = self._assign_target_weekly_cycles()
 
+        self.initialize_starting_state(initial_activities_dict, **kwargs)
+
     def _assign_target_weekly_cycles(self):
+        """Assign to each household and appliance a target of weekly cycles.
+
+        This implementation only use appliance_dict['target_cycle_year']
+        as target.
+        It should be improved to be loaded from the dataset based on
+        the subgroups in a future implementation.
+        """
         # Should use subgroups instead of this to improve, as in Bottaccioli
-        app_targets = self.appliances['target_cycle_year']
+        weekly_targets = self.appliances['target_cycle_year'] / 365.25 * 7.
         return np.broadcast_to(
-            app_targets, (self.n_households, len(app_targets))
+            weekly_targets, (self.n_households, len(weekly_targets))
         )
 
     def _remove_non_compatible_appliances(
-        self, appliance_dict: AppliancesDict
+        self,
+        appliance_dict: AppliancesDict,
+        initial_activities_dict: ActivitiesDict
     ) -> AppliancesDict:
-        if 'probabilistic' not in appliance_dict:
-            # Needs probabilitic key to remove these appliances
-            raise ValueError(
-                "'probabilistic' is not in appliance_dict from "
-                " {}.".format(self.data)
-            )
-        activity_appliance_dict = {}
-        mask_app_for_this_sim = appliance_dict['probabilistic']
-        for key, items in appliance_dict.items():
-            if key == 'number':
-                # Number is not an array, account for removed act
-                activity_appliance_dict[key] = int(sum(mask_app_for_this_sim))
-                continue
-            activity_appliance_dict[key] = items[mask_app_for_this_sim]
 
-        return activity_appliance_dict
-
-    def initialize_starting_state(self, initial_activities_dict):
-        self.previous_act_dict = initial_activities_dict.copy()
-
-        # Assumes probabilistic appliances are off at start
-        self.n_times_left = np.zeros_like(
-            self.available_appliances, dtype=float
+        # Is the opposite as activity related, so we can just change the
+        # value of the probabilistic array
+        appliance_dict['probabilistic'] = (~appliance_dict['probabilistic'])
+        new_dic = ActivityApplianceSimulator._remove_non_compatible_appliances(
+            self, appliance_dict, initial_activities_dict
         )
+        new_dic['probabilistic'] = (~new_dic['probabilistic'])
+
+        return new_dic
+
+    def initialize_starting_state(self, initial_activities_dict, **kwargs):
+        self.previous_act_dict = initial_activities_dict.copy()
 
         # Initialize the number of times left that the appliances should be used
         start_weekday = self.current_time.weekday()
-        self.occured_cycles = np.zeros_like(self.n_times_left, dtype=int)
+        self.occured_cycles = np.zeros_like(
+            self.available_appliances, dtype=int
+        )
         for days_passed in range(start_weekday):
             # Simulates as if the days where already passed
             start_mask = self._sample_if_occuring_today(7 - days_passed)
@@ -1338,13 +1418,13 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
 
         self.today_cycles = self._sample_if_occuring_today(7 - start_weekday)
 
-        super().initialize_starting_state(self)
+        super().initialize_starting_state(self, **kwargs)
 
     def _sample_if_occuring_today(self, days_left: int):
         # Correction of Bottaccioli formulation, uses the already occuring
         # number of cycles
         probs = (self.target_weekly_cycle - self.occured_cycles) / days_left
-        return np.random.uniform(size=self.n_times_left.shape) < probs
+        return np.random.uniform(size=self.occured_cycles.shape) < probs
 
     def on_before_next_day(self) -> None:
         """Samples the probability that the probabilistic appliance is used."""
@@ -1367,8 +1447,8 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
             ex. dryer
 
         Args:
-            active_occupancy (ndarray(n_hh)): The active occupancy
-            switchon_probs (ndarray(n_hh, n_app)): Probabilities of switch on for each household and appliances
+            activities_dict: A dictionary containing the different activities
+                performed by the household
         """
         # update the variables iteration
         mask_decrement_time = self.n_times_left > 0
@@ -1395,16 +1475,14 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
             # Gets the ones that should change
             mask_change = previous_performing != n_performing
 
-            # TODO check if the appliance start today
-            # TODO how do we implement shiftable appliances
-
             # Switch off
             mask_hh_act_stops = mask_change & (n_performing == 0)
             mask_app_stop = (
                 mask_apps_this_act & self.appliances['inactive_switch_off']
             )
             if np.any(mask_hh_act_stops):
-                self.switch_off(*np.where(  # turn off all appliances of this act and a
+                # turn off all appliances of this activity if it ends
+                self.switch_off(*np.where(
                     mask_hh_act_stops[:, np.newaxis]
                     & mask_app_stop[np.newaxis, :]
                 ))
@@ -1440,18 +1518,40 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         super().step()
 
     def _compute_switch_on_probs(self, indexes_household, indexes_appliance):
-        # Don't know for how long they will stay on
-        # TODO find a good solution for that
+        """Compute switch on probs for appliances that can be started.
+
+        These are the probabilites that an appliance is started when
+        at least one person in the household is performing the activity
+        corresponding to this appliance, at each simulation step.
+        Note: the occurence of the activity during the day is
+        already simulated by the activity simulator so we don't need
+        to do anything there.
+        """
+
+        apps_dictated_start = np.where(
+            (self.appliances['previous_appliance_type'] != 'nan')
+            | (self.appliances['previous_activity'] != 'nan')
+        )[0]
         return (
-            (~self._is_used[indexes_household, indexes_appliance])
+            (
+                ~self.get_current_usage()[indexes_household, indexes_appliance]
+                & ~np.isin(indexes_appliance, apps_dictated_start)
+            )
+            # TODO find a good solution for that, dont use crest
             * self.appliances['switch_on_prob_crest'][indexes_appliance]
             * self.today_cycles[indexes_household, indexes_appliance]
         )
 
-    def _compute_switch_on_probs_for_one_time(self, indexes_household, indexes_appliance):
-        """Appliances that can be switched on only after another one or when activity stops."""
+    def _compute_switch_on_probs_for_one_time(
+        self, indexes_household: np.ndarray, indexes_appliance: np.ndarray
+    ) -> np.ndarray:
+        """Compute probability of switch on events for one-time appliances.
+
+        Appliances that can be switched on only after another one
+        or when activity stops.
+        """
         return (
-            (~self._is_used[indexes_household, indexes_appliance])
+            (~self.get_current_usage()[indexes_household, indexes_appliance])
             * self.today_cycles[indexes_household, indexes_appliance]
         )
 
@@ -1459,29 +1559,29 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         # Don't know for how long they will stay on
         self.n_times_left[indexes_household, indexes_appliance] = 0
         self.n_times_till_refresh[indexes_household, indexes_appliance] = (
-            self.appliances['refresh_time'][indexes_appliance]
+            self.appliances['after_cycle_delay'][indexes_appliance]
         )
 
     def _get_start_after_activity(
         self, mask_hh_act_stops, activity
     ):
         """When the activity stops."""
-        inds_app_mask = np.where(
-            self.appliances['previous_activity'] == activity
-        )[0]
-        ind_hh = np.where(mask_hh_act_stops)[0]
+
+        ind_hh, ind_app = np.where(
+            mask_hh_act_stops[:, np.newaxis]
+            & (self.appliances['previous_activity'] == activity)[np.newaxis, :]
+        )
 
         # Compute probability of switch on
         switch_on_probs = self._compute_switch_on_probs_for_one_time(
-            ind_hh,
-            inds_app_mask
+            ind_hh, ind_app
         )
         # Sample the switchon probs
         mask_switch_on = (
             np.random.uniform(size=len(switch_on_probs)) < switch_on_probs
         )
         return (
-            ind_hh[mask_switch_on], inds_app_mask[mask_switch_on]
+            ind_hh[mask_switch_on], ind_app[mask_switch_on]
         )
 
 
@@ -1496,7 +1596,7 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         """
         # Must switchon the appliances that follow a specific switchoff
         new_app_id = np.where(  # ID where the appliance follows a previous one
-            ~np.isnan(self.appliances['previous_appliance_type'])
+            self.appliances['previous_appliance_type'] != 'nan'
         )
         indexes_app_start = np.array([], dtype=int)
         indexes_hh_start = np.array([], dtype=int)
@@ -1509,7 +1609,8 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
             )
             # Adds the appliance that should start (follow a stop)
             indexes_app_start = np.append(
-                indexes_app_start, app_id * np.ones(sum(mask_stopped))
+                indexes_app_start,
+                app_id * np.ones(sum(mask_stopped), dtype=int)
             )
             indexes_hh_start = np.append(
                 indexes_hh_start, indexes_household[mask_stopped]

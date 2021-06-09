@@ -648,6 +648,13 @@ class SubgroupsIndividualsActivitySimulator(
         subgroup_persons = subgroup_households_to_persons(
             subgroups_list,
         )
+
+        self.n_residents = np.concatenate([
+            subgroup['n_residents'] * np.ones(n_households, dtype=int)
+            for subgroup, n_households
+            in zip(subgroups_list, n_households_list)
+        ]).reshape(-1)
+
         # Counts the persons
         unique_persons, person_numbers = np.unique(
             np.concatenate(subgroup_persons), return_counts=True
@@ -851,8 +858,25 @@ class SubgroupsIndividualsActivitySimulator(
                 in zip(self.simulators, self.subgroups_persons)
             ]
 
+    @ cached_getter
     def get_states(self) -> Dict[str, np.ndarray]:
         """Return a dictionary containing the persons in each state."""
         return {
             lab: self.get_n_doing_activity(lab) for lab in self.activity_labels
             }
+
+    def get_occupancy(self) -> np.array:
+        """Return the active occupancy of an activity simulator.
+
+        Reads the state 'away' and get_occupancy to deduce it.
+        """
+        states = self.get_states()
+        return self.n_residents - states['away']
+
+    def get_active_occupancy(self) -> np.array:
+        """Return the active occupancy of an activity simulator.
+
+        Reads the state 'sleeping' and get_occupancy to deduce it.
+        """
+        states = self.get_states()
+        return self.get_occupancy() - states['sleeping']
