@@ -5,6 +5,9 @@ doi 10.1109/ACCESS.2018.2886201
 # %%
 import os
 import sys
+from matplotlib.lines import Line2D
+from matplotlib.patches import Circle
+from matplotlib.colors import Colormap
 
 import matplotlib.pyplot as plt
 
@@ -68,11 +71,12 @@ sim_prob_app = ProbabiliticActivityAppliancesSimulator(
 print(sim_app.appliances['use_variable_loads'])
 
 for i in range(1*144):
-    sim.step()
+
     for i in range(10):
         sim_app.step(sim.get_states())
         sim_prob_app.step(sim.get_states())
         sim_CREST.step(sim.get_active_occupancy())
+    sim.step()
 
 
 # %%
@@ -87,26 +91,43 @@ time_axis_app = sim_app.logger.get('current_time')
 sim_CREST.logger.plot()
 # %%
 for n_ieth_hh in range(n_households):
+
+    # Plot the appliances
     fig, axes  = plt.subplots(2,1, sharex=True)
     for i, name in enumerate(sim_app.appliances['name']):
         # plots each appliance pattern
         if sim_app.available_appliances[n_ieth_hh, i]:
-            axes[0].plot(time_axis_app, power_consumptions[:, n_ieth_hh, i], label=name)
+            axes[0].step(time_axis_app, power_consumptions[:, n_ieth_hh, i], label=name)
     for i, name in enumerate(sim_prob_app.appliances['name']):
         # plots each appliance pattern
         if sim_prob_app.available_appliances[n_ieth_hh, i]:
-            axes[0].plot(time_axis_app, power_consumptions_prob[:, n_ieth_hh, i], label=name)
+            axes[0].step(time_axis_app, power_consumptions_prob[:, n_ieth_hh, i], label=name)
     axes[0].legend()
-    for state, array in sim.logger.get('get_states').items():
-        axes[1].plot(time_axis, array[:, n_ieth_hh], label = state)
-    plt.legend()
+
+    # Plots the different activities
+    max_number = 1
+    colors = np.array(['','#d7191c','#fdae61','#ffffbf','#abdda4','#2b83ba'])
+    for i, (state, array) in enumerate(dict_states.items()):
+        mask_activity_occuring = array[:, n_ieth_hh] > 0
+        axes[1].scatter(
+            time_axis[mask_activity_occuring],
+            i * np.ones(sum(mask_activity_occuring)),
+            c = colors[array[:, n_ieth_hh][mask_activity_occuring]]
+            )
+        # Records the max number of residents
+        max_number = max(max_number, max(array[:, n_ieth_hh]))
+    axes[1].set_yticks(np.arange(0, len(dict_states.keys())))
+    axes[1].set_yticklabels(dict_states.keys())
+    # Adds the legend
+
+    axes[1].legend(handles=[
+        Circle((0,0), color=colors[i], label='{}'.format(i))
+        for i in range(1, max_number+1)
+    ])
     plt.show()
 
 # %%
 
 # TODO
-# Make some appliance probabilistic in the activity
-# Add the load patterns to ActivityApplianceSimulator
 # Control the activities of the appliances and the ones of the TOU with the ones of Bottaccioli
-# Make a visualization of the activities like in bottacioli
 # Define what to do for appliance that do not depend on activity
