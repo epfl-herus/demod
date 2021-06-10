@@ -523,11 +523,11 @@ class Simulator():
         """
         # update the time
         self.current_time_step += 1
+        # clear the cache
+        self._cache.clear()
         # call the logger
         if self.logger:
             self.logger.visit_simulator(self)
-        # clear the cache
-        self._cache.clear()
 
 
 # Support for Typing in simulators.
