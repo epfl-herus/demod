@@ -511,7 +511,8 @@ class Simulator():
         # clears the logger after initialization
         if self.logger:
             self.logger.clear()
-
+            # visit to store the first step
+            self.logger.visit_simulator(self)
 
 
     def step(self) -> None:
