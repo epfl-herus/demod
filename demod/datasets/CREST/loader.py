@@ -783,3 +783,59 @@ class Crest(
         thermostat["transitions cdf we"] = np.cumsum(
             df_heating.to_numpy()[:, 2:].reshape((48, 2, 2)), axis=-1
         )
+
+    def _compute_washing_machine_power(self, n_steps_left, name):
+        """Washing machine power for a minute based simulation."""
+        if name == "washingmachine":
+            current_time = 138 - n_steps_left
+        elif name == "washer_dryer":
+            current_time = 198 - n_steps_left
+        else:
+            raise ValueError(name + " is not a valid name")
+
+        power = np.zeros_like(n_steps_left, dtype=float)
+        # define the values of power depending on n_times left, form CREST
+        power[current_time <= 8] = 73  # Start-up and fill
+        power[
+            np.logical_and(current_time > 8, current_time <= 29)
+        ] = 2056  # Heating
+        power[
+            np.logical_and(current_time > 29, current_time <= 81)
+        ] = 73  # Wash and drain
+        power[
+            np.logical_and(current_time > 81, current_time <= 92)
+        ] = 73  # Spin
+        power[
+            np.logical_and(current_time > 92, current_time <= 94)
+        ] = 250  # Rinse
+        power[
+            np.logical_and(current_time > 94, current_time <= 105)
+        ] = 73  # Spin
+        power[
+            np.logical_and(current_time > 105, current_time <= 107)
+        ] = 250  # Rinse
+        power[
+            np.logical_and(current_time > 107, current_time <= 118)
+        ] = 73  # Spin
+        power[
+            np.logical_and(current_time > 118, current_time <= 120)
+        ] = 250  # Rinse
+        power[
+            np.logical_and(current_time > 120, current_time <= 131)
+        ] = 73  # Spin
+        power[
+            np.logical_and(current_time > 131, current_time <= 133)
+        ] = 250  # Rinse
+        power[
+            np.logical_and(current_time > 133, current_time <= 138)
+        ] = 568  # Fast spin
+        power[
+            np.logical_and(current_time > 138, current_time <= 198)
+        ] = 2500  # Drying cycle
+
+        # standby
+        power[n_steps_left == 0] = self.appliances["standby_consumption"][
+            self.appliances["type"] == name
+        ]
+
+        return power
