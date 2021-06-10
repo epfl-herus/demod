@@ -41,10 +41,10 @@ class AppliancesSimulator(TimeAwareSimulator):
     which is the appliance_dict.
     The states an information of all appliances are stored as
     different numpy arrays of shape = (n_households, n_appliances).
-    The attributes below show more in dept which infromation are
+    The attributes below show more in dept which information are
     stored.
 
-    A step based appliance works this way:
+    A state based appliance works this way:
         1. It is switched ON by the simulator at step $n$.
         2. The switch-ON event samples for how long the appliance
             will be ON, ($m$ steps)
@@ -492,9 +492,6 @@ class AppliancesSimulator(TimeAwareSimulator):
         Args:
             indexes_household: the index of the household.
             indexes_appliance: the index of the appliances, matching with the households
-
-        Raises:
-            NotImplementedError: [description]
         """
         # Finds which of the inputs are variable loads
         mask_variable_loads = np.isin(
@@ -613,6 +610,10 @@ class AppliancesSimulator(TimeAwareSimulator):
         )
 
     def _sample_durations(self, indexes_household, indexes_appliance):
+        """Sample the duration of a load.
+
+        TODO: sample different kinds of load differently ?
+        """
         durations = self.appliances["mean_duration"][indexes_appliance]
 
         # The real load profiles have a duration equal to their length
