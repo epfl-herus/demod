@@ -593,8 +593,6 @@ class MultiSimulator(Simulator):
         Note:
             A future implmentation could implement parallelization.
         """
-        super().step()
-
         # Tracks the household offset when iterating over subsimulators
         hh_offset:int = 0
         for sim in self.simulators:
@@ -608,6 +606,8 @@ class MultiSimulator(Simulator):
 
             sim.step(*sub_args, **sub_kwargs)
             hh_offset += sim.n_households
+
+        super().step()
 
     def _assign_getters(self) -> None:
         """Assign getters to the multi simulator, using sub-simulator."""
