@@ -859,7 +859,7 @@ class SubgroupsIndividualsActivitySimulator(
             ]
 
     @ cached_getter
-    def get_states(self) -> Dict[str, np.ndarray]:
+    def get_activity_states(self) -> Dict[str, np.ndarray]:
         """Return a dictionary containing the persons in each state."""
         states = {
             lab: self.get_n_doing_activity(lab) for lab in self.activity_labels
@@ -873,7 +873,7 @@ class SubgroupsIndividualsActivitySimulator(
         Reads the state 'away' and get_occupancy to deduce it.
         """
         if states is None:
-            states = self.get_states()
+            states = self.get_activity_states()
         return self.n_residents - states['away']
 
     def get_active_occupancy(self, states=None) -> np.array:
@@ -882,7 +882,7 @@ class SubgroupsIndividualsActivitySimulator(
         Reads the state 'sleeping' and get_occupancy to deduce it.
         """
         if states is None:
-            states = self.get_states()
+            states = self.get_activity_states()
         occupancy = (
             self.get_occupancy() if states is None else
             self.get_occupancy(states)
