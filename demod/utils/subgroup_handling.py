@@ -246,6 +246,7 @@ def subgroup_households_to_persons(
 def add_time(
     subgroup: Subgroup, desired_datetime: datetime.datetime,
     use_week_ends_days: bool = True,
+    use_week_sat_sun: bool = False,
     use_7days: bool = False,
     use_quarters: bool = False,
 ) -> Subgroup:
@@ -256,21 +257,28 @@ def add_time(
     Args:
         use_week_ends_days: Distinguish the subgroups between
             weekdays and weekends. Defaults to True.
+        use_week_sat_sun: Distinguish the subgroups between
+            weekdays, saturday and sunday. Defaults to False.
         use_7days: Distinguish the subgroup between the 7 days of
             the weeks. Defaults to False.
         use_quarters: Distinguish the subgroup depending on the
             quarters of a year. Defaults to False.
     """
-    if use_7days and use_week_ends_days:
+    if sum(use_7days, use_week_ends_days, use_week_sat_sun) > 1:
         raise ValueError(
-            "Cannot use 7 days and week-end-days splits, "
-            "will not differentiate the days."
+            "Can use only one of 'use_7days', 'use_week_ends_days',"
+            " 'use_week_sat_sun' "
         )
     elif use_week_ends_days:
         if desired_datetime.isoweekday() <= 5:
             subgroup["weekday"] = [1, 2, 3, 4, 5]
         else:
             subgroup["weekday"] = [6, 7]
+    elif use_week_sat_sun:
+        if desired_datetime.isoweekday() <= 5:
+            subgroup["weekday"] = [1, 2, 3, 4, 5]
+        else:
+            subgroup["weekday"] = desired_datetime.isoweekday()
     elif use_7days:
         subgroup["weekday"] = desired_datetime.isoweekday()
     else:  # No type of day was specifiy
