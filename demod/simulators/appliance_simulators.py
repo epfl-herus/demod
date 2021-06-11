@@ -19,7 +19,7 @@ import itertools
 
 from .base_simulators import Callbacks, TimeAwareSimulator, cached_getter
 from ..utils.subgroup_handling import add_time
-from ..utils.error_messages import UNIMPLEMENTED_ALGO_IN_METHOD
+from ..utils.error_messages import ALGO_REQUIRES_LOADING_METHOD, UNIMPLEMENTED_ALGO_IN_METHOD, USE_OTHER_ALGOS_FOR_ALGONAME
 from ..utils.data_types import DataInput
 from ..utils.sim_types import ActivitiesDict, AppliancesDict, Subgroups
 from ..utils.appliances import get_ownership_from_dict
@@ -331,7 +331,20 @@ class AppliancesSimulator(TimeAwareSimulator):
 
     def _sample_switched_on_load_profiles(self):
         # Loads from the dataset
-        real_loads_app_dict = self.data.load_real_profiles_dict('switchedON')
+        try:
+            real_loads_app_dict = self.data.load_real_profiles_dict('switchedON')
+        except NotImplementedError:
+            raise NotImplementedError((
+                ALGO_REQUIRES_LOADING_METHOD + '\n'
+                + USE_OTHER_ALGOS_FOR_ALGONAME
+            ).format(
+                algo='',
+                simulator=type(self).__name__,
+                loading_method="load_real_profiles_dict('switchedON')",
+                dataset=self.data,
+                other_algos=['only_always_on', 'nothing'],
+                algo_name='real_profiles_algo',
+            ))
         # real_loads is a dictionarry of the load profiles:
         # {app_type: {app_name: array}}
         # For each type, different appliances
@@ -395,7 +408,21 @@ class AppliancesSimulator(TimeAwareSimulator):
         """The load profiles are always on."""
 
         # Loads from the dataset
-        real_loads_app_dict = self.data.load_real_profiles_dict('full')
+        try:
+            real_loads_app_dict = self.data.load_real_profiles_dict('full')
+        except NotImplementedError:
+            raise NotImplementedError((
+                ALGO_REQUIRES_LOADING_METHOD + '\n'
+                + USE_OTHER_ALGOS_FOR_ALGONAME
+            ).format(
+                algo='',
+                simulator=type(self).__name__,
+                loading_method="load_real_profiles_dict('full')",
+                dataset=self.data,
+                other_algos=['only_switched_on', 'nothing'],
+                algo_name='real_profiles_algo',
+            ))
+
         # real_loads is a dictionarry of the load profiles:
         # {app_type: {app_name: array}}
         # For each type, different appliances
@@ -1503,6 +1530,11 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         self.previous_act_dict = activities_dict.copy()
 
         super().step()
+
+    def _update_iteration_variables(self):
+        # Don't update, as already taken care of in step method for
+        # this simulator
+        pass
 
     def _compute_switch_on_probs(self, indexes_household, indexes_appliance):
         """Compute switch on probs for appliances that can be started.
