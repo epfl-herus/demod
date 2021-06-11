@@ -1198,7 +1198,9 @@ class ActivityApplianceSimulator(AppliancesSimulator):
         return activity_appliance_dict
 
     def initialize_starting_state(self, initial_activities_dict, **kwargs):
-        """Initialize the appliances states based on activity."""
+        """Initialize the appliances states based on activity.
+
+        Activities that are occuring will have their"""
         # Records which appliance is used
         self._is_used = np.zeros_like(
             self.available_appliances, dtype=bool
@@ -1214,8 +1216,8 @@ class ActivityApplianceSimulator(AppliancesSimulator):
 
             self.switch_on(
                 # Start all appliances corresponding to act in all hhs
+                np.repeat(hh_ind, len(app_ind)),
                 np.tile(app_ind, len(hh_ind)),
-                np.repeat(hh_ind, len(app_ind))
             )
 
         # Turn on level appliances as they are always used
@@ -1382,10 +1384,25 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
             **kwargs
         )
 
+        self._assign_dictated_start()
+
         # Assign the target used per week
         self.target_weekly_cycle = self._assign_target_weekly_cycles()
 
         self.initialize_starting_state(initial_activities_dict, **kwargs)
+
+    def _assign_dictated_start(self):
+        mask_dictated_start = np.zeros(self.appliances['number'], dtype=bool)
+        if 'previous_appliance_type' in self.appliances:
+            mask_dictated_start[
+                self.appliances['previous_appliance_type'] != 'nan'
+            ] = True
+        if 'previous_activity' in self.appliances:
+            mask_dictated_start[
+                self.appliances['previous_activity'] != 'nan'
+            ] = True
+
+        self.apps_dictated_start = np.where(mask_dictated_start)[0]
 
     def _assign_target_weekly_cycles(self):
         """Assign to each household and appliance a target of weekly cycles.
@@ -1406,6 +1423,15 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         appliance_dict: AppliancesDict,
         initial_activities_dict: ActivitiesDict
     ) -> AppliancesDict:
+        # Check if probabilistic is given, else assume all appliances are it.
+        if 'probabilistic' not in appliance_dict:
+            warnings.warn((
+                "'probabilistic' is not in appliance dict of {}. \n "
+                "{} will assume they are all probabilistic."
+            ).format(self.data, self))
+            appliance_dict['probabilistic'] = np.ones_like(
+                appliance_dict['type'], dtype=bool
+            )
 
         # Is the opposite as activity related, so we can just change the
         # value of the probabilistic array
@@ -1473,9 +1499,10 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
             mask_decrement_time & ~(self.n_steps_left > 0)
         )
         # Start the appliances that start after another appliance
-        self.switch_on(*self._get_start_after_appliance(
-            turned_off_hh, turned_off_app
-        ))
+        if 'previous_appliance_type' in self.appliances:
+            self.switch_on(*self._get_start_after_appliance(
+                turned_off_hh, turned_off_app
+            ))
 
         for act, n_performing in activities_dict.items():
             # Get the appliances related to that activity
@@ -1500,11 +1527,11 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
                     mask_hh_act_stops[:, np.newaxis]
                     & mask_app_stop[np.newaxis, :]
                 ))
-
-            # Start the appliances that start after another activity ends
-            self.switch_on(*self._get_start_after_activity(
-                mask_hh_act_stops, act
-            ))
+            if 'previous_activity' in self.appliances:
+                # Start the appliances that start after another activity ends
+                self.switch_on(*self._get_start_after_activity(
+                    mask_hh_act_stops, act
+                ))
 
             # Finds which appliances can switch on for this activity
             mask_hh_act_occurs = n_performing > 0
@@ -1547,14 +1574,11 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         to do anything there.
         """
 
-        apps_dictated_start = np.where(
-            (self.appliances['previous_appliance_type'] != 'nan')
-            | (self.appliances['previous_activity'] != 'nan')
-        )[0]
+
         return (
             (
                 ~self.get_current_usage()[indexes_household, indexes_appliance]
-                & ~np.isin(indexes_appliance, apps_dictated_start)
+                & ~np.isin(indexes_appliance, self.apps_dictated_start)
             )
             # TODO find a good solution for that, dont use crest
             * self.appliances['switch_on_prob_crest'][indexes_appliance]

@@ -5,7 +5,7 @@ import numpy as np
 
 from demod.simulators.activity_simulators import (
     SemiMarkovSimulator,
-    SubgroupsIndividualsActivitySimulator
+    SubgroupsIndividualsActivitySimulator,
 )
 
 from test_base_simulators import TimeAwareSimulatorChildrenTests
@@ -15,7 +15,7 @@ class SubgroupsIndividualsActivitySimulatorTests(TimeAwareSimulatorChildrenTests
     n_households = 6
     args = [
         [
-            {'household_type': 2},
+            {'household_type': 2, 'n_residents': 2},
             {'household_type': 3, 'n_residents': 3},
             {'household_type': 4, 'n_residents': 5}
         ], [3, 2, 1]
@@ -24,7 +24,7 @@ class SubgroupsIndividualsActivitySimulatorTests(TimeAwareSimulatorChildrenTests
     args_step = []
     kwargs_step = {}
     unimplemented_getters = [
-        'get_active_occupancy', 'get_occupancy', 'get_mask_subgroup',
+        'get_mask_subgroup',
         'get_n_doing_state', 'get_thermal_gains'
     ]
     getter_args = {
