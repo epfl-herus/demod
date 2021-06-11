@@ -41,7 +41,7 @@ sim = SubgroupsIndividualsActivitySimulator(
     logger=SimLogger('get_activity_states', 'current_time', aggregated=False),
     subsimulator=SemiMarkovSimulator,
     data=data,
-    use_7days=True
+    use_week_ends_days=True
 )
 
 sim_app = ActivityApplianceSimulator(
@@ -73,7 +73,7 @@ sim_prob_app = ProbabiliticActivityAppliancesSimulator(
 
 print(sim_app.appliances['use_variable_loads'])
 
-for i in range(1*144):
+for i in range(7*144):
 
     for i in range(10):
         sim_app.step(sim.get_activity_states())
@@ -99,14 +99,22 @@ from demod.utils.plotters import FIGSIZE, plot_household_activities, plot_applia
 for n_ieth_hh in range(n_households):
 
     # Plot the appliances
-    fig, axes  = plt.subplots(2,1, sharex=True, figsize=FIGSIZE)
+    fig, axes = plt.subplots(2, 1, sharex=True, figsize=FIGSIZE)
 
-
+    app_dic = merge_appliance_dict(sim_app.appliances, sim_prob_app.appliances)
+    available_app = np.append(  # Merg the two sims results
+        sim_app.available_appliances[n_ieth_hh, :],
+        sim_prob_app.available_appliances[n_ieth_hh, :]
+    )
     plot_appliance_consumptions(
-        np.c_[power_consumptions[:, n_ieth_hh, :], power_consumptions_prob[:, n_ieth_hh, :]],
-        merge_appliance_dict(sim_app.appliances, sim_prob_app.appliances),
+        np.c_[  # Merge power consumption of the two sims
+            power_consumptions[:, n_ieth_hh, :],
+            power_consumptions_prob[:, n_ieth_hh, :]
+        ],
+        app_dic,
         time_axis=time_axis_app,
-        differentiative_factor='related_activity',
+        differentiative_factor='name',
+        labels_list=app_dic['name'][available_app],
         ax=axes[0]
     )
 
