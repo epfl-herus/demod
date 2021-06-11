@@ -158,7 +158,9 @@ def plot_appliance_consumptions(
         # Creates an ax of the length of states
         time_axis = np.arange(len(consumptions))
 
-    ax.stackplot(time_axis, *consumptions_to_plot, labels=attributes_list)
+    ax.stackplot(
+        time_axis, *consumptions_to_plot, labels=attributes_list, step='post'
+    )
     ax.legend()
 
 
