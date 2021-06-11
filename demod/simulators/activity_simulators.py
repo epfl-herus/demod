@@ -525,6 +525,7 @@ class SubgroupsIndividualsActivitySimulator(
         :py:attr:`~demod.utils.cards_doc.Params.subsimulator`
         :py:attr:`~demod.utils.cards_doc.Params.data`
         :py:attr:`~demod.utils.cards_doc.Params.use_week_ends_days`
+        :py:attr:`~demod.utils.cards_doc.Params.use_week_sat_sun`
         :py:attr:`~demod.utils.cards_doc.Params.use_7days`
         :py:attr:`~demod.utils.cards_doc.Params.use_quarters`
         :py:attr:`~demod.utils.cards_doc.Params.start_datetime`
@@ -548,6 +549,7 @@ class SubgroupsIndividualsActivitySimulator(
         subsimulator: Simulator = MarkovChain1rstOrder,
         data: LoaderTOU = GTOU('DemodActivities_0'),
         use_week_ends_days: bool = False,
+        use_week_sat_sun: bool = False,
         use_7days: bool = False,
         use_quarters: bool = False,
         **kwargs
@@ -562,16 +564,22 @@ class SubgroupsIndividualsActivitySimulator(
             subsimulator: The simulator class to use for simulating the
                 subgroups. Defaults to SparseActivitySimulator.
             logger: A logger object to log the results. Defaults to None.
+            use_week_ends_days, use_week_sat_sun, use_7days, use_quarters:
+                specifiy the day type to use. See
+                :py:func:`~demod.utils.subgroup_handling.add_time`
 
         Raises:
-            TypeError: [description]
+            ValueError: If step_size does not match data.step_size
         """
         self.data = data
         # Save the update time parameters
         self.use_week_ends_days = use_week_ends_days
         self.use_7days = use_7days
+        self.use_week_sat_sun = use_week_sat_sun
         self.use_quarters = use_quarters
-        self.time_aware = (use_week_ends_days or use_7days or use_quarters)
+        self.time_aware = (
+            use_week_ends_days or use_7days or use_quarters or use_week_sat_sun
+        )
 
         # Check the subsimulator and define what should be done
         self._parse_subsimulator(subsimulator)
@@ -689,6 +697,7 @@ class SubgroupsIndividualsActivitySimulator(
             add_time(
                 subgroup, self.current_time,
                 use_week_ends_days=self.use_week_ends_days,
+                use_week_sat_sun=self.use_week_sat_sun,
                 use_7days=self.use_7days,
                 use_quarters=self.use_quarters,
             ) for subgroup in self.subgroups_persons
