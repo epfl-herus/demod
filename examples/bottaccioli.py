@@ -3,8 +3,12 @@
 doi 10.1109/ACCESS.2018.2886201
 """
 # %%
+from importlib import reload
 import os
 import sys
+from matplotlib.lines import Line2D
+from matplotlib.patches import Circle, Patch
+from matplotlib.colors import Colormap
 
 import matplotlib.pyplot as plt
 
@@ -13,6 +17,8 @@ import numpy as np
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 
+from demod.utils.plotters import FIGSIZE, plot_household_activities
+from demod.utils.appliances import merge_appliance_dict
 from demod.simulators.util import sample_population
 from demod.simulators.appliance_simulators import ActivityApplianceSimulator, ProbabiliticActivityAppliancesSimulator, SubgroupApplianceSimulator
 from demod.simulators.base_simulators import SimLogger
@@ -32,14 +38,14 @@ n_hh_list = sample_population(n_households, probs)
 sim = SubgroupsIndividualsActivitySimulator(
     hh_subgroups,
     n_hh_list,
-    logger=SimLogger('get_states', 'current_time', aggregated=False),
+    logger=SimLogger('get_activity_states', 'current_time', aggregated=False),
     subsimulator=SemiMarkovSimulator,
     data=data,
     use_7days=True
 )
 
 sim_app = ActivityApplianceSimulator(
-    n_households, initial_activities_dict=sim.get_states(),
+    n_households, initial_activities_dict=sim.get_activity_states(),
     data=data,
     equipped_sampling_algo="subgroup",
     subgroup_list=hh_subgroups,
@@ -55,7 +61,7 @@ sim_CREST = SubgroupApplianceSimulator(
 )
 
 sim_prob_app = ProbabiliticActivityAppliancesSimulator(
-    n_households, initial_activities_dict=sim.get_states(),
+    n_households, initial_activities_dict=sim.get_activity_states(),
     data=data,
     equipped_sampling_algo="subgroup",
     subgroup_list=hh_subgroups,
@@ -68,15 +74,16 @@ sim_prob_app = ProbabiliticActivityAppliancesSimulator(
 print(sim_app.appliances['use_variable_loads'])
 
 for i in range(1*144):
-    sim.step()
+
     for i in range(10):
-        sim_app.step(sim.get_states())
-        sim_prob_app.step(sim.get_states())
+        sim_app.step(sim.get_activity_states())
+        sim_prob_app.step(sim.get_activity_states())
         sim_CREST.step(sim.get_active_occupancy())
+    sim.step()
 
 
 # %%
-dict_states = sim.logger.get('get_states')
+dict_states = sim.logger.get('get_activity_states')
 time_axis = sim.logger.get('current_time')
 
 power_consumptions = sim_app.logger.get('get_current_power_consumptions')
@@ -86,27 +93,34 @@ time_axis_app = sim_app.logger.get('current_time')
 
 sim_CREST.logger.plot()
 # %%
+
+from demod.utils.plotters import FIGSIZE, plot_household_activities, plot_appliance_consumptions
+# Could make functions out of these plots
 for n_ieth_hh in range(n_households):
-    fig, axes  = plt.subplots(2,1, sharex=True)
-    for i, name in enumerate(sim_app.appliances['name']):
-        # plots each appliance pattern
-        if sim_app.available_appliances[n_ieth_hh, i]:
-            axes[0].plot(time_axis_app, power_consumptions[:, n_ieth_hh, i], label=name)
-    for i, name in enumerate(sim_prob_app.appliances['name']):
-        # plots each appliance pattern
-        if sim_prob_app.available_appliances[n_ieth_hh, i]:
-            axes[0].plot(time_axis_app, power_consumptions_prob[:, n_ieth_hh, i], label=name)
-    axes[0].legend()
-    for state, array in sim.logger.get('get_states').items():
-        axes[1].plot(time_axis, array[:, n_ieth_hh], label = state)
-    plt.legend()
+
+    # Plot the appliances
+    fig, axes  = plt.subplots(2,1, sharex=True, figsize=FIGSIZE)
+
+
+    plot_appliance_consumptions(
+        np.c_[power_consumptions[:, n_ieth_hh, :], power_consumptions_prob[:, n_ieth_hh, :]],
+        merge_appliance_dict(sim_app.appliances, sim_prob_app.appliances),
+        time_axis=time_axis_app,
+        differentiative_factor='related_activity',
+        ax=axes[0]
+    )
+
+    # Plots the different activities
+
+    plot_household_activities(
+        { key: arrays[:, n_ieth_hh] for key, arrays in dict_states.items()},
+        time_axis=time_axis,
+        ax=axes[1]
+    )
     plt.show()
 
 # %%
 
 # TODO
-# Make some appliance probabilistic in the activity
-# Add the load patterns to ActivityApplianceSimulator
 # Control the activities of the appliances and the ones of the TOU with the ones of Bottaccioli
-# Make a visualization of the activities like in bottacioli
 # Define what to do for appliance that do not depend on activity

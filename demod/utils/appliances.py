@@ -6,6 +6,27 @@ import warnings
 import numpy as np
 from demod.utils.sim_types import AppliancesDict
 
+def merge_appliance_dict(
+    dic1: AppliancesDict, dic2: AppliancesDict
+) -> AppliancesDict:
+    """Merges two appiance dictionaries together.
+
+    They must have the same keys, or the keys that
+    are not in both will be dropped.
+
+    """
+    special_keys = ['number']
+    dict_merged = {}
+    for key, item in dic1.items():
+        if key in special_keys:
+            continue
+        # Check the key is also in 2 or drop
+        if key in dic2:
+            dict_merged[key] = np.append(item, dic2[key])
+    # Sums the number of appliances
+    dict_merged['number'] = dic1['number'] + dic2['number']
+    return dict_merged
+
 
 def remove_start(appliance_type: str) -> Union[bool, str]:
     """Remove the first element to get the parent appliance type.

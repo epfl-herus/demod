@@ -53,10 +53,3 @@ License
 
 Demod is published under a
 `GPLv3 Licence <https://www.gnu.org/licenses/gpl-3.0.html>`_ .
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

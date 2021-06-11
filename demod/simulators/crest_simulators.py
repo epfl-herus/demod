@@ -472,11 +472,11 @@ class CRESTAppliancesSimulator(AppliancesSimulator):
         """
         # first switch on
         # add a simple value that is the mean
-        self.n_times_left[
+        self.n_steps_left[
             indexes_household, indexes_appliance
         ] = self.appliances["mean cycle durations"][indexes_appliance]
         # adds the time till refresh is possible
-        self.n_times_till_refresh[indexes_household, indexes_appliance] = (
+        self.n_steps_till_refresh[indexes_household, indexes_appliance] = (
             self.appliances["mean cycle durations"][indexes_appliance]
             + self.appliances["delay after cycle"][indexes_appliance]
         )
@@ -517,9 +517,9 @@ class CRESTAppliancesSimulator(AppliancesSimulator):
             volumes / self.appliances["mean cycle power"][indexes_appliance]
         )  # power is flow for water appliances
         # water fixtures duration
-        self.n_times_left[indexes_household, indexes_appliance] = durations
+        self.n_steps_left[indexes_household, indexes_appliance] = durations
         # adds the time till refresh is possible
-        self.n_times_till_refresh[indexes_household, indexes_appliance] = (
+        self.n_steps_till_refresh[indexes_household, indexes_appliance] = (
             durations + self.appliances["delay after cycle"][indexes_appliance]
         )
 
@@ -541,24 +541,24 @@ class CRESTAppliancesSimulator(AppliancesSimulator):
         )
 
         # finish the time remaining for the ones that were being used
-        self.n_times_left[mask_need_switchoff] = 0
+        self.n_steps_left[mask_need_switchoff] = 0
         # start or continue a refresh period for them
-        self.n_times_till_refresh[mask_need_switchoff] = np.minimum(
-            self.n_times_till_refresh[mask_household_need_switchoff][
+        self.n_steps_till_refresh[mask_need_switchoff] = np.minimum(
+            self.n_steps_till_refresh[mask_household_need_switchoff][
                 :, mask_app_need_switchoff
             ],
             self.appliances["delay after cycle"][mask_app_need_switchoff],
         ).reshape(-1)
 
     def get_current_power_consumptions(self):
-        power_consumptions = np.zeros_like(self.n_times_left, dtype=float)
+        power_consumptions = np.zeros_like(self.n_steps_left, dtype=float)
         # check the appliances that are on or off and determine the values of power for on and off
         power_consumptions += (
-            (self.n_times_left == 0)
+            (self.n_steps_left == 0)
             * self.appliances["standby power"]
             * self.available_appliances
         )
-        power_consumptions += (self.n_times_left > 0) * self.appliances[
+        power_consumptions += (self.n_steps_left > 0) * self.appliances[
             "mean cycle power"
         ]
 
@@ -569,7 +569,7 @@ class CRESTAppliancesSimulator(AppliancesSimulator):
         power_consumptions[
             mask_available, index
         ] = self._compute_washing_machine_power(
-            self.n_times_left[mask_available, index], "WASHING_MACHINE"
+            self.n_steps_left[mask_available, index], "WASHING_MACHINE"
         )
 
         index = self.appliances["name"] == "WASHER_DRYER"
@@ -577,7 +577,7 @@ class CRESTAppliancesSimulator(AppliancesSimulator):
         power_consumptions[
             mask_available, index
         ] = self._compute_washing_machine_power(
-            self.n_times_left[mask_available, index], "WASHER_DRYER"
+            self.n_steps_left[mask_available, index], "WASHER_DRYER"
         )
 
         # the water appliances do not consume electricity
@@ -593,20 +593,20 @@ class CRESTAppliancesSimulator(AppliancesSimulator):
         return power_consumptions
 
     def get_current_water_consumptions(self):
-        water_consumptions = np.zeros_like(self.n_times_left, dtype=float)
+        water_consumptions = np.zeros_like(self.n_steps_left, dtype=float)
         # check the appliances that are on or off and determine the values of power for on and off
         water_consumptions += (
-            (self.n_times_left <= 0)
+            (self.n_steps_left <= 0)
             * self.appliances["standby power"]
             * self.available_appliances
         )
         # water takes into account short duration events (less than 1 min)
         water_consumptions += (
-            self.n_times_left
-            * ((self.n_times_left > 0) & (self.n_times_left < 1))
+            self.n_steps_left
+            * ((self.n_steps_left > 0) & (self.n_steps_left < 1))
             * self.appliances["mean cycle power"]
         )
-        water_consumptions += (self.n_times_left >= 1) * self.appliances[
+        water_consumptions += (self.n_steps_left >= 1) * self.appliances[
             "mean cycle power"
         ]
 
@@ -634,15 +634,15 @@ class CRESTAppliancesSimulator(AppliancesSimulator):
         SPECIFIC_HEAT_CAPACITY_WATER = 4200.0
         return SPECIFIC_HEAT_CAPACITY_WATER * dblM_w
 
-    def _compute_washing_machine_power(self, n_times_left, name):
+    def _compute_washing_machine_power(self, n_steps_left, name):
         if name == "WASHING_MACHINE":
-            current_time = 138 - n_times_left
+            current_time = 138 - n_steps_left
         elif name == "WASHER_DRYER":
-            current_time = 198 - n_times_left
+            current_time = 198 - n_steps_left
         else:
             raise ValueError(name + " is not a valid name")
 
-        power = np.zeros_like(n_times_left, dtype=float)
+        power = np.zeros_like(n_steps_left, dtype=float)
         # define the values of power depending on n_times left, form CREST
         power[current_time <= 8] = 73  # Start-up and fill
         # Heating
@@ -682,7 +682,7 @@ class CRESTAppliancesSimulator(AppliancesSimulator):
         ] = 2500  # Drying cycle
 
         # standby
-        power[n_times_left == 0] = self.appliances["standby power"][
+        power[n_steps_left == 0] = self.appliances["standby power"][
             self.appliances["name"] == name
         ]
 

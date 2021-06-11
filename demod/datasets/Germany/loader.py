@@ -50,6 +50,9 @@ class GermanDataHerus(
     """
 
     DATASET_NAME = "Germany"
+    # Assign a 1 min step size as it is the target of the simulation
+    # Though GTOU is 10 minutes
+    step_size = datetime.timedelta(minutes=1)
 
     def __init__(self, /, version: str = "v0.1", **kwargs) -> Any:
         """Create a dataset loader for HERUS data.
