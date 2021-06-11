@@ -264,7 +264,7 @@ def add_time(
         use_quarters: Distinguish the subgroup depending on the
             quarters of a year. Defaults to False.
     """
-    if sum(use_7days, use_week_ends_days, use_week_sat_sun) > 1:
+    if sum((use_7days, use_week_ends_days, use_week_sat_sun)) > 1:
         raise ValueError(
             "Can use only one of 'use_7days', 'use_week_ends_days',"
             " 'use_week_sat_sun' "
