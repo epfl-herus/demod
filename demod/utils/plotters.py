@@ -122,7 +122,7 @@ def plot_appliance_consumptions(
     consumptions: np.ndarray,
     appliances_dict: AppliancesDict,
     time_axis: np.ndarray = None,
-    differentiative_factor = 'type',
+    differentiative_factor: str = 'type',
     labels_list: List[Any] = None,
     ax: plt.Axes = None, **kwargs
 ) -> None:
@@ -148,10 +148,9 @@ def plot_appliance_consumptions(
     )
     # Sum up consumption mapping these appliances
     consumptions_to_plot = [
-        np.sum(
-            consumptions[:, appliances_dict[differentiative_factor]==attribute],
-            axis=-1
-        )
+        np.sum(consumptions[
+            :, appliances_dict[differentiative_factor] == attribute
+        ], axis=-1)
         for attribute in attributes_list
     ]
     if time_axis is None:
