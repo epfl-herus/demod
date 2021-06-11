@@ -1,7 +1,6 @@
 """Helper functions for parsing Datasets."""
 
-from matplotlib.pyplot import axis
-from numpy.core.arrayprint import printoptions
+import warnings
 from demod.utils.monte_carlo import PDFs
 from typing import Dict, Tuple
 import numpy as np
@@ -600,7 +599,11 @@ def counts_to_pdf(counts: np.ndarray, ensure_valid_pdf=True):
     # Prepare sum for broadcasting
     shape = list(counts.shape)
     shape[-1] = 1
-    return counts / counts.sum(axis=-1).reshape(shape)
+    with warnings.catch_warnings():  # Ignore the divide / 0 warning
+        warnings.simplefilter('ignore', RuntimeWarning)
+        # Divide the counts by their sum to get probs
+        pdfs = counts / counts.sum(axis=-1).reshape(shape)
+    return pdfs
 
 
 def states_to_tpms(
