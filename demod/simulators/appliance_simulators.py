@@ -23,9 +23,9 @@ from ..utils.error_messages import UNIMPLEMENTED_ALGO_IN_METHOD
 from ..utils.data_types import DataInput
 from ..utils.sim_types import ActivitiesDict, AppliancesDict, Subgroups
 from ..utils.appliances import get_ownership_from_dict
+from ..utils import appliances
 from ..datasets.base_loader import DatasetLoader
 from ..datasets.Germany.loader import GermanDataHerus
-from demod.utils import appliances
 
 # Activities that imply the appliance to be used always
 ALWAYS_ON_ACTIVITES = ['level', 'constant']
