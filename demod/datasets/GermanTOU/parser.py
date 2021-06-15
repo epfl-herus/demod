@@ -13,7 +13,7 @@ from ...utils.parse_helpers import (
     get_initial_durations_pdfs,
     states_to_tpms,
     states_to_tpms_with_durations,
-    states_to_transitions
+    states_to_transitions,
 )
 
 MAX_PEOPLE_HOUSEHOLD = 6 + 1  # always need to get one above the real max pple
@@ -2022,5 +2022,3 @@ def create_data_activity_profile(
             out_dict[demod_act][:, n_occ] = prob_at_least_one_occ_perfoming_act
 
     return out_dict
-
-

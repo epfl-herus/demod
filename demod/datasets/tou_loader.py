@@ -256,6 +256,10 @@ class LoaderTOU(DatasetLoader):
         :py:class:`~demod.simulators.appliance_simulators.ApplianceSimulator`
         that requires the activity probability profiles.
 
+        The probability profiles are based on how many active occupants are
+        in the house. If you want only the probability that the activity
+        is occuring, use :py:meth:`.load_activity_probabilities`
+
         Activity profiles come as a dict key -> np.array
         *key: activity name
         *Array Shapes: DIM0: Time, DIM1:Active_Occupants
@@ -294,4 +298,138 @@ class LoaderTOU(DatasetLoader):
             ) -> Dict[str, np.ndarray]:
         raise NotImplementedError()
 
+    def _check_make_parsed_act_stats(self):
+        self.parsed_path_activity_stats = os.path.join(
+            self.parsed_path_activity,
+            'ActivityStats'
+        )
+        if not os.path.isdir(self.parsed_path_activity_stats):
+            os.mkdir(self.parsed_path_activity_stats)
 
+    def load_daily_activity_starts(
+        self, subgroup: Subgroup
+    ) -> Dict[str, np.ndarray]:
+        """Return the probability of performing an activity in a day.
+
+        Can vary depending on the subgroup.
+
+        A dictionaries containing pdfs of how many times
+        an activity is performed during a day.
+        The i-eth element is the probability that activity
+        is performed i times in a day.
+
+        Arrays can be of variable length.
+
+        ex:
+        {
+            'activity1': [0.3, 0.2, 0.5, 0.0],
+            'activity2': [0.3, 0.2, 0.0, 0.3, 0.2],
+            ...
+        }
+        """
+        # Handles the storage of the data
+        self._check_make_parsed_act_stats()
+        subgroup_str = subgroup_string(subgroup)
+        file_name = os.path.join(
+            self.parsed_path_activity_stats,
+            'act_occurence_' + subgroup_str)
+        file_path = os.path.join(
+            self.parsed_path_activity_stats,
+            'act_occurence_' + subgroup_str)
+
+
+        try:
+            act_occurences = dict(np.load(file_path + '.npz'))
+        except FileNotFoundError as err:
+            self._warn_could_not_load_parsed(err, file_name)
+            act_occurences = self._parse_daily_activity_starts(
+                subgroup
+            )
+            np.savez(file_path, **act_occurences)
+
+        return act_occurences
+
+    def _parse_daily_activity_starts(
+        self, subgroup: Subgroup
+    ) -> Dict[str, np.ndarray]:
+        raise NotImplementedError()
+
+    def load_activity_duration(
+        self, subgroup: Subgroup
+    ) -> Dict[str, np.ndarray]:
+        """Return the probability of activity duration.
+
+        Can vary depending on the subgroup.
+
+        A dictionaries containing pdfs of how long the activity last.
+        The i-eth element means the duration is i*step_size.
+
+        Element 0 means the the duration is smaller than step_size.
+        ex:
+        {
+            'activity1': [0.0, 0.3, 0.2, 0.5, 0.0],
+            'activity2': [0.0, 0.3, 0.2, 0.0, 0.3, 0.2],
+            ...
+        }
+        """
+        # Handles the storage of the data
+        self._check_make_parsed_act_stats()
+        subgroup_str = subgroup_string(subgroup)
+        file_name = os.path.join(
+            self.parsed_path_activity_stats,
+            'act_duration_' + subgroup_str)
+        file_path = os.path.join(
+            self.parsed_path_activity_stats,
+            'act_duration_' + subgroup_str)
+
+
+        try:
+            act_durations = dict(np.load(file_path + '.npz'))
+        except FileNotFoundError as err:
+            self._warn_could_not_load_parsed(err, file_name)
+            act_durations = self._parse_activity_duration(
+                subgroup
+            )
+            np.savez(file_path, **act_durations)
+
+        return act_durations
+
+    def _parse_activity_duration(
+        self, subgroup: Subgroup
+    ) -> Dict[str, np.ndarray]:
+        raise NotImplementedError()
+
+    def load_activity_probabilities(
+        self, subgroup: Subgroup
+    ) -> Dict[str, np.ndarray]:
+        """Return the probability that the activity is performed.
+
+        Proabilites are given at each step, during the day.
+        At each step the probability means the probability of doing
+        that activity instead of another.
+        """
+        self._check_make_parsed_act_stats()
+        subgroup_str = subgroup_string(subgroup)
+        file_name = os.path.join(
+            self.parsed_path_activity_stats,
+            'act_probs_' + subgroup_str
+        )
+        file_path = os.path.join(
+            self.parsed_path_activity_stats,
+            'act_probs_' + subgroup_str
+        )
+
+        try:
+            act_proabs = dict(np.load(file_path + '.npz'))
+        except FileNotFoundError as err:
+            self._warn_could_not_load_parsed(err, file_name)
+            act_proabs = self._parse_activity_probabilities(
+                subgroup
+            )
+            np.savez(file_path, **act_proabs)
+        return act_proabs
+
+    def _parse_activity_probabilities(
+        self, subgroup: Subgroup
+    ) -> Dict[str, np.ndarray]:
+        raise NotImplementedError()
