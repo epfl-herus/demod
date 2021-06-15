@@ -1388,6 +1388,7 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
 
         # Assign the target used per week
         self.target_weekly_cycle = self._assign_target_weekly_cycles()
+        self.switch_on_probs = self._sample_switch_on_probs()
 
         self.initialize_starting_state(initial_activities_dict, **kwargs)
 
@@ -1442,6 +1443,33 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         new_dic['probabilistic'] = (~new_dic['probabilistic'])
 
         return new_dic
+
+    def _sample_switch_on_probs(self) -> np.ndarray:
+        # Sample the probability of a switch on event is occuring
+        probs = np.empty_like(self.available_appliances, dtype=float)
+
+        # For each subgroup, finds the target of consumption
+        for subgroup in self.subgroup_list:
+            mask_hh_subgroup = self.hh_types == subgroup
+            # The switchon targets for each appliance, TODO: check other targes
+            target_switchons = self.data.load_yearly_target_switchons(subgroup)
+            # Total probability of occurance of this activity
+            activity_prob = self.data.load_activity_probability(subgroup)
+            for activity, act_prob in activity_prob.items():
+                # Each appliance will have a target
+                mask_this_act = self.appliances['related_activity'] == activity
+                # Possible switchon steps in the target period (year)
+                n_possible_steps = (
+                    365.25 * 24 * 60 * 60 / self.step_size.total_seconds()
+                ) * sum(act_prob)  # Only steps of this activity
+                #
+                probs[
+                    mask_hh_subgroup[:, np.newaxis],
+                    mask_this_act[np.newaxis, :]
+                ] = target_switchons[mask_this_act] / n_possible_steps
+
+        # TODO: add special probs for one time probs
+        return probs
 
     def initialize_starting_state(self, initial_activities_dict, **kwargs):
         self.previous_act_dict = initial_activities_dict.copy()
@@ -1581,8 +1609,7 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
                 & ~np.isin(indexes_appliance, self.apps_dictated_start)
             )
             # TODO find a good solution for that, dont use crest
-            * self.appliances['switch_on_prob_crest'][indexes_appliance]
-            * self.today_cycles[indexes_household, indexes_appliance]
+            * self.switch_on_probs[indexes_household, indexes_appliance]
         )
 
     def _compute_switch_on_probs_for_one_time(
