@@ -9,7 +9,7 @@ from demod.datasets.CREST.loader import Crest
 from demod.datasets.Germany.loader import GermanDataHerus
 from demod.simulators.base_simulators import SimLogger, Simulator
 from demod.simulators.appliance_simulators import (
-    SubgroupApplianceSimulator,
+    OccupancyApplianceSimulator,
     ActivityApplianceSimulator,
     ProbabiliticActivityAppliancesSimulator
 )
@@ -36,8 +36,8 @@ class TestApplianceDatasets(unittest.TestCase):
         app_dic = data.load_appliance_dict()
 
 
-class TestSubgroupApplianceSimulator(TimeAwareSimulatorChildrenTests, unittest.TestCase):
-    sim = SubgroupApplianceSimulator
+class TestOccupancyApplianceSimulator(TimeAwareSimulatorChildrenTests, unittest.TestCase):
+    sim = OccupancyApplianceSimulator
     args = [[{'n_residents': 2}], [1],]
     kwargs = {}
     args_step = [np.array([1], dtype=int),]
@@ -94,7 +94,7 @@ class TestSubgroupApplianceSimulator(TimeAwareSimulatorChildrenTests, unittest.T
             step_size=self.random_step_size, **self.kwargs
         )
 
-class TestSubgroupApplianceSimulatorCrestData(TestSubgroupApplianceSimulator):
+class TestOccupancyApplianceSimulatorCrestData(TestOccupancyApplianceSimulator):
     """Version of test subgroup appliances, but uses CREST data.
 
     Was required as compatibility breaks due to different default start
@@ -104,7 +104,7 @@ class TestSubgroupApplianceSimulatorCrestData(TestSubgroupApplianceSimulator):
         TimeAwareSimulatorChildrenTests: [description]
         unittest: [description]
     """
-    sim = SubgroupApplianceSimulator
+    sim = OccupancyApplianceSimulator
     kwargs = {
         'data': Crest(),
         'real_profiles_algo': 'only_switched_on'  # Crest has only switched on profiles

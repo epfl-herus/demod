@@ -91,7 +91,7 @@ appliances.
     :noindex:
 
 
-.. autoclass:: SubgroupApplianceSimulator
+.. autoclass:: OccupancyApplianceSimulator
 
 
 

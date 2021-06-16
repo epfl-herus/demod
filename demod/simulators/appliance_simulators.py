@@ -496,7 +496,8 @@ class AppliancesSimulator(TimeAwareSimulator):
         ))
         # Sets the initial duration randomly sampled in the profiles
         self.n_steps_left[mask_real_loads_on] = np.random.randint(
-            0, self.load_duration[mask_real_loads_on]
+            # Starts at 1 as they are on
+            1, self.load_duration[mask_real_loads_on]
         )
 
     def get_mask_available_appliances(self):
@@ -706,11 +707,11 @@ class AppliancesSimulator(TimeAwareSimulator):
         return np.sum(self.get_current_power_consumptions(), axis=-1)
 
 
-class SubgroupApplianceSimulator(AppliancesSimulator):
-    """Simulator for appliances differentiating subgroups.
+class OccupancyApplianceSimulator(AppliancesSimulator):
+    """Simulator for appliances  based on active occupancy.
 
     It uses
-        - the simulated household occupancy
+        - the simulated household active occupancy
         - the activity profiles of different subgroups
     to compute
     the switch on probability of each appliance.
@@ -764,6 +765,7 @@ class SubgroupApplianceSimulator(AppliancesSimulator):
         step_size: datetime.timedelta = None,
         initial_active_occupancy: np.ndarray = None,
         equipped_sampling_algo: str = 'subgroup',
+        real_profiles_algo: str = 'only_switched_on',
         *args,
         **kwargs
     ):
@@ -792,6 +794,7 @@ class SubgroupApplianceSimulator(AppliancesSimulator):
             n_hh, appliances_dict, *args,
             step_size=step_size,
             equipped_sampling_algo=equipped_sampling_algo,
+            real_profiles_algo=real_profiles_algo,
             **kwargs
         )
 
@@ -850,6 +853,7 @@ class SubgroupApplianceSimulator(AppliancesSimulator):
         """Update the activity pdfs for the next day."""
         # Use increment of step size, as we update before the next day
         self.update_subgroups_with_time(optional_increment=self.step_size)
+        # Sets the activity pdf corresponding to the new time
         self.set_activity_pdf()
 
     def set_activity_pdf(self):
@@ -1099,6 +1103,19 @@ class SubgroupApplianceSimulator(AppliancesSimulator):
         super().step()  # Updates the variables
 
 
+class SubgroupApplianceSimulator(OccupancyApplianceSimulator):
+    """Deprecated in versions > 0.1.
+
+    Use :py:class:`.OccupancyApplianceSimulator` instead.
+    """
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "SubgroupApplianceSimulator is deprecated."
+            "Use OccupancyApplianceSimulator instead.",
+            DeprecationWarning
+        )
+        return super().__init__(*args, **kwargs)
+
 class ActivityApplianceSimulator(AppliancesSimulator):
     """Appliance simulator based on residents activities.
 
@@ -1223,7 +1240,9 @@ class ActivityApplianceSimulator(AppliancesSimulator):
                 np.repeat(hh_ind, len(app_ind)),
                 np.tile(app_ind, len(hh_ind)),
             )
-
+        # This is required for avoiding initialization
+        # where current_time = len(real load profile)
+        self._update_iteration_variables()
         # Turn on level appliances as they are always used
         self._is_used[:, np.isin(
             self.appliances['related_activity'], ALWAYS_ON_ACTIVITES
@@ -1294,7 +1313,7 @@ class ActivityApplianceSimulator(AppliancesSimulator):
             & self.appliances['use_variable_loads'][np.newaxis, :],
         )
 
-        durations = self.load_duration[mask_reload] - 1
+        durations = self.load_duration[mask_reload]
         # Reload the times left
         self.n_steps_left[mask_reload] += durations
         self.n_steps_till_refresh[mask_reload] += durations

@@ -69,7 +69,7 @@ Occupancy-based appliance usage simulator
 
 :API: For details about the implementation of
   this simulator you can visit
-  :py:class:`~demod.simulators.appliance_simulators.SubgroupApplianceSimulator`.
+  :py:class:`~demod.simulators.appliance_simulators.OccupancyApplianceSimulator`.
 
 :Description: The appliance usage and load modules draws inspiration
   from CREST_ model, developed in excel VBA and presented in
