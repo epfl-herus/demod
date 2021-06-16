@@ -3,7 +3,6 @@ Data loader for the german TOU survey.
 """
 from datetime import time
 from demod.utils.parse_helpers import convert_states, states_to_transitions
-from demod.datasets.GermanTOU.parser import get_mask_subgroup
 import os
 from typing import Tuple
 import numpy as np
@@ -15,10 +14,6 @@ from ...utils.sim_types import *
 from ...utils.monte_carlo import PDFs
 from ...utils.sparse import SparseTPM
 from ...metrics.states import get_durations_by_states
-from .parser import (
-    get_tpms_activity, GTOU_label_to_Bottaccioli_act, GTOU_label_to_activity,
-    primary_states, occ
-)
 
 
 class GTOU(LoaderTOU, PopulationLoader):
@@ -39,8 +34,11 @@ class GTOU(LoaderTOU, PopulationLoader):
     DATASET_NAME = 'GermanTOU'
     refresh_time = time(4, 0, 0)
 
-    def __init__(self, *args, **kwargs) -> Any:
-        super().__init__(*args, **kwargs)
+    def _load_rawdata_info(self):
+        """Load the information on the data."""
+        from .parser import (
+            GTOU_label_to_Bottaccioli_act, GTOU_label_to_activity,
+        )
         # Define a dictionary of activities
         corresponding_dict = {
             'DemodActivities_0': GTOU_label_to_activity,
@@ -68,11 +66,12 @@ class GTOU(LoaderTOU, PopulationLoader):
 
     def _parse_tpm(self, subgroup: Subgroup):
         if self.activity_type == '4_States':
-            # Imports the raw data parser only here to save time
+            # Imports the raw data parser only here to save import time
             from .parser import get_data_4states
             return get_data_4states(subgroup)
         elif self.activity_type == 'DemodActivities_0':
-            # Imports the raw data parser only here to save time
+            # Imports the raw data parser only here to save import time
+            from .parser import get_tpms_activity, GTOU_label_to_activity
             return get_tpms_activity(
                 subgroup,
                 activity_dict=GTOU_label_to_activity,
@@ -81,7 +80,10 @@ class GTOU(LoaderTOU, PopulationLoader):
                 add_durations=False,
             )
         elif self.activity_type == 'Bottaccioli2018':
-            # Imports the raw data parser only here to save time
+            # Imports the raw data parser only here to save import time
+            from .parser import (
+                get_tpms_activity, GTOU_label_to_Bottaccioli_act
+            )
             return get_tpms_activity(
                 subgroup,
                 activity_dict=GTOU_label_to_Bottaccioli_act,
@@ -100,11 +102,12 @@ class GTOU(LoaderTOU, PopulationLoader):
         self, subgroup: Subgroup
     ) -> Tuple[TPMs, np.ndarray, StateLabels, PDF, PDFs, dict]:
         if self.activity_type == '4_States':
-            # Imports the raw data parser only here to save time
+            # Imports the raw data parser only here to save import time
             from .parser import get_data_4states
             return get_data_4states(subgroup, add_durations=True)
         elif self.activity_type == 'DemodActivities_0':
-            # Imports the raw data parser only here to save time
+            # Imports the raw data parser only here to save import time
+            from .parser import get_tpms_activity, GTOU_label_to_activity
             return get_tpms_activity(
                 subgroup,
                 activity_dict=GTOU_label_to_activity,
@@ -113,7 +116,10 @@ class GTOU(LoaderTOU, PopulationLoader):
                 add_durations=True,
             )
         elif self.activity_type == 'Bottaccioli2018':
-            # Imports the raw data parser only here to save time
+            # Imports the raw data parser only here to save import time
+            from .parser import (
+                get_tpms_activity, GTOU_label_to_Bottaccioli_act
+            )
             return get_tpms_activity(
                 subgroup,
                 activity_dict=GTOU_label_to_Bottaccioli_act,
@@ -130,7 +136,8 @@ class GTOU(LoaderTOU, PopulationLoader):
 
     def _parse_sparse_tpm(self, subgroup: Subgroup) -> Tuple[
         SparseTPM, StateLabels,
-        ActivityLabels, np.ndarray]:
+        ActivityLabels, np.ndarray
+    ]:
 
         if self.activity_type == 'Sparse9States':
             # Imports the raw data parser only here to save time
@@ -165,6 +172,10 @@ class GTOU(LoaderTOU, PopulationLoader):
         Also adds away state and the secodary states if it was specify
         in self.__init__()
         """
+        from .parser import primary_states, occ, get_mask_subgroup
+
+        # Sets some information on activity for the loading
+        self._load_rawdata_info()
 
         if self.corresponding_dict is None:
             raise ValueError((
@@ -235,7 +246,7 @@ class GTOU(LoaderTOU, PopulationLoader):
         if 'n_residents' in subgroup:
             if subgroup['n_residents'] > 1:
                 raise NotImplementedError(
-            'Not implemented for households subgroups'
+                'Not implemented for households subgroups'
             )
         states = self.get_states(subgroup)
         transitions_dict = states_to_transitions(states)
