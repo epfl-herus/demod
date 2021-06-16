@@ -164,13 +164,17 @@ class GTOU(LoaderTOU, PopulationLoader):
         return data.load_population_subgroups(population_type)
 
     def get_states(
-        self, subgroup: Subgroup
+        self, subgroup: Subgroup,
+        return_hh: bool = False,
+        return_day: bool = False,
     ) -> np.ndarray:
         """Return the states from the data, labelled using activity dict.
 
         The activity dict is specifies in self.__init__()
         Also adds away state and the secodary states if it was specify
         in self.__init__()
+
+        return_hh will also return the household id
         """
         from .parser import primary_states, occ, get_mask_subgroup
 
@@ -222,17 +226,25 @@ class GTOU(LoaderTOU, PopulationLoader):
         missing_act = all_activities[~np.isin(all_activities, states_label)]
         states_label = np.concatenate((states_label, missing_act))
 
-        return states_label[states]
+        to_return = []
+        to_return.append(states_label[states])
+
+        if return_hh:
+            from .parser import df_akt
+            to_return.append(
+                np.array(df_akt['id_hhx'])[mask_subgroup]
+            )
+        if return_day:
+            from .parser import df_akt
+            to_return.append(
+                np.array(df_akt['tagnr'])[mask_subgroup]
+            )
+        return to_return
 
     def _parse_activity_duration(
         self, subgroup: Subgroup
     ) -> Dict[str, np.ndarray]:
 
-        if 'n_residents' in subgroup:
-            if subgroup['n_residents'] > 1:
-                raise NotImplementedError(
-            'Not implemented for households subgroups'
-            )
         durations = get_durations_by_states(self.get_states(subgroup))
         return {
             # Makes a pdf from the counts of durations
@@ -243,18 +255,24 @@ class GTOU(LoaderTOU, PopulationLoader):
     def _parse_daily_activity_starts(
         self, subgroup: Subgroup
     ) -> Dict[str, np.ndarray]:
-        if 'n_residents' in subgroup:
-            if subgroup['n_residents'] > 1:
-                raise NotImplementedError(
-                'Not implemented for households subgroups'
-            )
-        states = self.get_states(subgroup)
+        """Parse the number of times an activity starts in the diaries."""
+
+        states, hh_id, day_id = self.get_states(
+            subgroup, return_hh=True, return_day=True
+        )
+        # Converts the states to transitions
         transitions_dict = states_to_transitions(states)
+        # Find in which household and which recorded day the diary was
+        transitions_dict['hh_day'] = (
+            # Samll trick to get unique hh and day transitions (day_id = 1, 2 or 3)
+            hh_id[transitions_dict['persons']] * 4
+            + day_id[transitions_dict['persons']]
+        )
 
         return {
             act: np.bincount(  # Counts the number of persons starting i times
-                    np.bincount(  # Counts how many time each person start act
-                        transitions_dict['persons'][
+                    np.bincount(  # Counts how many time each household start act
+                        transitions_dict['hh_day'][
                             transitions_dict['new_states'] == act
                         ]
                     )

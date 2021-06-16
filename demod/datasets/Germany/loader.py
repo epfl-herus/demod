@@ -108,6 +108,9 @@ class GermanDataHerus(
     def load_activity_probabilities(self, subgroup: Subgroup):
         return self.activity_data.load_activity_probabilities(subgroup)
 
+    def load_daily_activity_starts(self, subgroup: Subgroup):
+        return self.activity_data.load_daily_activity_starts(subgroup)
+
     def load_appliance_ownership_dict(self, subgroup: Subgroup) -> np.ndarray:
         return self.destatis.load_appliance_ownership_dict(subgroup)
 
