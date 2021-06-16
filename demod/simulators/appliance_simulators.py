@@ -19,10 +19,14 @@ import itertools
 
 from .base_simulators import Callbacks, TimeAwareSimulator, cached_getter
 from ..utils.subgroup_handling import add_time
-from ..utils.error_messages import ALGO_REQUIRES_LOADING_METHOD, UNIMPLEMENTED_ALGO_IN_METHOD, USE_OTHER_ALGOS_FOR_ALGONAME
+from ..utils.error_messages import (
+    ALGO_REQUIRES_LOADING_METHOD,
+    UNIMPLEMENTED_ALGO_IN_METHOD,
+    USE_OTHER_ALGOS_FOR_ALGONAME
+)
 from ..utils.data_types import DataInput
 from ..utils.sim_types import ActivitiesDict, AppliancesDict, Subgroups
-from ..utils.appliances import get_ownership_from_dict
+from ..utils.appliances import get_ownership_from_dict, get_target_from_dict
 from ..utils import appliances
 from ..datasets.base_loader import DatasetLoader
 from ..datasets.Germany.loader import GermanDataHerus
@@ -1446,15 +1450,20 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
 
     def _sample_switch_on_probs(self) -> np.ndarray:
         # Sample the probability of a switch on event is occuring
-        probs = np.empty_like(self.available_appliances, dtype=float)
+        probs = np.zeros_like(self.available_appliances, dtype=float)
 
         # For each subgroup, finds the target of consumption
         for subgroup in self.subgroup_list:
             mask_hh_subgroup = self.hh_types == subgroup
             # The switchon targets for each appliance, TODO: check other targes
-            target_switchons = self.data.load_yearly_target_switchons(subgroup)
+            target_dict = self.data.load_yearly_target_switchons(subgroup)
+            target_switchons = get_target_from_dict(
+                self.appliances,
+                target_dict,
+                default_key='target_switchons'
+            )
             # Total probability of occurance of this activity
-            activity_prob = self.data.load_activity_probability(subgroup)
+            activity_prob = self.data.load_activity_probabilities(subgroup)
             for activity, act_prob in activity_prob.items():
                 # Each appliance will have a target
                 mask_this_act = self.appliances['related_activity'] == activity
@@ -1462,11 +1471,14 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
                 n_possible_steps = (
                     365.25 * 24 * 60 * 60 / self.step_size.total_seconds()
                 ) * sum(act_prob)  # Only steps of this activity
-                #
+                # Assign the probabilities at the rigth places
                 probs[
-                    mask_hh_subgroup[:, np.newaxis],
-                    mask_this_act[np.newaxis, :]
-                ] = target_switchons[mask_this_act] / n_possible_steps
+                    mask_hh_subgroup[:, np.newaxis]
+                    & mask_this_act[np.newaxis, :]
+                ] = np.broadcast_to(  # Same target for all hh of this subgroup
+                    target_switchons[mask_this_act] / n_possible_steps,
+                    (sum(mask_hh_subgroup), sum(mask_this_act))
+                ).reshape(-1)
 
         # TODO: add special probs for one time probs
         return probs
