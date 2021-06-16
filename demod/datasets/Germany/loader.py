@@ -105,6 +105,9 @@ class GermanDataHerus(
     def load_sparse_tpm(self, subgroup: Subgroup):
         return self.activity_data.load_sparse_tpm(subgroup)
 
+    def load_activity_probabilities(self, subgroup: Subgroup):
+        return self.activity_data.load_activity_probabilities(subgroup)
+
     def load_appliance_ownership_dict(self, subgroup: Subgroup) -> np.ndarray:
         return self.destatis.load_appliance_ownership_dict(subgroup)
 
@@ -180,6 +183,11 @@ class GermanDataHerus(
 
     def _parse_heating_system_dict(self, subgroup: Subgroup):
         return InputFileLoader.load_heating_system_dict(self, subgroup)
+
+    def _parse_yearly_target_switchons(
+        self, subgroup: Subgroup
+    ) -> Dict[str, float]:
+        return InputFileLoader.load_yearly_target_switchons(self, subgroup)
 
     def _parse_thermostat_dict(self, subgroup: Subgroup):
         """Parse data from CREST."""

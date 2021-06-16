@@ -529,7 +529,7 @@ class ApplianceLoader(DatasetLoader):
                 probabilities.
 
         Return:
-            pdf of ownership for each appliance
+            probability of ownership for each appliance
         """
         subgroup_str = subgroup_string(remove_time_attributues(subgroup))
 
@@ -559,6 +559,61 @@ class ApplianceLoader(DatasetLoader):
 
         raise NotImplementedError(
             "'_parse_appliance_ownership' requires overriding in "
+            "{}.".format(type(self).__name__)
+        )
+
+    def load_yearly_target_switchons(
+        self,
+        subgroup: Subgroup = {},
+    ) -> Dict[str, float]:
+        """Return the target of switchons in a year of each appliances.
+
+        A subgroup can be specified for datasets that differentiate
+        different subgroups.
+
+        :py:func:`~demod.utils.appliances.get_target_switchons_from_dict`
+        can then be used to sample the target number of yearly switchons
+        using an appliance dictionary.
+
+        Args:
+            subgroup: The subgroup of the desired targets number of
+                switchons.
+
+        Return:
+            Number of target switchons for each appliance type.
+        """
+        subgroup_str = subgroup_string(
+            # Time attributes don't change target of switchons
+            remove_time_attributues(subgroup)
+        )
+
+        # put in a dedicated folder
+        folder_name = "appliance_targets"
+        parsed_path_targets = self.parsed_path + os.sep + folder_name
+        if not os.path.exists(parsed_path_targets):
+            os.mkdir(parsed_path_targets)
+
+        file_name = folder_name + os.sep + "switchons__" + subgroup_str
+        file_path = os.path.join(self.parsed_path, file_name)
+
+        try:
+            with open(file_path, "r") as f:
+                targets_dict = dict(json.load(f))
+        except FileNotFoundError as err:
+            self._warn_could_not_load_parsed(err, file_name)
+            targets_dict = self._parse_yearly_target_switchons(subgroup)
+            with open(file_path, "w+") as f:
+                json.dump(make_jsonable(targets_dict), f, indent=2)
+
+        return targets_dict
+
+    def _parse_yearly_target_switchons(
+        self,
+        subgroup: Subgroup = None,
+    ) -> Union[np.ndarray, Dict[str, float]]:
+
+        raise NotImplementedError(
+            "'_parse_yearly_target_switchons' requires overriding in "
             "{}.".format(type(self).__name__)
         )
 
