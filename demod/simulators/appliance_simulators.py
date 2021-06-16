@@ -1294,7 +1294,7 @@ class ActivityApplianceSimulator(AppliancesSimulator):
             & self.appliances['use_variable_loads'][np.newaxis, :],
         )
 
-        durations = self.load_duration[mask_reload]
+        durations = self.load_duration[mask_reload] - 1
         # Reload the times left
         self.n_steps_left[mask_reload] += durations
         self.n_steps_till_refresh[mask_reload] += durations
