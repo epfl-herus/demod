@@ -1453,8 +1453,8 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         probs = np.zeros_like(self.available_appliances, dtype=float)
 
         # For each subgroup, finds the target of consumption
-        for subgroup in self.subgroup_list:
-            mask_hh_subgroup = self.hh_types == subgroup
+        for i, subgroup in enumerate(self.subgroup_list):
+            mask_hh_subgroup = self.hh_types == i
             # The switchon targets for each appliance, TODO: check other targes
             target_dict = self.data.load_yearly_target_switchons(subgroup)
             target_switchons = get_target_from_dict(
@@ -1464,13 +1464,14 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
             )
             # Total probability of occurance of this activity
             activity_prob = self.data.load_activity_probabilities(subgroup)
+            act_n_starts_daily = self.data.load_daily_activity_starts(subgroup)
             for activity, act_prob in activity_prob.items():
                 # Each appliance will have a target
                 mask_this_act = self.appliances['related_activity'] == activity
                 # Possible switchon steps in the target period (year)
                 n_possible_steps = (
                     365.25 * 24 * 60 * 60 / self.step_size.total_seconds()
-                ) * sum(act_prob)  # Only steps of this activity
+                ) * np.mean(act_prob)  # Only steps of this activity
                 # Assign the probabilities at the rigth places
                 probs[
                     mask_hh_subgroup[:, np.newaxis]
@@ -1480,39 +1481,53 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
                     (sum(mask_hh_subgroup), sum(mask_this_act))
                 ).reshape(-1)
 
-        # TODO: add special probs for one time probs
+                # special probs for one time probs
+                # After activity stops
+                mask_start_after_act = (
+                    self.appliances['previous_activity'] == activity
+                )
+                # This appliance can start every ocurence of activity
+                n_possible_starts = 365.25 * np.dot(
+                    # daily start is a pdf of starts, so we look for average
+                    act_n_starts_daily[activity],
+                    np.arange(len(act_n_starts_daily[activity]))
+                ) * subgroup['n_residents']  # Each resident can start app
+                probs[
+                    mask_hh_subgroup[:, np.newaxis]
+                    & mask_start_after_act[np.newaxis, :]
+                ] = np.broadcast_to(  # Same target for all hh of this subgroup
+                    target_switchons[mask_start_after_act] / n_possible_starts,
+                    (sum(mask_hh_subgroup), sum(mask_start_after_act))
+                ).reshape(-1)
+
+            # After appliance is used
+            previous_types = self.appliances['previous_appliance_type']
+
+            # All the app types that append before
+            for app_type_before in np.unique(previous_types[
+                np.isin(previous_types, self.appliances['type'])
+            ]):
+                # Get all ends of this type of appliance
+                n_possible_starts = sum(target_switchons[
+                    self.appliances['type'] == app_type_before
+                ])
+                mask_start_after_type = previous_types == app_type_before
+                probs[
+                    mask_hh_subgroup[:, np.newaxis]
+                    & mask_start_after_type[np.newaxis, :]
+                ] = np.broadcast_to(  # Same target for all hh of this subgroup
+                    target_switchons[mask_start_after_type] / n_possible_starts,
+                    (sum(mask_hh_subgroup), sum(mask_start_after_type))
+                ).reshape(-1)
+
         return probs
 
     def initialize_starting_state(self, initial_activities_dict, **kwargs):
+        # Remember the previous activities
         self.previous_act_dict = initial_activities_dict.copy()
-
-        # Initialize the number of times left that the appliances should be used
-        start_weekday = self.current_time.weekday()
-        self.occured_cycles = np.zeros_like(
-            self.available_appliances, dtype=int
-        )
-        for days_passed in range(start_weekday):
-            # Simulates as if the days where already passed
-            start_mask = self._sample_if_occuring_today(7 - days_passed)
-            self.occured_cycles += start_mask
-
-        self.today_cycles = self._sample_if_occuring_today(7 - start_weekday)
 
         super().initialize_starting_state(self, **kwargs)
 
-    def _sample_if_occuring_today(self, days_left: int):
-        # Correction of Bottaccioli formulation, uses the already occuring
-        # number of cycles
-        probs = (self.target_weekly_cycle - self.occured_cycles) / days_left
-        return np.random.uniform(size=self.occured_cycles.shape) < probs
-
-    def on_before_next_day(self) -> None:
-        """Samples the probability that the probabilistic appliance is used."""
-        weekday = self.current_time.weekday()
-        self.today_cycles = self._sample_if_occuring_today(7 - weekday)
-
-
-    @ Callbacks.before_next_day
     def step(self, activities_dict: Dict[str, np.ndarray]) -> None:
         """Step function for the appliances.
 
@@ -1620,7 +1635,6 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
                 ~self.get_current_usage()[indexes_household, indexes_appliance]
                 & ~np.isin(indexes_appliance, self.apps_dictated_start)
             )
-            # TODO find a good solution for that, dont use crest
             * self.switch_on_probs[indexes_household, indexes_appliance]
         )
 
@@ -1634,7 +1648,7 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         """
         return (
             (~self.get_current_usage()[indexes_household, indexes_appliance])
-            * self.today_cycles[indexes_household, indexes_appliance]
+            * self.switch_on_probs[indexes_household, indexes_appliance]
         )
 
     def switch_off(self, indexes_household, indexes_appliance):
