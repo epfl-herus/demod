@@ -30,7 +30,7 @@ def optional_ax(function):
         function(*args, ax=ax, **kwargs)
 
         if need_plot:
-            return plt.plot()
+            return plt.show()
 
     plot_function.__doc__ = function.__doc__
 
@@ -115,7 +115,7 @@ def plot_household_activities(
             Circle((0,0), color=colors[i], label='{}'.format(i))
             for i in range(1, max_number+1)
         ])
-    plt.show()
+
 
 @ optional_ax
 def plot_appliance_consumptions(
@@ -200,3 +200,36 @@ def plot_stack_states(
 
     if need_return:
         return fig, ax
+
+
+@ optional_ax
+def plot_stacked_activities(
+    dict_states: Dict[str, np.ndarray],
+    time_axis: np.ndarray = None,
+    ax: plt.Axes = None,
+    **kwargs
+) -> None:
+    """Plot the stacked household states during time.
+
+    Attributes:
+        dict_states: A dictionary where keys are the names of the activities
+            or states and the values are ndarray of size = n_steps and
+            values are the number of residents in this states/activity
+        time_axis: The datetime axis to plot
+        ax: an ax on which to plot the activities
+        kwargs: any other keywork argument from `ax.stackplot
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.stackplot.html#matplotlib.pyplot.stackplot>`_
+
+    """
+    # Creates a time axis
+    if time_axis is None:
+        # Creates an ax of the length of states
+        time_axis = np.arange(len(dict_states[list(dict_states.keys())[0]]))
+
+    ax.stackplot(
+        time_axis,
+        dict_states.values(),
+        labels=dict_states.keys(),
+        **kwargs
+    )
+    ax.legend()
