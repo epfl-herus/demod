@@ -160,7 +160,9 @@ def plot_appliance_consumptions(
     ax.stackplot(
         time_axis, *consumptions_to_plot, labels=attributes_list, step='post'
     )
-    ax.legend()
+    # Reverse the legend, in the same way as they are stacked
+    handles, lab = ax.get_legend_handles_labels()
+    ax.legend(handles[::-1], lab[::-1])
 
 
 def plot_stack_states(
@@ -207,6 +209,7 @@ def plot_stacked_activities(
     dict_states: Dict[str, np.ndarray],
     time_axis: np.ndarray = None,
     ax: plt.Axes = None,
+    step: str = 'post',
     **kwargs
 ) -> None:
     """Plot the stacked household states during time.
@@ -230,6 +233,10 @@ def plot_stacked_activities(
         time_axis,
         dict_states.values(),
         labels=dict_states.keys(),
+        step='post',
         **kwargs
     )
-    ax.legend()
+    # Reverse the legend, in the same way as they are stacked
+    handles, lab = ax.get_legend_handles_labels()
+    ax.legend(handles[::-1], lab[::-1])
+
