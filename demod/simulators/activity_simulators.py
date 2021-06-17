@@ -306,12 +306,12 @@ class SemiMarkovSimulator(MarkovChain1rstOrder):
 
 
     Attributes:
-        n_subjects : int
+        n_subjects:
             The number of subjects to be simulated.
-        n_states : int
+        n_states:
             The number of states availables.
-        current_states : ndarray(int)
-            The current states
+        current_states:
+            The current states, array of integers.
     """
 
     _use_previous_state_for_duration_flag: bool
@@ -378,6 +378,8 @@ class SemiMarkovSimulator(MarkovChain1rstOrder):
                 An array containing the pdf of the times left
                 at the start for each states.
                 Shape = (n_states, n_times)
+            start_time_step:
+                The number of step to perform during intialization.
             checkcdf:
                 optional. Will check if the pdfs
                 have correct values using
@@ -517,7 +519,7 @@ class SubgroupsIndividualsActivitySimulator(
     :py:meth:`~demod.utils.cards_doc.Sim.get_occupancy`
     :py:meth:`~demod.utils.cards_doc.Sim.get_active_occupancy`
     :py:meth:`~demod.utils.cards_doc.Sim.get_thermal_gains`
-
+    or to have 'away' and 'sleeping' activites in the dataset.
 
     Params
         :py:attr:`~demod.utils.cards_doc.Params.subgroups_list`
@@ -533,11 +535,15 @@ class SubgroupsIndividualsActivitySimulator(
     Data
         :py:attr:`~demod.utils.cards_doc.Loader.refresh_time`
         :py:meth:`~demod.datasets.tou_loader.LoaderTOU.load_tpm`
-        or :py:meth:`~demod.datasets.tou_loader.LoaderTOU.tpm_with_duration`
+        or
+        :py:meth:`~demod.datasets.tou_loader.LoaderTOU.load_tpm_with_duration`
     Step input
         None.
     Output
         :py:meth:`~demod.utils.cards_doc.Sim.get_n_doing_activity`
+        :py:meth:`~demod.utils.cards_doc.Sim.get_activity_states`
+        :py:meth:`~demod.utils.cards_doc.Sim.get_occupancy`
+        :py:meth:`~demod.utils.cards_doc.Sim.get_active_occupancy`
     Step size
         10 Minutes.
     """
@@ -847,7 +853,7 @@ class SubgroupsIndividualsActivitySimulator(
         states_in_hh[u] = c
         return states_in_hh
 
-    def get_performing_activity(self, activity_name: str) -> np.array:
+    def get_performing_activity(self, activity_name: str) -> np.ndarray:
         return self.get_n_doing_activity(activity_name)
 
     @ Callbacks.after_refresh_time
