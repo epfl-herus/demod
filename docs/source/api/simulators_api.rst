@@ -93,6 +93,13 @@ appliances.
 
 .. autoclass:: OccupancyApplianceSimulator
 
+.. autoclass:: SubgroupApplianceSimulator
+
+.. autoclass:: ActivityApplianceSimulator
+
+.. autoclass:: ProbabiliticActivityAppliancesSimulator
+
+
 
 
 Heating  simulators
