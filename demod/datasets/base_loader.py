@@ -90,6 +90,12 @@ class DatasetLoader:
         self.raw_path = os.path.join(self.DATASET_PATH, "raw_data")
         self.parsed_path = os.path.join(self.DATASET_PATH, "parsed_data")
 
+        # Creates the directories if they do not exist
+        if not os.path.exists(self.parsed_path):
+            os.mkdir(self.parsed_path)
+        if not os.path.exists(self.raw_path):
+            os.mkdir(self.raw_path)
+
         if version is not None:
             self.parsed_path = os.path.join(self.parsed_path, version)
         self.version = version
