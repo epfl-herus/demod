@@ -288,6 +288,12 @@ class Inputs:
             :Unit: people, :py:obj:`int`
             :Related Getter: :py:meth:`~.Sim.get_active_occupancy`
 
+        activities_dict: The dictionary containing the activities of the
+            residents.
+
+            :Unit: people, :py:obj:`int`
+            :Related Getter: :py:meth:`~.Sim.get_activities`
+
         thermal_gains: The heat produced by the subjects of the
             simulator.
 
@@ -508,8 +514,10 @@ class Params:
 
                     * 1 = One person household
                     * 2 = Couple without kid
-                    * 3 = Single Parent with at least one kid under 18 and the other under 27
-                    * 4 = Couple with at least one kid under 18 and the other under 27
+                    * 3 = Single Parent with at least one kid under 18
+                      and the other under 27
+                    * 4 = Couple with at least one kid under 18
+                      and the other under 27
                     * 5 = Others
 
                 * subgroup['life_situation']
@@ -517,10 +525,14 @@ class Params:
                     From :py:class:`~demod.datasets.GermanTOU.loader.GTOU`
 
                     * 1 = Self-employed, freelancer, farmer, family worker
-                    * 2 = Employee, worker, civil servant, judge, temporary / professional soldier, voluntary social / ecological / cultural year, voluntary military service, federal voluntary service
+                    * 2 = Employee, worker, civil servant, judge,
+                      temporary / professional soldier, voluntary social /
+                      ecological / cultural year, voluntary military service,
+                      federal voluntary service
                     * 3 = Trainee (also intern, volunteer)
                     * 4 = Partial Work Time (work or retirement)
-                    * 5 = On parental leave (with an employment contract that has not been terminated)
+                    * 5 = On parental leave (with an employment contract
+                      that has not been terminated)
                     * 6 = Student, Pupil
                     * 7 = Unemployed
                     * 8 = Retired or early retirement
@@ -843,6 +855,9 @@ class Params:
 
 
         initial_active_occupancy: The active occupancy at the start of
+            the simulation. Used for the initialization of a simulator.
+
+        initial_activities_dict: The activities at the start of
             the simulation. Used for the initialization of a simulator.
 
         initial_clearness: The clearness at the start of the simulation.

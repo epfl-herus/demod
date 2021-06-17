@@ -402,6 +402,7 @@ class PopulationLoader(DatasetLoader):
             "{}.".format(type(self).__name__)
         )
 
+
 class ApplianceLoader(DatasetLoader):
     """Loader that provide methods for loading appliances data.
 

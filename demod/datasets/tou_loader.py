@@ -46,8 +46,7 @@ class LoaderTOU(DatasetLoader):
     def load_tpm(
         self, subgroup: Subgroup
     ) -> Tuple[TPMs, StateLabels, PDF]:
-        """Loads a transition probability matrix for the requested
-        subgroup.
+        """Load a transition probability matrix for the requested subgroup.
 
         Args:
             subgroup: The desired subgroup
@@ -177,11 +176,10 @@ class LoaderTOU(DatasetLoader):
         """
         raise NotImplementedError()
 
-
     def load_sparse_tpm(self, subgroup: Subgroup) -> Tuple[
             SparseTPM, StateLabels,
             ActivityLabels, np.ndarray]:
-        """Loads a sparse transition probability matrix
+        """Load a sparse transition probability matrix.
 
         This can be used as data input by any
         :py:class:`SparseStatesSimulator`.
@@ -233,6 +231,7 @@ class LoaderTOU(DatasetLoader):
             SparseTPM, StateLabels,
             ActivityLabels, np.ndarray, dict]:
         """Abstract parsing method.
+
         You need to implement here the logic for parsing from raw data.
 
         Args:
@@ -320,12 +319,15 @@ class LoaderTOU(DatasetLoader):
 
         Arrays can be of variable length.
 
-        ex:
-        {
-            'activity1': [0.3, 0.2, 0.5, 0.0],
-            'activity2': [0.3, 0.2, 0.0, 0.3, 0.2],
-            ...
-        }
+        .. code-block::
+
+            # For example
+            {
+                'activity1': [0.3, 0.2, 0.5, 0.0],
+                'activity2': [0.3, 0.2, 0.0, 0.3, 0.2],
+                ...
+            }
+
         """
         # Handles the storage of the data
         self._check_make_parsed_act_stats()
@@ -365,12 +367,16 @@ class LoaderTOU(DatasetLoader):
         The i-eth element means the duration is i*step_size.
 
         Element 0 means the the duration is smaller than step_size.
-        ex:
-        {
-            'activity1': [0.0, 0.3, 0.2, 0.5, 0.0],
-            'activity2': [0.0, 0.3, 0.2, 0.0, 0.3, 0.2],
-            ...
-        }
+
+        .. code-block::
+
+            # For example
+            {
+                'activity1': [0.0, 0.3, 0.2, 0.5, 0.0],
+                'activity2': [0.0, 0.3, 0.2, 0.0, 0.3, 0.2],
+                ...
+            }
+
         """
         # Handles the storage of the data
         self._check_make_parsed_act_stats()
@@ -381,7 +387,6 @@ class LoaderTOU(DatasetLoader):
         file_path = os.path.join(
             self.parsed_path_activity_stats,
             'act_duration_' + subgroup_str)
-
 
         try:
             act_durations = dict(np.load(file_path + '.npz'))
@@ -404,9 +409,10 @@ class LoaderTOU(DatasetLoader):
     ) -> Dict[str, np.ndarray]:
         """Return the probability that the activity is performed.
 
-        Proabilites are given at each step, during the day.
-        At each step the probability means the probability of doing
-        that activity instead of another.
+        Proabilites are given at each step, during the day, for each
+        activity.
+        The probability means the probability of doing
+        that activity at that time compared to another.
         """
         self._check_make_parsed_act_stats()
         subgroup_str = subgroup_string(subgroup)

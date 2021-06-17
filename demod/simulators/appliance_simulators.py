@@ -252,7 +252,9 @@ class AppliancesSimulator(TimeAwareSimulator):
         )
         return rand < available_probs
 
-    def _parse_subgroups(self, n_households, subgroups_list, n_households_list):
+    def _parse_subgroups(
+        self, n_households, subgroups_list, n_households_list
+    ):
         """Parse the n housheolds and subgroup inputs."""
         if (subgroups_list is None) and (n_households_list is None):
             # Only use n_households for the simulation
@@ -426,8 +428,7 @@ class AppliancesSimulator(TimeAwareSimulator):
             ).format(not_found_types, self.data))
 
     def _sample_always_on_load_profiles(self):
-        """The load profiles are always on."""
-
+        """Sample load profiles that are always on."""
         # Loads from the dataset
         try:
             real_loads_app_dict = self.data.load_real_profiles_dict('full')
@@ -848,7 +849,6 @@ class OccupancyApplianceSimulator(AppliancesSimulator):
 
         self._create_activities_labels()
 
-
         self.initialize_starting_state(
             initial_active_occupancy, **kwargs
         )
@@ -862,10 +862,12 @@ class OccupancyApplianceSimulator(AppliancesSimulator):
         run steps to reach that time.
         """
         kwargs.pop("initialization_time", None)
-        # initialization time, appliances can only start at the specified starting times
+        # initialization time,
+        # appliances can only start at the specified starting times
         initialization_time = self.data.refresh_time
 
-        # step input to use during initialization, send ones if no initial value given
+        # step input to use during initialization,
+        # use ones if no initial value given
         if initial_active_occupancy is None:
             initial_active_occupancy = np.ones(self.n_households)
 
@@ -880,7 +882,6 @@ class OccupancyApplianceSimulator(AppliancesSimulator):
 
     def _initialize_real_loads(self):
         """Init the appliances that use real loads."""
-
         mask_real_loads_on = (
             (self.load_duration > 0)
             # Removed the ALWAYS_ON appliance as crest uses
@@ -1090,7 +1091,8 @@ class OccupancyApplianceSimulator(AppliancesSimulator):
         """
         # sum the hot water demand from all the fixtures
         demands = self.get_current_water_consumptions().sum(axis=1)
-        # Then calculate variable thermal resistance representing hot water demand
+        # Then calculate variable thermal resistance
+        #  representing hot water demand
         # conversion from litres to m^3 and from per minute to per second
         dblV_w = demands / 1000.0 / 60.0  # m^3/sec
 
@@ -1184,6 +1186,7 @@ class SubgroupApplianceSimulator(OccupancyApplianceSimulator):
     """
 
     def __init__(self, *args, **kwargs):
+        """Warns that this is deprecated."""
         warnings.warn(
             "SubgroupApplianceSimulator is deprecated."
             "Use OccupancyApplianceSimulator instead.",
@@ -1407,10 +1410,12 @@ class ActivityApplianceSimulator(AppliancesSimulator):
         self._is_used[indexes_household, indexes_appliance] = True
 
     def switch_off(self, indexes_household, indexes_appliance):
+        """Switch off by setting used to False."""
         # Don't know for how long they will stay on
         self._is_used[indexes_household, indexes_appliance] = False
 
     def get_current_usage(self):
+        """Get a mask of the used appliances."""
         # Usage is determined only by activity
         return self._is_used & self.available_appliances
 
@@ -1429,10 +1434,6 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
     The simulator needs some data input from the appliance usage to
     compute the probability of switching on when the activity occurs.
 
-    Attributes:
-        occured_cycles: An array storing how many cycles already occurred
-            this week
-
     .. note::
         This methods allows only for a single use per day of the probabilistic
         appliances.
@@ -1447,13 +1448,13 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
     Data
         :py:meth:`~demod.datasets.base_loader.ApplianceLoader.load_appliance_dict`
         :py:meth:`~demod.datasets.base_loader.ApplianceLoader.load_yearly_target_switchons`
-        :py:meth:`~demod.datasets.base_loader.ApplianceLoader.load_activity_probabilities`
-        :py:meth:`~demod.datasets.base_loader.ApplianceLoader.load_daily_activity_starts`
+        :py:meth:`~demod.datasets.tou_loader.LoaderTOU.load_activity_probabilities`
+        :py:meth:`~demod.datasets.tou_loader.LoaderTOU.load_daily_activity_starts`
     Data optional
         :py:meth:`~demod.datasets.base_loader.ApplianceLoader.load_appliance_ownership_dict`
         :py:meth:`~demod.datasets.base_loader.ApplianceLoader.load_real_profiles_dict`
     Step input
-        :py:attr:`~demod.utils.cards_doc.Inputs.active_occupancy`
+        :py:attr:`~demod.utils.cards_doc.Inputs.activities_dict`
     Output
         :py:meth:`~demod.utils.cards_doc.Sim.get_power_demand`
         :py:meth:`~.AppliancesSimulator.get_current_usage`
@@ -1464,8 +1465,6 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
     Step size
         From the dataset.
     """
-
-    occured_cycles: np.ndarray
 
     def __init__(
         self, n_households: int,
@@ -1617,17 +1616,26 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
                     self.appliances['type'] == app_type_before
                 ])
                 mask_start_after_type = previous_types == app_type_before
+                start_probs = (
+                    target_switchons[mask_start_after_type]
+                    / n_possible_starts
+                )
                 probs[
                     mask_hh_subgroup[:, np.newaxis]
                     & mask_start_after_type[np.newaxis, :]
                 ] = np.broadcast_to(  # Same target for all hh of this subgroup
-                    target_switchons[mask_start_after_type] / n_possible_starts,
+                    start_probs,
                     (sum(mask_hh_subgroup), sum(mask_start_after_type))
                 ).reshape(-1)
 
         return probs
 
     def initialize_starting_state(self, initial_activities_dict, **kwargs):
+        """Initialize the starting state of the appliances.
+
+        At the moment they will all be OFF.
+        TODO: implement a good initialization.
+        """
         # Remember the previous activities
         self.previous_act_dict = initial_activities_dict.copy()
 
@@ -1642,9 +1650,10 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         3. switch-off appliances that must stop.
         4. samples switch on events of activity related appliances
         5. samples switch on events of after-activity related appliances
-            ex. dishwasher
-        6. samples switch on events of after-specific appliance related appliances
-            ex. dryer
+           ex. dishwasher
+        6. samples switch on events of after-specific appliance
+           related appliances
+           ex. dryer
 
         Args:
             activities_dict: A dictionary containing the different activities
@@ -1719,7 +1728,8 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         super().step()
 
     def update_iteration_variables(self):
-        # Don't update, as already taken care of in step method for
+        """Update the iteration variables of the sim."""
+        # Don't update, as already taken care of in step method of
         # this simulator
         pass
 
@@ -1733,8 +1743,6 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         already simulated by the activity simulator so we don't need
         to do anything there.
         """
-
-
         return (
             (
                 ~self.get_current_usage()[indexes_household, indexes_appliance]
@@ -1757,6 +1765,7 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         )
 
     def switch_off(self, indexes_household, indexes_appliance):
+        """Switch off the appliances by setting time left to 0."""
         # Don't know for how long they will stay on
         self.n_steps_left[indexes_household, indexes_appliance] = 0
         self.n_steps_till_refresh[indexes_household, indexes_appliance] = (
@@ -1767,7 +1776,6 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         self, mask_hh_act_stops, activity
     ):
         """When the activity stops."""
-
         ind_hh, ind_app = np.where(
             mask_hh_act_stops[:, np.newaxis]
             & (self.appliances['previous_activity'] == activity)[np.newaxis, :]
@@ -1784,7 +1792,6 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         return (
             ind_hh[mask_switch_on], ind_app[mask_switch_on]
         )
-
 
     def _get_start_after_appliance(
         self, indexes_household, indexes_appliance_stopped
