@@ -798,11 +798,15 @@ class Params:
             * 'electronics'
                 General purpose for using electronics. (Computer, consoles)
 
-
         equipped_sampling_algo: A string representing the algorithm to
             use for sampling the appliances of a house.
             Possible values detailed in
             :py:meth:`~demod.simulators.appliance_simulators.AppliancesSimulator.sample_available_appliances`
+
+        real_profiles_algo: A string representing the algorithm to
+            use for sampling the real load profiles of appliances.
+            Possible values detailed in
+            :py:meth:`~demod.simulators.appliance_simulators.AppliancesSimulator.sample_real_load_profiles`
 
         bulbs_sampling_algo: The algorithm to sample the lighting bulbs
                 installed in each house. See
