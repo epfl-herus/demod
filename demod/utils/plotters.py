@@ -12,14 +12,13 @@ FIGSIZE = (16, 9)
 MAIN_ACTIVITIES = ['active_occupancy', 'away', 'sleeping']
 
 
-
 def optional_ax(function):
     """Check or give an ax was given to the function.
 
     If an ax is given, plot on the ax.
     If no ax is given, create one and show the plot.
     """
-    def plot_function(*args, ax: plt.Axes=None, **kwargs):
+    def plot_function(*args, ax: plt.Axes = None, **kwargs):
         if ax is None:
             fig = plt.figure(figsize=FIGSIZE)
             ax = fig.add_subplot(1, 1, 1)
@@ -36,11 +35,12 @@ def optional_ax(function):
 
     return plot_function
 
+
 @ optional_ax
 def plot_household_activities(
     dict_states: Dict[str, np.ndarray],
     time_axis: np.ndarray = None,
-    colors = np.array(['#d7191c','#fdae61','#ffffbf','#abdda4','#2b83ba']),
+    colors=np.array(['#d7191c', '#fdae61', '#ffffbf', '#abdda4', '#2b83ba']),
     main_states_on_top: bool = True,
     marker='>',
     ax: plt.Axes = None,
@@ -77,7 +77,7 @@ def plot_household_activities(
         ax.scatter(
             time_axis[mask_activity_occuring],
             i * np.ones(sum(mask_activity_occuring)),
-            c = (
+            c=(
                 # In case no color was given, this will use a colormap
                 array[mask_activity_occuring]
                 if colors is None
@@ -86,7 +86,6 @@ def plot_household_activities(
             marker=marker, **kwargs
             )
 
-
     labels = []
     labels_main = []
     # Start with secondary activities
@@ -94,7 +93,7 @@ def plot_household_activities(
     for keys, array in dict_states.items():
         if main_states_on_top and keys in MAIN_ACTIVITIES:
             labels_main.append(keys)
-            continue # plot later
+            continue  # plot later
         scatter(array, i)
         labels.append(keys)
         # Records the max number of residents
@@ -112,7 +111,7 @@ def plot_household_activities(
     # Adds the legend
     if colors is not None:
         ax.legend(handles=[
-            Circle((0,0), color=colors[i], label='{}'.format(i))
+            Circle((0, 0), color=colors[i], label='{}'.format(i))
             for i in range(1, max_number+1)
         ])
 
@@ -239,4 +238,3 @@ def plot_stacked_activities(
     # Reverse the legend, in the same way as they are stacked
     handles, lab = ax.get_legend_handles_labels()
     ax.legend(handles[::-1], lab[::-1])
-
