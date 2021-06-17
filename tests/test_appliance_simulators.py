@@ -185,10 +185,10 @@ class TestActivityApplianceSimulator(TimeAwareSimulatorChildrenTests, unittest.T
         self.kwargs.pop('real_profiles_algo')
 
     def test_init_with_subgroups(self):
-        self.kwargs['subgroup_list'] = [{'n_residents': 2}]
+        self.kwargs['subgroups_list'] = [{'n_residents': 2}]
         self.kwargs['n_households_list'] = [1]
         self.run_base_tests()
-        self.kwargs.pop('subgroup_list')
+        self.kwargs.pop('subgroups_list')
         self.kwargs.pop('n_households_list')
 
 
@@ -220,10 +220,10 @@ class TestProbabiliticActivityAppliancesSimulator(
         self.kwargs.pop('real_profiles_algo')
 
     def test_init_with_subgroups(self):
-        self.kwargs['subgroup_list'] = [{'n_residents': 2}]
+        self.kwargs['subgroups_list'] = [{'n_residents': 2}]
         self.kwargs['n_households_list'] = [1]
         self.run_base_tests()
-        self.kwargs.pop('subgroup_list')
+        self.kwargs.pop('subgroups_list')
         self.kwargs.pop('n_households_list')
 
     def test_initialization_time(self):

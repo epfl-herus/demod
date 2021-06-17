@@ -43,7 +43,7 @@ sim = SubgroupsIndividualsActivitySimulator(
 )
 # Simulates appliances using the CREST method
 sim_CREST = OccupancyApplianceSimulator(
-    subgroup_list=hh_subgroups,
+    subgroups_list=hh_subgroups,
     n_households_list=n_hh_list,
     data=data,
     logger=SimLogger('current_time', 'get_current_power_consumptions', aggregated=False)
@@ -53,7 +53,7 @@ sim_app = ActivityApplianceSimulator(
     n_households, initial_activities_dict=sim.get_activity_states(),
     data=data,
     equipped_sampling_algo="subgroup",
-    subgroup_list=hh_subgroups,
+    subgroups_list=hh_subgroups,
     n_households_list=n_hh_list,
     logger=SimLogger('current_time', 'get_current_power_consumptions', aggregated=False)
 )
@@ -62,7 +62,7 @@ sim_prob_app = ProbabiliticActivityAppliancesSimulator(
     n_households, initial_activities_dict=sim.get_activity_states(),
     data=data,
     equipped_sampling_algo="subgroup",
-    subgroup_list=hh_subgroups,
+    subgroups_list=hh_subgroups,
     n_households_list=n_hh_list,
     logger=SimLogger('current_time', 'get_current_power_consumptions', aggregated=False)
 )
