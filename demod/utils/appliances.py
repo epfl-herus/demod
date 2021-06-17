@@ -165,8 +165,9 @@ def assign_ownership_from_prob1_and_number(
     r"""Assign the probability of owning multiple sample of appliances.
 
     You can choose different assignement algorithms.
+    (Only one is currently implemented)
 
-    'floor':
+    :'floor':
         :math:`p_0 = prob_1`, :math:`n = number`
         and :math:`\sum_{i}^{} p_i = n`.
         which produces results like::
@@ -209,6 +210,7 @@ def assign_ownership_from_prob1_and_number(
     else:
         raise ValueError('Unkown value for agrument "algo" : {}.'.format(algo))
 
+
 def get_target_from_dict(
     appliances_dict: AppliancesDict,
     target_dict: Dict[str, float],
@@ -243,6 +245,8 @@ def get_target_from_dict(
         target_dict: Mapping
             :py:attr:`~demod.utils.cards_doc.Params.appliance_type`
             to a number.
+        default_key: The key that is used for the target value in
+            the appliances_dict.
 
     Returns:
         np.array: The target of each appliances.

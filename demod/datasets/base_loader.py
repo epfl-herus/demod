@@ -572,7 +572,7 @@ class ApplianceLoader(DatasetLoader):
         A subgroup can be specified for datasets that differentiate
         different subgroups.
 
-        :py:func:`~demod.utils.appliances.get_target_switchons_from_dict`
+        :py:func:`~demod.utils.appliances.get_target_from_dict`
         can then be used to sample the target number of yearly switchons
         using an appliance dictionary.
 
