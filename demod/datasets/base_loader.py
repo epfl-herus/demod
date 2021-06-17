@@ -447,7 +447,7 @@ class ApplianceLoader(DatasetLoader):
     def load_real_profiles_dict(
         self, profiles_type: str = 'full'
     ) -> Dict[str, Dict[str, np.ndarray]]:
-        """Load the a dictionary containing real load profiles.
+        """Load a dictionary containing real load profiles.
 
         Try to call self. :py:meth:`_parse_real_profiles_dict` if the
         parsed data is not available.
