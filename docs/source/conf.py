@@ -42,6 +42,8 @@ extensions = [
     "sphinx_rtd_theme",     # REad the docs theme https://github.com/readthedocs/sphinx_rtd_theme
     'sphinx.ext.imgmath',   # support for writing maths. use:  :math:`a^2`, requires latex install on computer
     'sphinx_copybutton',    # Makes availability to copy code cells from icon
+    # 'sphinx_paramlinks',    # Can make reference to function parameters with :paramref:,
+    # removed as buggy with typing at the moment : https://github.com/sqlalchemyorg/sphinx-paramlinks/issues/10
 ]
 
 # By default, Sphinx expects the master doc to be contents. Read the Docs will set master doc to index instead
