@@ -28,7 +28,7 @@ copyright = '2020-{}, HERUS-EPFL'.format(year)
 author = 'Barsanti Matteo, Constantin Lionel, HERUS-EPFL'
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.1'
+release = 'beta'
 
 
 # -- General configuration ---------------------------------------------------
