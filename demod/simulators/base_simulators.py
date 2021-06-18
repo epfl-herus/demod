@@ -164,9 +164,11 @@ class SimLogger():
                 # for dictionary attributes, convert each value of the
                 # dict
                 return {
-                    key: np.asarray(val) for key, val in out.items()
+                    # Remove last point to compensate intialization record
+                    key: np.asarray(val)[:-1] for key, val in out.items()
                 }
-            return np.asarray(out)
+            # Remove last point to compensate intialization record
+            return np.asarray(out)[:-1]
         else:
             self._raise_unkown_attribute(attribute)
 
