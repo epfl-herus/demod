@@ -623,7 +623,7 @@ class SubgroupsActivitySimulator(MultiSimulator):
     def __init__(
         self,
         subgroups_list: Subgroups,
-        subgroup_numbers: List[int],
+        n_households_list: List[int],
         subsimulator: Simulator = SparseTransitStatesSimulator,
         logger: SimLogger = None,
         **kwargs
@@ -643,7 +643,7 @@ class SubgroupsActivitySimulator(MultiSimulator):
 
         Args:
             subgroups_list: List of the subgroups dict.
-            subgroup_numbers: The number of housholds in each subgroups.
+            n_households_list: The number of housholds in each subgroups.
             subsimulator: The simulator class to use for simulating the subgroups. Defaults to SparseActivitySimulator.
             logger: A logger object to log the results. Defaults to None.
 
@@ -659,7 +659,7 @@ class SubgroupsActivitySimulator(MultiSimulator):
             )
         simulators_list = [
             subsimulator(n_hh, subgroup_kwargs, **kwargs)
-            for subgroup_kwargs, n_hh in zip(subgroups_list, subgroup_numbers)
+            for subgroup_kwargs, n_hh in zip(subgroups_list, n_households_list)
             if n_hh > 0
         ]
 
@@ -682,4 +682,3 @@ class SubgroupsActivitySimulator(MultiSimulator):
 
     def get_n_doing_activity(self, activity):
         return self.get_n_doing_state(activity)
-
