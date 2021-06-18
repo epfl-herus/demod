@@ -2,7 +2,6 @@
 Data loader for the german TOU survey.
 """
 from datetime import time
-from demod.utils.parse_helpers import convert_states, states_to_transitions
 import os
 from typing import Tuple
 import numpy as np
@@ -10,6 +9,7 @@ import numpy as np
 from ..tou_loader import LoaderTOU
 from ..base_loader import PopulationLoader
 from ..DESTATIS.loader import Destatis
+from ...utils.parse_helpers import convert_states, states_to_transitions
 from ...utils.sim_types import *
 from ...utils.monte_carlo import PDFs
 from ...utils.sparse import SparseTPM
@@ -225,6 +225,10 @@ class GTOU(LoaderTOU, PopulationLoader):
         all_activities = np.array(list(activity_dict.values()))
         missing_act = all_activities[~np.isin(all_activities, states_label)]
         states_label = np.concatenate((states_label, missing_act))
+
+        if sum((return_day, return_hh)) == 0:
+            # Case is the only return required
+            return states_label[states]
 
         to_return = []
         to_return.append(states_label[states])
