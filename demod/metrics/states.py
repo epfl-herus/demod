@@ -7,6 +7,7 @@ A States patterns array, is a numpy array containing the states patterns,
 and in demod it is by convention a n_patterns * n_times array.
 """
 
+from demod.utils.sim_types import TPMs
 from typing import Any, Dict, List, Tuple
 import numpy as np
 
@@ -170,3 +171,12 @@ def graph_metrics(
     )
 
     return network_size, network_density, centrality, homophily
+
+
+def sparsity(tpm: TPMs):
+    """Return the proportion of 0 elements in the TPMs.
+
+    = 0. If all the elements are given
+    = 1. If the tpms are only 0
+    """
+    return 1. - (np.sum(tpm > 0) / np.prod(tpm.shape))
