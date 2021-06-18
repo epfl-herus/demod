@@ -24,7 +24,7 @@ from demod.datasets.Germany.loader import GermanDataHerus
 from demod.simulators.activity_simulators import SubgroupsIndividualsActivitySimulator, SemiMarkovSimulator, MarkovChain1rstOrder
 
 # %%
-n_households = 5000
+n_households = 2000
 
 data = GermanDataHerus(version='vBottaccioli')
 
@@ -45,6 +45,7 @@ sim = SubgroupsIndividualsActivitySimulator(
 sim_CREST = OccupancyApplianceSimulator(
     subgroups_list=hh_subgroups,
     n_households_list=n_hh_list,
+    equipped_sampling_algo="subgroup",
     data=data,
     logger=SimLogger('current_time', 'get_current_power_consumptions', aggregated=False)
 )
@@ -94,7 +95,7 @@ from demod.utils.plotters import FIGSIZE, plot_stacked_activities, plot_applianc
 
 
 # Plot the appliances
-fig, axes = plt.subplots(2, 1, sharex=True, figsize=FIGSIZE)
+fig, axes = plt.subplots(2, 1, sharex=True, sharey=True, figsize=FIGSIZE)
 plt.subplots_adjust(hspace=0, wspace=0, top=1, bottom=0)
 
 app_dic = merge_appliance_dict(sim_app.appliances, sim_prob_app.appliances)
@@ -119,17 +120,94 @@ plot_appliance_consumptions(
     ax=axes[1]
 )
 
-# Plots the different activities
 
-# plot_stacked_activities(
-#     {key: arrays for key, arrays in dict_states.items()},
-#     time_axis=time_axis,
-#     ax=axes[2]
-# )
+
+
+plt.show()
+
+# %%
+fig, axes = plt.subplots(1,1)
+
+# Total consumption of appliances
+cons_bot_total = np.sum(np.append(  # Merge power consumption of the two sims
+        power_consumptions,
+        power_consumptions_prob,
+        axis=2
+    ), axis=0).sum(axis=0)
+cons_crest_total = np.sum(power_consumptions_crest, axis=0).sum(axis=0)
+
+x_axis = np.arange(app_dic['number'])
+offset = 0.3
+indices_reordered = np.array([
+    list(app_dic['name']).index(name)
+    for name in sim_CREST.appliances['name']
+])
+plt.bar(x_axis, height=cons_bot_total[indices_reordered], width=offset, label='Activity based')
+plt.bar(x_axis + offset, height=cons_crest_total, width=offset, label='Occupancy based')
+plt.xticks(x_axis + offset, app_dic['name'][indices_reordered], rotation=30)
+plt.legend()
+plt.show()
+# %% plot in percentage
+fig, axes = plt.subplots(1,1)
+
+# Total consumption of appliances grouped by categories
+
+categories_names = {
+    'Desk': [
+        'fixed_computer',
+        'laptop_computer',
+        'printer'
+    ],
+    'TV_audio': [ 'blueray_console',  'tv', 'tv_box', 'gaming_console', 'tablet'],
+    'Cooking': [ 'electric_hob',  'gaz_hob', 'microwave', 'oven', 'toaster'],
+    'Fridge': [ 'fridge'],
+    'Light': [],
+    'Drying': ['dryer'],
+    'CirculationPump': [],
+    'Dishwahsing': ['dishwasher'],
+    'WashingMachine': ['washingmachine', 'washer_dryer'],
+    'Freezer': ['freezer'],
+    'Other': ['fixed_phone',  'iron', 'kettle', 'vacuum_cleaner',],
+}
+
+x_axis = np.arange(len(categories_names))
+# Finds the consumptions based on the types
+cat_consumption_bot = [
+    np.sum(cons_bot_total[np.isin(app_dic['type'], cat_types)])
+    for category, cat_types in categories_names.items()
+]
+cat_consumption_crest = [
+    np.sum(cons_crest_total[np.isin(sim_CREST.appliances['type'], cat_types)])
+    for category, cat_types in categories_names.items()
+]
+offset = 0.3
+indices_reordered = np.array([
+    list(app_dic['name']).index(name)
+    for name in sim_CREST.appliances['name']
+])
+plt.bar(x_axis, height=cat_consumption_bot/sum(cat_consumption_bot), width=offset, label='Activity based')
+plt.bar(x_axis + offset, height=cat_consumption_crest/sum(cat_consumption_crest), width=offset, label='Occupancy based')
+plt.xticks(x_axis + offset, categories_names.keys(), rotation=30)
+plt.legend()
 plt.show()
 
 # %%
 
+# Plots the different activitie
+plot_stacked_activities(
+    {key: arrays for key, arrays in dict_states.items()},
+    time_axis=time_axis,
+)
+
 # TODO
 # Control the activities of the appliances and the ones of the TOU with the ones of Bottaccioli
 # Define what to do for appliance that do not depend on activity
+
+# %%
+
+plt.figure()
+for key, profile in data.load_real_profiles_dict('full')['fridge'].items():
+    plt.plot(profile, label=key)
+plt.legend()
+plt.show()
+# %%

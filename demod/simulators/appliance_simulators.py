@@ -284,7 +284,10 @@ class AppliancesSimulator(TimeAwareSimulator):
         if (subgroups_list is None) and (n_households_list is None):
             # Only use n_households for the simulation
             # no subgroup
+            self.subgroups_list = [{}]
+            self.hh_types = np.zeros(n_households, dtype=int)
             return
+
         if (subgroups_list is None) or (n_households_list is None):
             raise AttributeError(
                 "If you are using subgroups, you need to specify both "
@@ -1262,7 +1265,7 @@ class ActivityApplianceSimulator(AppliancesSimulator):
     def __init__(
         self, n_households: int,
         initial_activities_dict: ActivitiesDict,
-        data=GermanDataHerus(),
+        data=GermanDataHerus('vBottaccioli'),
         subgroups_list: Subgroups = None,
         n_households_list: List[int] = None,
         **kwargs
@@ -1494,7 +1497,7 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
     def __init__(
         self, n_households: int,
         initial_activities_dict: ActivitiesDict,
-        data: DataInput = GermanDataHerus(),
+        data: DataInput = GermanDataHerus('vBottaccioli'),
         subgroups_list: Subgroups = None,
         n_households_list: List[int] = None,
         **kwargs
@@ -1519,8 +1522,7 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
 
         self._assign_dictated_start()
 
-        # Assign the target used per week
-        self.target_weekly_cycle = self._assign_target_weekly_cycles()
+        # Assign the switchon probabilities of the appliances
         self.switch_on_probs = self._sample_switch_on_probs()
 
         self.initialize_starting_state(initial_activities_dict, **kwargs)
@@ -1538,19 +1540,6 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
 
         self.apps_dictated_start = np.where(mask_dictated_start)[0]
 
-    def _assign_target_weekly_cycles(self):
-        """Assign to each household and appliance a target of weekly cycles.
-
-        This implementation only use appliance_dict['target_cycle_year']
-        as target.
-        It should be improved to be loaded from the dataset based on
-        the subgroups in a future implementation.
-        """
-        # Should use subgroups instead of this to improve, as in Bottaccioli
-        weekly_targets = self.appliances['target_cycle_year'] / 365.25 * 7.
-        return np.broadcast_to(
-            weekly_targets, (self.n_households, len(weekly_targets))
-        )
 
     def _remove_non_compatible_appliances(
         self,
@@ -1583,6 +1572,12 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
 
         # For each subgroup, finds the target of consumption
         for i, subgroup in enumerate(self.subgroups_list):
+            n_residents =  (
+                # Choose an average value if it was not specified
+                2.3 if 'n_residents' not in subgroup
+                else subgroup['n_residents']
+            )
+
             mask_hh_subgroup = self.hh_types == i
             # The switchon targets for each appliance, TODO: check other targes
             target_dict = self.data.load_yearly_target_switchons(subgroup)
@@ -1594,6 +1589,26 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
             # Total probability of occurance of this activity
             activity_prob = self.data.load_activity_probabilities(subgroup)
             act_n_starts_daily = self.data.load_daily_activity_starts(subgroup)
+
+            # Issue a warning when an activity is missing
+            if not np.all(np.isin(
+                self.appliances['related_activity'],
+                list(activity_prob.keys())
+            )):
+                miss_mask = ~np.isin(
+                    self.appliances['related_activity'],
+                    list(activity_prob.keys())
+                )
+                warnings.warn((
+                    "Activities {} required by appliances {} are missing"
+                    "from data.load_activity_probabilities.\n"
+                    "They will not be turned on during simulation."
+                ).format(
+                    np.unique(self.appliances['related_activity'][miss_mask]),
+                    self.appliances['name'][miss_mask]
+                ))
+
+            # Sample the probability for each activity
             for activity, act_prob in activity_prob.items():
                 # Each appliance will have a target
                 mask_this_act = self.appliances['related_activity'] == activity
@@ -1620,7 +1635,7 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
                     # daily start is a pdf of starts, so we look for average
                     act_n_starts_daily[activity],
                     np.arange(len(act_n_starts_daily[activity]))
-                ) * subgroup['n_residents']  # Each resident can start app
+                ) * n_residents # Each resident can start app
                 probs[
                     mask_hh_subgroup[:, np.newaxis]
                     & mask_start_after_act[np.newaxis, :]

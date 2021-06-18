@@ -273,7 +273,7 @@ class GTOU(LoaderTOU, PopulationLoader):
             + day_id[transitions_dict['persons']]
         )
 
-        return {
+        daily_starts = {
             act: np.bincount(  # Counts the number of persons starting i times
                     np.bincount(  # Counts how many time each household start act
                         transitions_dict['hh_day'][
@@ -283,12 +283,35 @@ class GTOU(LoaderTOU, PopulationLoader):
                 ).astype(float) / len(states)  # Convert to probs
             for act in np.unique(transitions_dict['new_states'])
         }
+        # Special case: active occupancy
+        daily_starts['active_occupancy'] = np.bincount(
+            # Counts the number of persons starting i times
+            np.bincount(  # Counts how many time each household start act
+                transitions_dict['hh_day'][
+                    # Active occupancy start when someone wakes up or comes back
+                    # BUT Does not take into account sleeping away from home ...
+                    (transitions_dict['new_states'] == 'sleeping')
+                    | (transitions_dict['new_states'] == 'away')
+                ]
+        )).astype(float) / len(states)  # Convert to probs
+
+        return daily_starts
 
     def _parse_activity_probabilities(
         self, subgroup: Subgroup
     ) -> Dict[str, np.ndarray]:
         states = self.get_states(subgroup)
-        return {
+        # Converts the states to probabilities
+        activity_probabilities = {
             s: (states == s).mean(axis=0)
             for s in np.unique(states)
         }
+        # adds the active occupancy
+        activity_probabilities['active_occupancy'] = np.clip(
+            1.
+            -  activity_probabilities['away']
+            -  activity_probabilities['sleeping'],
+            0., 1.
+        )
+
+        return activity_probabilities

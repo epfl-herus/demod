@@ -69,7 +69,7 @@ class GermanDataHerus(
                 version, self
             ))
         self.destatis = Destatis()
-        self.climate = OpenPowerSystemClimate("Germany")
+        self.climate = OpenPowerSystemClimate("germany")
         self.tracebase_profiles = Tracebase()
         super().__init__(version=version, **kwargs)
 
