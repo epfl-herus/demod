@@ -1494,8 +1494,7 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
 
         self._assign_dictated_start()
 
-        # Assign the target used per week
-        self.target_weekly_cycle = self._assign_target_weekly_cycles()
+        # Assign the switchon probabilities of the appliances
         self.switch_on_probs = self._sample_switch_on_probs()
 
         self.initialize_starting_state(initial_activities_dict, **kwargs)
@@ -1513,19 +1512,6 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
 
         self.apps_dictated_start = np.where(mask_dictated_start)[0]
 
-    def _assign_target_weekly_cycles(self):
-        """Assign to each household and appliance a target of weekly cycles.
-
-        This implementation only use appliance_dict['target_cycle_year']
-        as target.
-        It should be improved to be loaded from the dataset based on
-        the subgroups in a future implementation.
-        """
-        # Should use subgroups instead of this to improve, as in Bottaccioli
-        weekly_targets = self.appliances['target_cycle_year'] / 365.25 * 7.
-        return np.broadcast_to(
-            weekly_targets, (self.n_households, len(weekly_targets))
-        )
 
     def _remove_non_compatible_appliances(
         self,
@@ -1569,6 +1555,26 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
             # Total probability of occurance of this activity
             activity_prob = self.data.load_activity_probabilities(subgroup)
             act_n_starts_daily = self.data.load_daily_activity_starts(subgroup)
+
+            # Issue a warning when an activity is missing
+            if not np.all(np.isin(
+                self.appliances['related_activity'],
+                list(activity_prob.keys())
+            )):
+                miss_mask = ~np.isin(
+                    self.appliances['related_activity'],
+                    list(activity_prob.keys())
+                )
+                warnings.warn((
+                    "Activities {} required by appliances {} are missing"
+                    "from data.load_activity_probabilities.\n"
+                    "They will not be turned on during simulation."
+                ).format(
+                    np.unique(self.appliances['related_activity'][miss_mask]),
+                    self.appliances['name'][miss_mask]
+                ))
+
+            # Sample the probability for each activity
             for activity, act_prob in activity_prob.items():
                 # Each appliance will have a target
                 mask_this_act = self.appliances['related_activity'] == activity
