@@ -329,6 +329,8 @@ def make_jsonable(object: Any):
         return object
     elif isinstance(object, np.generic):
         return object.item()
+    elif object is None:
+        return None
     else:
         raise NotImplementedError(
             " 'make_jsonable' is not defined for object of type: '{}' ".format(
