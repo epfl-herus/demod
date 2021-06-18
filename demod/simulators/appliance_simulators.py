@@ -259,7 +259,10 @@ class AppliancesSimulator(TimeAwareSimulator):
         if (subgroups_list is None) and (n_households_list is None):
             # Only use n_households for the simulation
             # no subgroup
+            self.subgroups_list = [{}]
+            self.hh_types = np.zeros(n_households, dtype=int)
             return
+
         if (subgroups_list is None) or (n_households_list is None):
             raise AttributeError(
                 "If you are using subgroups, you need to specify both "
@@ -1237,7 +1240,7 @@ class ActivityApplianceSimulator(AppliancesSimulator):
     def __init__(
         self, n_households: int,
         initial_activities_dict: ActivitiesDict,
-        data=GermanDataHerus(),
+        data=GermanDataHerus('vBottaccioli'),
         subgroups_list: Subgroups = None,
         n_households_list: List[int] = None,
         **kwargs
@@ -1469,7 +1472,7 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
     def __init__(
         self, n_households: int,
         initial_activities_dict: ActivitiesDict,
-        data: DataInput = GermanDataHerus(),
+        data: DataInput = GermanDataHerus('vBottaccioli'),
         subgroups_list: Subgroups = None,
         n_households_list: List[int] = None,
         **kwargs
@@ -1544,6 +1547,12 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
 
         # For each subgroup, finds the target of consumption
         for i, subgroup in enumerate(self.subgroups_list):
+            n_residents =  (
+                # Choose an average value if it was not specified
+                2.3 if 'n_residents' not in subgroup
+                else subgroup['n_residents']
+            )
+
             mask_hh_subgroup = self.hh_types == i
             # The switchon targets for each appliance, TODO: check other targes
             target_dict = self.data.load_yearly_target_switchons(subgroup)
@@ -1601,7 +1610,7 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
                     # daily start is a pdf of starts, so we look for average
                     act_n_starts_daily[activity],
                     np.arange(len(act_n_starts_daily[activity]))
-                ) * subgroup['n_residents']  # Each resident can start app
+                ) * n_residents # Each resident can start app
                 probs[
                     mask_hh_subgroup[:, np.newaxis]
                     & mask_start_after_act[np.newaxis, :]
