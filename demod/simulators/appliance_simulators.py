@@ -111,6 +111,7 @@ class AppliancesSimulator(TimeAwareSimulator):
         n_households: int,
         appliances_dict: AppliancesDict,
         equipped_sampling_algo: str = "basic",
+        equipped_set_defined: dict = None,
         real_profiles_algo: str = "uniform",
         **kwargs
     ):
@@ -127,7 +128,8 @@ class AppliancesSimulator(TimeAwareSimulator):
 
         # give appliances to the households
         self.available_appliances = self.sample_available_appliances(
-            equipped_sampling_algo=equipped_sampling_algo
+            equipped_sampling_algo=equipped_sampling_algo,
+            equipped_set_defined=equipped_set_defined
         )
 
         self.sample_real_load_profiles(
@@ -168,7 +170,10 @@ class AppliancesSimulator(TimeAwareSimulator):
         )
 
     def sample_available_appliances(
-        self, equipped_sampling_algo: str = "basic"
+        self, 
+        equipped_sampling_algo: str = "basic",
+        equipped_set_defined: dict = None,
+        **kwargs
     ) -> np.ndarray:
         """Initialize which appliances are available in the households.
 
@@ -187,7 +192,7 @@ class AppliancesSimulator(TimeAwareSimulator):
                     together. *FOR FUTURE IMPLEMENTATION*
                 :set_defined:
                     matches the requested set for each household given as
-                    :py:attr:`appliance_set`. *FOR FUTURE IMPLEMENTATION*
+                    :py:attr:`appliance_set`. 
                 :all:
                     give all appliances to every households
 
@@ -215,6 +220,11 @@ class AppliancesSimulator(TimeAwareSimulator):
             # Ex. you own a dryer only if you have a wasing machine
             # a tv box only with a tv
             raise NotImplementedError()
+            
+        elif equipped_sampling_algo == "set_defined":
+            # Return array of True
+            return self._appliance_set(equipped_set_defined)
+        
         elif equipped_sampling_algo == "all":
             # Return array of True
             return np.ones(
@@ -226,6 +236,21 @@ class AppliancesSimulator(TimeAwareSimulator):
                 "Unknown equipped_sampling_algo : "
                 + equipped_sampling_algo
             )
+                  
+    def _appliance_set(self, equipped_set_defined):
+        # List the ownership booleans for each population subgroup
+        app_ownership_set = np.asarray([
+            np.isin(self.appliances['name'], equipped_set_defined[n])
+            for n, subgroup in enumerate(self.subgroups_list)
+            ]) 
+        if len(app_ownership_set) != len(self.subgroups_list):
+            raise ValueError(
+                "The list of set of appliances does not match the list of subgroups "
+            )
+        app_ownership_matrix =  app_ownership_set[self.hh_types]
+        return app_ownership_matrix
+            
+    
 
     def _sample_from_subgroup(self):
         # load the ownership probs for appliances and each subgroup

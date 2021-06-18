@@ -38,7 +38,7 @@ class TestApplianceDatasets(unittest.TestCase):
 
 class TestOccupancyApplianceSimulator(TimeAwareSimulatorChildrenTests, unittest.TestCase):
     sim = OccupancyApplianceSimulator
-    args = [[{'n_residents': 2}], [1],]
+    args = [[{'n_residents': 2}], [1]]
     kwargs = {}
     args_step = [np.array([1], dtype=int),]
     kwargs_step = {}
@@ -67,7 +67,11 @@ class TestOccupancyApplianceSimulator(TimeAwareSimulatorChildrenTests, unittest.
         self.run_base_tests()
         self.kwargs['equipped_sampling_algo'] = 'all'
         self.run_base_tests()
+        self.kwargs['equipped_sampling_algo'] = 'set_defined'
+        self.kwargs['equipped_set_defined'] = [['FRIDGE1', 'FRIDGE2']]
+        self.run_base_tests()
         self.kwargs.pop('equipped_sampling_algo')
+        self.kwargs.pop('equipped_set_defined')
 
     def test_instantiation(self):
         super().test_instantiation()
