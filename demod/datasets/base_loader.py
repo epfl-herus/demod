@@ -72,10 +72,6 @@ class DatasetLoader:
                 parsed data will contain several version
                 None if there is only a single version.
             clear_parsed_data: Whether to clear the parsed data.
-
-
-        Returns:
-            Any: [description]
         """
         if not hasattr(self, "DATASET_NAME"):
             raise ValueError(
@@ -90,8 +86,11 @@ class DatasetLoader:
         self.raw_path = os.path.join(self.DATASET_PATH, "raw_data")
         self.parsed_path = os.path.join(self.DATASET_PATH, "parsed_data")
 
-        if not os.path.isdir(self.parsed_path):
+        # Creates the directories if they do not exist
+        if not os.path.exists(self.parsed_path):
             os.mkdir(self.parsed_path)
+        if not os.path.exists(self.raw_path):
+            os.mkdir(self.raw_path)
 
         if version is not None:
             self.parsed_path = os.path.join(self.parsed_path, version)
@@ -751,7 +750,7 @@ class ClimateLoader(DatasetLoader):
             climate_dict, a dictionary with the following possible keys
 
             * 'datetime': the time stored as numpy 'datetime64', only mandatory key. the datetime array should be in utc format time.
-            * 'temperature': the temperature of the air [C]
+            * 'outside_temperature': the temperature of the air [C]
             * 'radiation_diffuse': diffuse radiation at surface [W/m^2]
             * 'radiation_direct': direct radiation at surface [W/m^2]
             * 'radiation_global': global radiation at surface [W/m^2]

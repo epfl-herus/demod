@@ -593,7 +593,7 @@ class RealClimate(ClimateSimulator):
         ),
         **kwargs
     ) -> None:
-        """Creates a real climate simulator.
+        """Create a real climate simulator.
 
         Args:
             data: Datset to be used. Defaults to 'Germany'.
