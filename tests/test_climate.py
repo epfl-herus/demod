@@ -1,9 +1,10 @@
-from demod.datasets.CREST.loader import Crest
 import sys
-from demod.datasets.OpenPowerSystems.loader import OpenPowerSystemClimate
 import unittest
 import datetime
 
+from demod.datasets.CREST.loader import Crest
+from demod.datasets.OpenPowerSystems.loader import OpenPowerSystemClimate
+from demod.datasets.RenewablesNinja.loader import NinjaRenewablesClimate
 from test_base_simulators import TimeAwareSimulatorChildrenTests
 from demod.simulators.weather_simulators import CrestIrradianceSimulator, RealInterpolatedClimate, RealClimate, CrestClimateSimulator
 
@@ -75,6 +76,9 @@ class CrestClimateSimulatorTests(TimeAwareSimulatorChildrenTests, unittest.TestC
 
 
 class TestClimateLoader(unittest.TestCase):
+    def test_loading_ninja(self):
+        data = NinjaRenewablesClimate('germany')
+        data.load_historical_climate_data(datetime.datetime(2014, 1, 1))
     def test_loading(self):
         data = OpenPowerSystemClimate('germany')
         data.load_historical_climate_data(datetime.datetime(2014, 1, 1))
@@ -84,7 +88,6 @@ class TestClimateLoader(unittest.TestCase):
         start_datetime = datetime.datetime(
             2014, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc
         )
-        print(data.load_historical_climate_data(start_datetime ))
 
 class RealClimateTests(TimeAwareSimulatorChildrenTests, unittest.TestCase):
     """Tests for real climate simulator."""
