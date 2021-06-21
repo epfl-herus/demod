@@ -25,6 +25,17 @@ class NinjaRenewablesClimate(ClimateLoader):
     The raw datasets are downloaded on demand by this dataloader.
     It corresponds to MERRA-2(global).
 
+    Available data:
+
+    - 'datetime' in UTC
+    - 'precipitation'
+    - 'snowfall'
+    - 'snow_mass'
+    - 'clearness'
+    - 'air_density'
+    - 'outside_temperature'
+    - 'irradiance'
+
     Attributes:
         weighted_type: The method used to weight the climate.
             This was performed by Renewables.ninja. Can be
@@ -36,16 +47,20 @@ class NinjaRenewablesClimate(ClimateLoader):
     """
 
     DATASET_NAME = 'RenewablesNinja'
+    # Default step size from ninja
     step_size = timedelta(hours=1)
 
     def __init__(
         self, country_name,
-        clear_parsed_data: bool = False,
         update_raw_data: bool = False,
         weighted_type: str = 'population',
         **kwargs
     ) -> Any:
-        """Initialize the climate loader for the country."""
+        """Initialize the climate loader for the country.
+
+        If update_raw_data, the raw data will be acutualized and parsed
+        again, only for the selected country.
+        """
         super().__init__(**kwargs)
         # Creates the path for the requested country
         self.parsed_path_climate = os.path.join(
@@ -66,11 +81,11 @@ class NinjaRenewablesClimate(ClimateLoader):
             country_name_to_code(self.country)
             if not is_country_code(self.country) else self.country
         )
-        raw_file_path = os.path.join(
+        self.raw_file_path = os.path.join(
             self.raw_path, country_code + '_' + weighted_type + '.csv'
         )
         # Check if the raw file already exists and should not be updated
-        if os.path.isfile(raw_file_path) and not update_raw_data:
+        if os.path.isfile(self.raw_file_path) and not update_raw_data:
             return
         # Else download it
         base_url = 'https://www.renewables.ninja/country_downloads/'
@@ -82,19 +97,28 @@ class NinjaRenewablesClimate(ClimateLoader):
             country=country_code,
             weighted_type=weighted_type
         )
-        print('Downloading tracebase raw data from {}.'.format(country_url))
+        print('Downloading {} raw data from {}.'.format(
+            self.DATASET_NAME, country_url
+        ))
         print('This can take some time.')
         # Creates the request
-        user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
-        headers = {'User-Agent':user_agent,}
+        user_agent = (
+            'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) '
+            'Gecko/2009021910 Firefox/3.0.7'
+        )
+        headers = {'User-Agent': user_agent}
         request = urllib.request.Request(country_url, None, headers)
 
         # Reads the url and  download the
         with urllib.request.urlopen(request) as response:
-            with open(raw_file_path, 'wb') as f:
+            with open(self.raw_file_path, 'wb') as f:
                 shutil.copyfileobj(response, f)
-        # Now the file is downloaded
-        print('downloaded')
+        print('download finished')
+        # Now the file is downloaded, we can remove old parsed data
+        for f in os.listdir(self.parsed_path_climate):
+            os.remove(os.path.join(self.parsed_path_climate, f))
+
+
 
 
 
@@ -103,31 +127,36 @@ class NinjaRenewablesClimate(ClimateLoader):
 
         Returns:
             climate_dict: climate_dict with keys:
-                - 'temperature'
-                - 'radiation_global'
+                - 'datetime' in UTC
+                - 'precipitation'
+                - 'snowfall'
+                - 'snow_mass'
+                - 'clearness'
+                - 'air_density'
+                - 'outside_temperature'
+                - 'irradiance'
         """
-        raw_file_path = os.path.join(self.raw_path, 'weather_data.csv')
-
-        code = country_name_to_code(self.country)
-
-        df = pd.read_csv(raw_file_path)
+        df = pd.read_csv(self.raw_file_path, skiprows=2)
 
         out_dict = {}
 
         out_dict['datetime'] = np.array(
-            df['utc_timestamp'],
+            df['time'],
             dtype='datetime64'
         )
 
-        out_dict['outside_temperature'] = np.array(df[code + '_temperature'])
+        out_dict['precipitation'] = np.array(df['precipitation'])
+        out_dict['snowfall'] = np.array(df['snowfall'])
+        out_dict['snow_mass'] = np.array(df['snow_mass'])
 
-        radiation_direct = np.array(
-            df[code + '_radiation_direct_horizontal']
-        )
-        radiation_diffuse = np.array(
-            df[code + '_radiation_diffuse_horizontal']
-        )
+        out_dict['clearness'] = np.array(df['cloud_cover'])
 
+        out_dict['air_density'] = np.array(df['air_density'])
+
+        out_dict['outside_temperature'] = np.array(df['temperature'])
+
+        radiation_direct = np.array(df['irradiance_surface'])
+        radiation_diffuse = np.array(df['irradiance_toa'])
         # https://meteonorm.meteotest.ch/en/faq/definition-of-direct-and-diffuse-radiation
         out_dict['irradiance'] = radiation_diffuse + radiation_direct
 
