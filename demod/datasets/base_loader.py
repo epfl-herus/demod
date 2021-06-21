@@ -627,7 +627,7 @@ class ClimateLoader(DatasetLoader):
             climate_dict, a dictionary with the following possible keys
 
             * 'datetime': the time stored as numpy 'datetime64', only mandatory key. the datetime array should be in utc format time.
-            * 'temperature': the temperature of the air [C]
+            * 'outside_temperature': the temperature of the air [C]
             * 'radiation_diffuse': diffuse radiation at surface [W/m^2]
             * 'radiation_direct': direct radiation at surface [W/m^2]
             * 'radiation_global': global radiation at surface [W/m^2]
