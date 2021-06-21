@@ -3,7 +3,8 @@ from demod.utils.parse_helpers import (
     get_initial_durations_pdfs,
     states_to_tpms_with_durations,
     states_to_transitions,
-    states_to_tpms
+    states_to_tpms,
+    make_jsonable
 )
 import unittest
 
@@ -229,3 +230,12 @@ class TestInitialDuration(unittest.TestCase):
                 [0., 0.5, 0.5, 0.],
             ]
         )))
+
+
+class TestMakeJsonable(unittest.TestCase):
+    def test_numpy(self):
+        l = make_jsonable(np.array([2,3]))
+        self.assertEqual(l, [2,3])
+    def test_none(self):
+        n = make_jsonable(None)
+        self.assertEqual(n, None)
