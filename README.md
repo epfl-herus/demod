@@ -37,4 +37,4 @@ This repository is managed by
 [EPFL : École Polytechnique Fédérale de Lausanne](https://www.epfl.ch/en/).
 
 Please report bugs and ideas for improvement to
-[our team](demod@groupes.epfl.ch) .
+our team: demod@groupes.epfl.ch .
