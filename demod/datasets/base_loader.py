@@ -72,10 +72,6 @@ class DatasetLoader:
                 parsed data will contain several version
                 None if there is only a single version.
             clear_parsed_data: Whether to clear the parsed data.
-
-
-        Returns:
-            Any: [description]
         """
         if not hasattr(self, "DATASET_NAME"):
             raise ValueError(
