@@ -1,3 +1,4 @@
+from demod.metrics.loads import profiles_similarity
 import unittest
 import numpy as np
 
@@ -66,3 +67,17 @@ class StatesDurationTest(unittest.TestCase):
             average_over_timestep=False
         )
         self.assertTrue(np.all(a[1] == np.array([0.0, 0.5, 0.0])))
+
+
+class ProfilesSimilarityTest(unittest.TestCase):
+    def test_basic(self):
+        simulated_profiles = np.array([
+            [1., 2.],
+            [2., 2.],
+        ])
+        target_profiles = np.array([
+            [1., 2.],
+        ])
+        dist = profiles_similarity(simulated_profiles, target_profiles)
+        self.assertEqual(dist.shape,(2,1))
+        self.assertTrue(np.all(dist == np.array([[0], [1]])))

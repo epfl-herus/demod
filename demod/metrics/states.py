@@ -7,7 +7,6 @@ A States patterns array, is a numpy array containing the states patterns,
 and in demod it is by convention a n_patterns * n_times array.
 """
 
-from numpy.lib.arraysetops import unique
 from demod.utils.sim_types import States, TPMs
 from typing import Any, Dict, List, Tuple, Union
 import numpy as np
