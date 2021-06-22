@@ -7,8 +7,9 @@ A States patterns array, is a numpy array containing the states patterns,
 and in demod it is by convention a n_patterns * n_times array.
 """
 
-from demod.utils.sim_types import TPMs
-from typing import Any, Dict, List, Tuple
+from numpy.lib.arraysetops import unique
+from demod.utils.sim_types import States, TPMs
+from typing import Any, Dict, List, Tuple, Union
 import numpy as np
 
 
@@ -40,7 +41,7 @@ def get_states_durations(states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     # find in the indices the start and end of each household
     indices_first_household = np.where(
         household_indices != np.roll(household_indices, 1)
-    )[0]
+    )[0] if len(np.unique(household_indices)) > 1 else np.array([0], dtype=int)
     indices_last_household = np.roll(indices_first_household - 1, -1)
 
     # calculate the durations
@@ -71,7 +72,7 @@ def get_states_durations(states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         (corresponding_states, states[no_transition_households, 0])
     )
 
-    return durations, corresponding_states
+    return np.array(durations, dtype=int), corresponding_states
 
 
 def get_durations_by_states(states: np.ndarray) -> Dict[Any, np.ndarray]:
@@ -180,3 +181,130 @@ def sparsity(tpm: TPMs):
     = 1. If the tpms are only 0
     """
     return 1. - (np.sum(tpm > 0) / np.prod(tpm.shape))
+
+
+def average_state_metric(
+    simulated_state: States, measured_state: States,
+    average_over_timestep:bool = True,
+) -> Union[List[float], float]:
+    r"""Determine the average per time step state error.
+
+    This is a generalization of the Average occupancy metric
+    from [Flett2016]_ .
+
+    It determines the average per time step state error between
+    simulated data and real data from the TOU surveys, quantifying the
+    quality of the calibration of the simulation.
+
+    It is defined as
+    :math:`\sum^{T}_{t=1} \frac{|P-P|}{T}`
+    where :math:`P` is the average number of subjects in state.
+
+    Two means of analysis are possible with this metric.
+
+        1. It can be used to calculate the prediction for the average
+           per time step results of multiple profiles generated using the
+           model. This determines how effectively the model converges to
+           the population average.
+        2. It can be used to calculate the prediction error for each
+           individual profile. The mean of this error can be used to
+           determine how effectively individual profiles replicate
+           the input data.
+
+    Args:
+        simulated_state: The state that have been simulated.
+            Array of shape = (n_subjects/n_households, n_times).
+            The value should be the number of person performing
+            the states at each time of the diaries.
+        measured_state: The state that where measured.
+            Same array as simulated_state.
+            n_times must be the same as simulated_state, but
+            n_subjects/n_households can be different.
+        average_over_timestep: whether to average the result over the
+            time steps. If false, will return an array of shape =
+            (n_times).
+
+    Returns:
+        average_state_error: The average state error between
+            simulated_state and measured_state.
+    """
+    # Average the states at each time step
+    average_sim_state = np.mean(simulated_state, axis=0)
+    average_mes_state = np.mean(measured_state, axis=0)
+
+    # Compute the abolute error between sim and measured
+    average_errors = np.abs(average_sim_state-average_mes_state)
+
+    # Chooses the return
+    if average_over_timestep:
+        return np.mean(average_errors)
+    else:
+        return average_errors
+
+def state_duration_distribution_metric(
+    simulated_state: States, measured_state: States,
+    average_over_timestep:bool = True,
+) -> Dict[Any, Union[List[float], float]]:
+    r"""Compare the difference in state durations.
+
+    This is a generalization of the State duration distribution metric
+    from [Flett2016]_ .
+
+    The ‘error’ is
+    the sum ofthe absolute difference between the simulated and mesured
+    data CDFs at each duration value for each state.
+
+    It is defined as
+    :math:`\sum^{T}_{t=1} \frac{|Pd-Pd|}{T}`
+    where :math:`P` is the average number of subjects in state.
+
+    Note that this metric weights the same,
+    erorrs in durations probs that are unlikely
+    to happen as errors in duration probs that are very likely.
+
+    It could be nice to do a weighted average instead, that uses
+    the weight according to the pdf ?
+
+
+    Args:
+        simulated_state: The state that have been simulated.
+            Array of shape = (n_subjects/n_households, n_times).
+            The value should be the number of person performing
+            the states at each time of the diaries.
+        measured_state: The state that where measured.
+            Same array as simulated_state.
+            n_times must be the same as simulated_state, but
+            n_subjects/n_households can be different.
+        average_over_timestep: whether to average the cdf over the
+            time steps. If false, will return an array of shape =
+            (n_times) being the absolute difference of each cdf
+            value.
+
+    Returns:
+        average_state_error: The average state error between
+            simulated_state and measured_state.
+    """
+    # Finds the durations of the states
+    dur_dict_sim = get_durations_by_states(simulated_state)
+    dur_dict_mes = get_durations_by_states(measured_state)
+
+    n_times = measured_state.shape[1]
+
+    dic_out = {}
+    # Each state is handled separately
+    for state in set((*dur_dict_sim.keys(), *dur_dict_mes.keys())):
+        # Finds the cdf of the duration for that state
+        cdf_sim = np.cumsum(
+            np.bincount(dur_dict_sim[state], minlength=n_times + 1)
+            / len(dur_dict_sim[state])
+        )
+        cdf_mes = np.cumsum(
+            np.bincount(dur_dict_mes[state], minlength=n_times + 1)
+            / len(dur_dict_mes[state])
+        )
+        # Error between cdfs
+        err = np.abs(cdf_sim - cdf_mes)
+        # Adds this state to the outputs
+        dic_out[state] = (np.mean(err) if average_over_timestep else err)
+
+    return dic_out

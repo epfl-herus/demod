@@ -40,6 +40,35 @@ class TestDurations(unittest.TestCase):
         self.assertTrue(np.all(dic[2] == np.array([1, 2])))
         self.assertTrue(np.all(dic[5] == np.array([3])))
 
+    def test_array_size_2(self):
+        test_array = np.array([[0, 1]])
+        durations, durations_labels = get_states_durations(test_array)
+        print(durations)
+        self.assertTrue(np.all(durations == np.array([1, 1])))
+        self.assertTrue(np.all(durations_labels == np.array([0, 1])))
+
+    def test_array_size_3(self):
+        test_array = np.array([[0, 0, 1]])
+        durations, durations_labels = get_states_durations(test_array)
+        print(durations)
+        self.assertTrue(np.all(durations == np.array([2, 1])))
+        self.assertTrue(np.all(durations_labels == np.array([0, 1])))
+
+    def test_array_size_4(self):
+        test_array = np.array([[1, 0, 0, 1]])
+        durations, durations_labels = get_states_durations(test_array)
+        print(durations)
+        self.assertTrue(np.all(durations == np.array([2, 2])))
+        self.assertTrue(np.all(durations_labels == np.array([0, 1])))
+
+
+    def test_small_arrays(self):
+        test_array = np.array([[0, 1], [1, 1]])
+        dic = get_durations_by_states(test_array)
+        print(dic)
+        self.assertTrue(np.all(dic[0] == np.array([1])))
+        self.assertTrue(np.all(dic[1] == np.array([1, 2])))
+
 #   def test_24_hour_occupancy(self):
 #       # test 24 hour occupancy
 #       test_array = np.array([
