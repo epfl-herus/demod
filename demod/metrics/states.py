@@ -23,11 +23,12 @@ def get_states_durations(states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         states: States patterns array
 
     Returns:
-        durations : a ndarray with the durations of each states
-        corresponding_states : a ndarray with the labels of the states
+        durations: a ndarray with the durations of each states
+        corresponding_states: a ndarray with the labels of the states
             for each duration
 
-    Note:
+    .. note::
+
         The order of the durations is not the real one, as the
         unchanging states will be placed at the end.
     """
@@ -321,19 +322,22 @@ def levenshtein_edit_distance(profile1: np.ndarray, profile2: np.ndarray):
     to compare many different profiles.
 
     .. warning::
+
         Currently this is only implemented if the profiles contains
         integers ranging from 0 to 10 (not included).
+
     .. warning::
+
         Requires an extra library to be installed
-        `https://pypi.org/project/python-Levenshtein/`_
+        `<https://pypi.org/project/python-Levenshtein/>`_
 
     Args:
         profile1, profile2: Two profiles given as arrays of size 1.
             They must be integers.
 
-    Following description comes from [Flett2016]_ :
+    Following description comes from [Flett2016]_
 
-    *This LEDM method is used to quantify the dissimilarity between
+    This LEDM method is used to quantify the dissimilarity between
     two strings by quantifying the measures needed to transform one
     into the other. In the LEDM a ‘cost’ of 1 is assigned for each edit
     (insertions, deletions, and replacements) required in the trans-
@@ -346,15 +350,17 @@ def levenshtein_edit_distance(profile1: np.ndarray, profile2: np.ndarray):
     is converted from a per-time step to an hour equivalent by dividing
     the result by the number of time steps per hour.
     The metric can be used in two ways.
+
     1. It can be used to compare the output profiles with the input
        dataset. The smallest cost per profile, representative of the closest
        match, is determined and an average calculated across all mod-
        elled days. This is a measure of the average similarity between
        generated profiles and the closest real profile.
+
     2. Each profile in either the input dataset or model output
        dataset can be compared with other profiles in the same dataset
        quantifying the behavioural similarity within and between each
-       dataset.*
+       dataset.
     """
     try:
         from Levenshtein import distance

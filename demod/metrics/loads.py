@@ -29,8 +29,8 @@ def total_energy_consumed(
             Defaults to datetime.timedelta(minutes=1).
 
     Returns:
-        total_energy: The total energy that was consumed in the load
-            profiles (shape = n_profiles).
+        total_energy, The total energy that was consumed in the load
+        profiles (shape = n_profiles).
     """
     return np.sum(load_profiles, axis=-1) * step_size.total_seconds()
 
@@ -56,10 +56,10 @@ def profiles_similarity(
             array of shape = (n_profiles_target, n_times)
 
     Return:
-        similarity_metric: The similarity between the profiles, as an
-            array of shape = (n_profiles_sim, n_profiles_target)
-            where element[i,j] is the comparison of the i-eth simulated
-            profile with the j-eth target profile.
+        similarity_metric, The similarity between the profiles, as an
+        array of shape = (n_profiles_sim, n_profiles_target)
+        where element[i,j] is the comparison of the i-eth simulated
+        profile with the j-eth target profile.
 
     """
     return cdist(simulated_profiles, target_profiles, *args, **kwargs)
@@ -86,10 +86,10 @@ def profiles_variety(
             the distance from each profile to every other
 
     Return:
-        similarity_metric: The similarity between the profiles, as an
-            array of shape = (n_profiles_sim, n_profiles_target)
-            where element[i,j] is the comparison of the i-eth simulated
-            profile with the j-eth target profile.
+        similarity_metric, The similarity between the profiles, as an
+        array of shape = (n_profiles_sim, n_profiles_target)
+        where element[i,j] is the comparison of the i-eth simulated
+        profile with the j-eth target profile.
 
     """
     distances = pdist(profiles, *args, **kwargs)
@@ -149,13 +149,12 @@ def cumulative_changes_in_demand(
             to the edges that you use.
 
     Returns:
-        hist: array with the  values of the histogram.
+        cdf, array with the  values of the histogram.
         bin_edges: array of dtype float
             Return the bin edges (length(hist)+1).
 
-    The value of hist[i] corespond to the cdf
-
-
+    The value of cdf[i] corespond to the values between bin_edges[i] and
+    bin_edges[i+1].
     """
     # Take the absolute changes and remove the last change
     changes = np.abs(profiles - np.roll(profiles, -1, axis=1))[:, :-1]
