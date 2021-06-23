@@ -2,7 +2,9 @@ import unittest
 import numpy as np
 
 
-from demod.metrics.loads import profiles_similarity
+from demod.metrics.loads import (
+    cumulative_changes_in_demand, diversity_factor, profiles_similarity, time_coincident_demand
+)
 from demod.metrics.states import (
     sparsity,
     average_state_metric,
@@ -165,3 +167,76 @@ class ProfilesSimilarityTest(unittest.TestCase):
                 )
             )
         )
+
+
+class LoadMetricsTest(unittest.TestCase):
+    def test_cumulative_changes_in_demand(self):
+        cum_changes, bin_eges = cumulative_changes_in_demand(
+            np.array([
+                [0, 1, 2, 0]
+            ]),
+            bins=3, normalize=False,
+        )
+        self.assertTrue(np.all(cum_changes == np.array([
+            [0., 2./3., 1.]
+        ])))
+        print(bin_eges)
+        self.assertTrue(np.all(bin_eges == np.array([
+            [0., 2./3., 4./3., 2.]
+        ])))
+
+    def test_cumulative_changes_in_demand_many_arrays(self):
+        cum_changes, bin_eges = cumulative_changes_in_demand(
+            np.array([
+                [0, 1, 2, 0],
+                [0, 2, 0, 2],
+            ]),
+            bins=3, normalize=False,
+        )
+        self.assertTrue(np.all(cum_changes == np.array([
+            [0., 1./3., 1.]
+        ])))
+        print(bin_eges)
+        self.assertTrue(np.all(bin_eges == np.array([
+            [0., 2./3., 4./3., 2.]
+        ])))
+
+    def test_cumulative_changes_in_demand_specified_bins(self):
+        cum_changes, bin_eges = cumulative_changes_in_demand(
+            np.array([
+                [0, 1, 2, 0],
+                [0, 2, 0, 2],
+            ]),
+            normalize=False, bin_edges=[0.5, 1.5, 2.5]
+        )
+        print(cum_changes)
+        self.assertTrue(np.all(cum_changes == np.array([
+            [1./3., 1.]
+        ])))
+
+    def test_diversity_factor(self):
+        d = diversity_factor(np.array([
+            [0., 1., 2.],
+            [3., 1., 2.],
+        ]))
+        self.assertEqual(d, 5./4.)
+
+    def test_diversity_factor_1(self):
+        d = diversity_factor(np.array([
+            [0., 1., 2.],
+            [0., 1., 2.],
+        ]))
+        self.assertEqual(d, 1)
+
+
+    def test_time_coincident_demand(self):
+        d = time_coincident_demand(np.array([
+            [0., 1., 2.],
+            [0., 1., 2.],
+        ]))
+        self.assertEqual(d, 2)
+        d = time_coincident_demand(np.array([
+            [0., 4., 2.],
+            [5., 2., 0.],
+        ]))
+        self.assertEqual(d, 3.)

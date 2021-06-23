@@ -26,6 +26,11 @@ References
     residential demand response: Improving socio-technical assumptions
     in activity-based models of energy demand
 
+.. [McQueen2004]
+    D. McQueen, P. Hyland, S. Watson (2004) Monte Carlo simulation of
+    residential electricity demand for forecasting maximum demand on
+    distribution networks. `https://doi.org/10.1109/TPWRS.2004.826800`_
+
 .. [Richardson2009]
     I. Richardson, M. Thomson, D. Infield, A. Delahunty (2009) Domestic
     lighting: A high-resolution energy demand model
