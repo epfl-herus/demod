@@ -202,7 +202,48 @@ def time_coincident_demand(profiles: np.ndarray):
     is "the maximum demand, per customer, as the number of
     customers connected to the network approaches infinity." [McQueen2004]
 
-    profiles: The load profiles which are used to compute
-        the demand. shape = (n_profiles, n_times).
+    Args:
+        profiles: The load profiles which are used to compute
+            the demand. shape = (n_profiles, n_times).
     """
     return np.max(np.mean(profiles, axis=0))
+
+
+def load_duration(
+    profiles: np.ndarray,
+    loads: np.ndarray = None
+):
+    """Compute the load duration of the given profiles.
+
+    The outputs can be used to build the
+    `load duration curve <https://en.wikipedia.org/wiki/Load_duration_curve>`_
+    .
+
+    Args:
+        profiles: The load profiles which are used to compute
+            the demand. shape = (n_profiles, n_times).
+        loads: The different loads thresholds at which the durations
+            should be computed. size=n_loads
+
+    The number of loads return n_loads is either given by :py:obj:`loads`
+    or by the number of unique loads in profiles
+
+    Returns:
+        loads: Array of the loads (sorted), size = (n_loads)
+        durations: The durations correponding to the loads (in steps).
+            size = (n_profiles, n_loads)
+    """
+    if loads is None:
+        loads = np.sort(np.unique(profiles))
+    else:
+        loads = np.sort(loads)
+
+    if len(profiles.shape) == 1:
+        # One dimensional input gets rearranged
+        profiles.reshape((1, -1))
+
+    # First finds where the load is higher than loads
+    mask_high = profiles[:, :, np.newaxis] >= loads[np.newaxis, np.newaxis, :]
+    # Finds the proportion of time it is on
+    durations = np.sum(mask_high, axis=1)
+    return loads, durations

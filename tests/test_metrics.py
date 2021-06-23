@@ -3,7 +3,7 @@ import numpy as np
 
 
 from demod.metrics.loads import (
-    cumulative_changes_in_demand, diversity_factor, profiles_similarity, time_coincident_demand
+    cumulative_changes_in_demand, diversity_factor, load_duration, profiles_similarity, time_coincident_demand
 )
 from demod.metrics.states import (
     sparsity,
@@ -228,7 +228,6 @@ class LoadMetricsTest(unittest.TestCase):
         ]))
         self.assertEqual(d, 1)
 
-
     def test_time_coincident_demand(self):
         d = time_coincident_demand(np.array([
             [0., 1., 2.],
@@ -240,3 +239,35 @@ class LoadMetricsTest(unittest.TestCase):
             [5., 2., 0.],
         ]))
         self.assertEqual(d, 3.)
+
+    def test_load_durations(self):
+        loads, durations = load_duration(np.array([
+            [0., 1., 2.],
+        ]))
+        self.assertTrue(np.all(loads == np.array([0, 1, 2])))
+        print(durations)
+        self.assertTrue(np.all(durations == np.array([[3, 2, 1]])))
+
+    def test_load_durations_2(self):
+        loads, durations = load_duration(np.array([
+            [0., 1., 2.],
+            [3., 3., 3.],
+        ]))
+        self.assertTrue(np.all(loads == np.array([0, 1, 2, 3])))
+        print(durations)
+        self.assertTrue(np.all(durations == np.array([
+            [3, 2, 1, 0],
+            [3, 3, 3, 3],
+        ])))
+
+    def test_load_durations_with_loads(self):
+        loads, durations = load_duration(np.array([
+            [0., 1., 2.],
+            [3., 3., 3.],
+        ]), loads=[0, 2])
+        self.assertTrue(np.all(loads == np.array([0, 2])))
+        print(durations)
+        self.assertTrue(np.all(durations == np.array([
+            [3, 1],
+            [3, 3],
+        ])))
