@@ -3,7 +3,8 @@ import numpy as np
 
 
 from demod.metrics.loads import (
-    cumulative_changes_in_demand, diversity_factor, load_duration, profiles_similarity, time_coincident_demand
+    cumulative_changes_in_demand, diversity_factor,
+    load_duration, profiles_similarity, time_coincident_demand
 )
 from demod.metrics.states import (
     sparsity,
