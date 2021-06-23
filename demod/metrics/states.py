@@ -184,7 +184,7 @@ def sparsity(tpm: TPMs):
 
 def average_state_metric(
     simulated_state: States, measured_state: States,
-    average_over_timestep:bool = True,
+    average_over_timestep: bool = True,
 ) -> Union[List[float], float]:
     r"""Determine the average per time step state error.
 
