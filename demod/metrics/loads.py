@@ -38,7 +38,7 @@ def total_energy_consumed(
 def profiles_similarity(
     simulated_profiles: np.ndarray,
     target_profiles: np.ndarray,
-    **kwargs
+    *args, **kwargs
 ) -> np.ndarray:
     """Compare similarity of each simulated profiles with target profiles.
 
@@ -62,12 +62,13 @@ def profiles_similarity(
             profile with the j-eth target profile.
 
     """
-    return cdist(simulated_profiles, target_profiles, **kwargs)
+    return cdist(simulated_profiles, target_profiles, *args, **kwargs)
+
 
 def profiles_variety(
     profiles: np.ndarray,
     average: bool = True,
-    **kwargs
+    *args, **kwargs
 ) -> Union[np.ndarray, float]:
     """Compare variety in the given profiles.
 
@@ -91,5 +92,5 @@ def profiles_variety(
             profile with the j-eth target profile.
 
     """
-    distances = pdist(profiles, **kwargs)
+    distances = pdist(profiles, *args, **kwargs)
     return np.mean(distances) if average else distances

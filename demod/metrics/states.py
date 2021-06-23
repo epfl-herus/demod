@@ -240,9 +240,10 @@ def average_state_metric(
     else:
         return average_errors
 
+
 def state_duration_distribution_metric(
     simulated_state: States, measured_state: States,
-    average_over_timestep:bool = True,
+    average_over_timestep: bool = True,
 ) -> Dict[Any, Union[List[float], float]]:
     r"""Compare the difference in state durations.
 
@@ -307,3 +308,64 @@ def state_duration_distribution_metric(
         dic_out[state] = (np.mean(err) if average_over_timestep else err)
 
     return dic_out
+
+
+def levenshtein_edit_distance(profile1: np.ndarray, profile2: np.ndarray):
+    """Compute the Levenshtein Edit Distance Method (LEDM) between 2 profiles.
+
+    Can be used to compare the similarity between two discrete profiles,
+    as suggested by [Flett2016]_ .
+
+    You can use this distance combined with
+    :py:func:`demod.metrics.loads.profiles_similarity`
+    to compare many different profiles.
+
+    .. warning::
+        Currently this is only implemented if the profiles contains
+        integers ranging from 0 to 10 (not included).
+    .. warning::
+        Requires an extra library to be installed
+        `https://pypi.org/project/python-Levenshtein/`_
+
+    Args:
+        profile1, profile2: Two profiles given as arrays of size 1.
+            They must be integers.
+
+    Following description comes from [Flett2016]_ :
+
+    *This LEDM method is used to quantify the dissimilarity between
+    two strings by quantifying the measures needed to transform one
+    into the other. In the LEDM a ‘cost’ of 1 is assigned for each edit
+    (insertions, deletions, and replacements) required in the trans-
+    formation. For example, transforming 110111 to 001011 would
+    require a minimum edit of a replacement of the first digit, deletion
+    of the second, and insertion of the last digit – a total cost of 3.
+    The
+    approach can therefore be applied when comparing two numerical
+    profiles. When two profiles are compared, for clarity,the total ‘cost’
+    is converted from a per-time step to an hour equivalent by dividing
+    the result by the number of time steps per hour.
+    The metric can be used in two ways.
+    1. It can be used to compare the output profiles with the input
+       dataset. The smallest cost per profile, representative of the closest
+       match, is determined and an average calculated across all mod-
+       elled days. This is a measure of the average similarity between
+       generated profiles and the closest real profile.
+    2. Each profile in either the input dataset or model output
+       dataset can be compared with other profiles in the same dataset
+       quantifying the behavioural similarity within and between each
+       dataset.*
+    """
+    try:
+        from Levenshtein import distance
+    except ImportError as imp_err:
+        raise ImportError(
+            'You need to import Levenshtein distance module: \n'
+            'pip install python-Levenshtein'
+        ) from imp_err
+
+    # Convert the arrays to strings
+    return distance(
+        ''.join(profile1.astype(str)),
+        ''.join(profile2.astype(str)),
+    )
