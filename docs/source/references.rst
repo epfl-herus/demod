@@ -10,8 +10,9 @@ References
     profiles with high time resolution for German households
 
 .. [Flett2016]
-    G. Flett, N. Kelly (2016) An occupant-differentiated, higher-order
+    `G. Flett, N. Kelly (2016) An occupant-differentiated, higher-order
     Markov Chain method for prediction of domestic occupancy
+    <https://doi.org/10.1016/j.enbuild.2016.05.015>`_
 
 .. [Frondel2019]
     M. Frondel, S. Sommer, C. Vance (2019) Heterogeneity in German
@@ -26,10 +27,18 @@ References
     residential demand response: Improving socio-technical assumptions
     in activity-based models of energy demand
 
+.. [McKenna2020]
+    `E. McKenna, S. Higginson, T. Hargreaves, J. Chilvers, M. Thomson (2020)
+    When activities connect: Sequencing, network analysis,
+    and energy demand modelling in the United Kingdom.
+    <https://doi.org/10.1016/j.erss.2020.101572>`_
+
 .. [McQueen2004]
-    D. McQueen, P. Hyland, S. Watson (2004) Monte Carlo simulation of
+    `D. McQueen, P. Hyland, S. Watson (2004)
+    Monte Carlo simulation of
     residential electricity demand for forecasting maximum demand on
-    distribution networks. `https://doi.org/10.1109/TPWRS.2004.826800`_
+    distribution networks.
+    <https://doi.org/10.1109/TPWRS.2004.826800>`_
 
 .. [Richardson2009]
     I. Richardson, M. Thomson, D. Infield, A. Delahunty (2009) Domestic

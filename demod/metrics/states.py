@@ -1,10 +1,12 @@
 """Different metrics to help using states patterns.
 
-A States pattern represent a discrete value, that changes
+A state is a discrete value, that can change
 during a time period.
-States represent a number of different states patterns.
-A States patterns array, is a numpy array containing the states patterns,
-and in demod it is by convention a n_patterns * n_times array.
+A state pattern records the value of the state over the time period.
+States represent a number of different states patterns on the same
+time period.
+In demod states are numpy arrays containing the states patterns,
+and is of shape n_patterns * n_times.
 """
 
 from demod.utils.sim_types import States, TPMs
@@ -23,14 +25,15 @@ def get_states_durations(states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         states: States patterns array
 
     Returns:
-        durations: a ndarray with the durations of each states
-        corresponding_states: a ndarray with the labels of the states
-            for each duration
+        * **durations**, a ndarray with the durations of each states
+        * **corresponding_states**, a ndarray with the labels of the states
+          for each duration
 
     .. note::
 
-        The order of the durations is not the real one, as the
-        unchanging states will be placed at the end.
+        The position of the durations in the returned
+        arrays does not correspond to how
+        they happened during time.
     """
     # find where the transitions between states occurs
     transitions_indices = np.where(states != np.roll(states, 1, axis=1))
@@ -83,7 +86,7 @@ def get_durations_by_states(states: np.ndarray) -> Dict[Any, np.ndarray]:
             The matrix of the states for the housholds at all the times
 
     Returns:
-        A dictionary where you can access by giving the state and
+        **durations_dict**, dictionary where you can access by giving the state and
         recieve an array containing
         all the durations for this state
     """
@@ -99,6 +102,9 @@ def get_durations_by_states(states: np.ndarray) -> Dict[Any, np.ndarray]:
 
 def count(array: np.ndarray) -> List[Tuple[Any, int]]:
     """Count the number of elements in the input array.
+
+    Usefull to have a quick view of the values present in
+    the array.
 
     Args:
         array: the input array to be counted
@@ -116,8 +122,8 @@ def graph_metrics(
     """Compute and return 4 graph metrics for given States patterns.
 
     These metrics are an attempt to implement graph metrics as proposed
-    by `McKenna et al (2020)
-    <https://doi.org/10.1016/j.erss.2020.101572>`_ .
+    by [McKenna2020]_. The following description of the metrics
+    comes from the paper.
 
 
     Args:
@@ -125,7 +131,37 @@ def graph_metrics(
             compute the graph metrics
 
     Returns:
-        network_size, network_density, centrality, homophily.
+        * **network_size**, Refers to the number of unique nodes in a network.
+          For states sequence networks the size describes the number of
+          unique observations of states and the time they occur at.
+          A larger network is one where more states were observed and
+          gives an indication of the diversity of states that occurred.
+        * **network_density**, The fraction of the total maximum number
+          of possible connections that are actually observed in the network.
+          Network density is calculated by counting the number of unique edges
+          observed in the network and dividing it by this maximum.
+          It is a measure of the diversity of sequences present in the network.
+          A denser network is one where there are more alternative pathways
+          between time periods by different people.
+        * **centrality**, Refers to how dominant certain pathways or nodes
+          are within a network. Central states nodes are those that are
+          highly connected to others. Central connections or edges are those
+          that appear in many individual sequences i.e. those with high
+          ‘weight’. There are multiple ways of calculating centrality,
+          here we use edge weight as a measure of (path) centrality and
+          compute the mean and standard deviation of the distribution
+          of edge weights for each network.
+        * **homophily**, Refers to the likelihood that a node is connected
+          to another node of the same type. Here this refers to when a state
+          in one time period is connected to the same state in an
+          adjacent time period. It is a measure of the extent to which
+          states tend to endure in unbroken lasting sequences.
+          A simple measure of homophily used here is the proportion of times
+          a state in one time period is followed by the same state
+          in the following time period.
+          This is calculated for each sequence and the mean of
+          the distribution is taken as the measure
+          of the homophily of the network.
     """
     # Transpose the states as we will work over time
     states = states.T
@@ -177,8 +213,11 @@ def graph_metrics(
 def sparsity(tpm: TPMs):
     """Return the proportion of 0 elements in the TPMs.
 
-    = 0. If all the elements are given
-    = 1. If the tpms are only 0
+    | = 0. If all the elements are given
+    | = 1. If the tpms are only 0
+
+    Args:
+        tpm: The transition probability matrices.
     """
     return 1. - (np.sum(tpm > 0) / np.prod(tpm.shape))
 
@@ -197,8 +236,17 @@ def average_state_metric(
     quality of the calibration of the simulation.
 
     It is defined as
-    :math:`\sum^{T}_{t=1} \frac{|P-P|}{T}`
-    where :math:`P` is the average number of subjects in state.
+
+    .. math::
+        A_{s} = \sum^{T}_{t=1} \frac{
+            |\overline{N}^{sim}_s(t)
+            - \overline{N}^{mes}_s(t)|
+        }{T}
+
+    where
+    :math:`\overline{N}_s(t)` are the average number of subjects in state
+    :math:`s`
+    at time :math:`t`.
 
     Two means of analysis are possible with this metric.
 
@@ -225,8 +273,8 @@ def average_state_metric(
             (n_times).
 
     Returns:
-        average_state_error: The average state error between
-            simulated_state and measured_state.
+        **average_state_error**, The average state error between
+        simulated_state and measured_state.
     """
     # Average the states at each time step
     average_sim_state = np.mean(simulated_state, axis=0)
@@ -250,14 +298,27 @@ def state_duration_distribution_metric(
 
     This is a generalization of the State duration distribution metric
     from [Flett2016]_ .
+    This metric is commonly known as the Earth Movers Distance:
+    a commonly used quantitative histogram similarity measure where
+    the bin values are not independent and cross-bin analysis is required.
 
     The ‘error’ is
     the sum ofthe absolute difference between the simulated and mesured
     data CDFs at each duration value for each state.
 
     It is defined as
-    :math:`\sum^{T}_{t=1} \frac{|Pd-Pd|}{T}`
-    where :math:`P` is the average number of subjects in state.
+
+    .. math::
+        DurDist_s =
+        \sum^{T}_{t=1} \frac{
+            |\sum^{t}_{d=1}\overline{P}^{sim}_s(d)
+            - \sum^{t}_{d=1}\overline{P}^{mes}_s(d)|
+        }{T}
+
+    where :math:`\overline{P}_s(d)` is the probability of a state duration of
+    :math:`d` for state :math:`s`.
+
+
 
     Note that this metric weights the same,
     erorrs in durations probs that are unlikely
@@ -282,8 +343,8 @@ def state_duration_distribution_metric(
             value.
 
     Returns:
-        average_state_error: The average state error between
-            simulated_state and measured_state.
+        duration_distribution, The state duration distribution
+        difference metric.
     """
     # Finds the durations of the states
     dur_dict_sim = get_durations_by_states(simulated_state)
@@ -319,12 +380,13 @@ def levenshtein_edit_distance(profile1: np.ndarray, profile2: np.ndarray):
 
     You can use this distance combined with
     :py:func:`demod.metrics.loads.profiles_similarity`
-    to compare many different profiles.
+    to compare many different profiles, by passing levenshtein_edit_distance
+    as an arg of profiles_similarity().
 
     .. warning::
 
         Currently this is only implemented if the profiles contains
-        integers ranging from 0 to 10 (not included).
+        single digit integers ranging from 0 to 10 (not included).
 
     .. warning::
 

@@ -3,11 +3,13 @@
 A load profile is an array with values equal to the power consumption
 at various times.
 Load profiles are by convention in demod arrays of size
-n_profiles * n_times.
+*n_profiles* * *n_times*. Where *n_profiles* is the number of load profiles
+and *n_times* is the number of observations during the time, usually
+with a constant step size.
 """
 
 import datetime
-from typing import Union
+from typing import Tuple, Union
 import numpy as np
 
 from scipy.spatial.distance import cdist, pdist
@@ -29,7 +31,7 @@ def total_energy_consumed(
             Defaults to datetime.timedelta(minutes=1).
 
     Returns:
-        total_energy, The total energy that was consumed in the load
+        **total_energy**, The total energy that was consumed in the load
         profiles (shape = n_profiles).
     """
     return np.sum(load_profiles, axis=-1) * step_size.total_seconds()
@@ -46,7 +48,7 @@ def profiles_similarity(
     `scipy.cdist
     <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html#scipy.spatial.distance.cdist>`_
     to compute the distances.
-    Any keyword argument given to this function will be
+    Any args, or kwargs given to this function will be
     passed to the scipy function.
 
     Args:
@@ -56,7 +58,7 @@ def profiles_similarity(
             array of shape = (n_profiles_target, n_times)
 
     Return:
-        similarity_metric, The similarity between the profiles, as an
+        **similarity_metric**, The similarity between the profiles, as an
         array of shape = (n_profiles_sim, n_profiles_target)
         where element[i,j] is the comparison of the i-eth simulated
         profile with the j-eth target profile.
@@ -86,10 +88,10 @@ def profiles_variety(
             the distance from each profile to every other
 
     Return:
-        similarity_metric, The similarity between the profiles, as an
-        array of shape = (n_profiles_sim, n_profiles_target)
-        where element[i,j] is the comparison of the i-eth simulated
-        profile with the j-eth target profile.
+        **variety_metric**, The variety between the profiles, as an
+        array of Shape = (n_profiles, n_profiles)
+        where element[i,j] is the comparison of the i-eth
+        profile with the j-eth profile.
 
     """
     distances = pdist(profiles, *args, **kwargs)
@@ -103,6 +105,9 @@ def diversity_factor(profiles: np.ndarray):
     non-coincident maximum loads
     to the maximum demand of the aggregated loads.
     `More on wiki <https://en.wikipedia.org/wiki/Diversity_factor>`_ .
+
+    Args:
+        profiles: The load profiles. Shape = (n_profiles, n_times).
     """
     max_loads = np.max(profiles, axis=1)
     aggregated_loads = np.sum(profiles, axis=0)
@@ -114,6 +119,9 @@ def coincidence_factor(profiles: np.ndarray):
 
     The simultaneity factor is  the inverse of the
     :py:func:`.diversity_factor`.
+
+    Args:
+        profiles: The load profiles. Shape = (n_profiles, n_times).
     """
     return 1. / diversity_factor(profiles)
 
@@ -123,6 +131,9 @@ def simultaneity_factor(profiles: np.ndarray):
 
     The simultaneity factor is the same as the coincidence factor.
     :py:func:`.coincidence_factor`.
+
+    Args:
+        profiles: The load profiles. Shape = (n_profiles, n_times).
     """
     return coincidence_factor(profiles)
 
@@ -132,7 +143,7 @@ def cumulative_changes_in_demand(
     bins: int = 100,
     normalize: bool = True,
     bin_edges: np.ndarray = None
-) -> np.ndarray:
+) -> Tuple[np.ndarray, np.ndarray]:
     """Return the distribution of the changed in demand.
 
     Can be used as a measure of the 'spikiness' or 'volatility' of the loads.
@@ -145,16 +156,16 @@ def cumulative_changes_in_demand(
             distribution.
         normalize: Whether to normalize the demand by the maximum demand.
         bin_edges: If specified, these edges will be used instead.
-            When using this, make sure :py:obj:`normalize` corresonds
-            to the edges that you use.
+            When using this, make sure that if
+            kwarg :py:obj:`normalize` is True, the edges scale from 0 to 1.
 
     Returns:
-        cdf, array with the  values of the histogram.
-        bin_edges: array of dtype float
-            Return the bin edges (length(hist)+1).
+        * **cdf**, array with the  values of the histogram.
+          The value of cdf[i] corespond to the values between bin_edges[i] and
+          bin_edges[i+1].
+        * **bin_edges**, array of dtype float
+          Return the bin edges (length(hist)+1).
 
-    The value of cdf[i] corespond to the values between bin_edges[i] and
-    bin_edges[i+1].
     """
     # Take the absolute changes and remove the last change
     changes = np.abs(profiles - np.roll(profiles, -1, axis=1))[:, :-1]
@@ -191,7 +202,7 @@ def cumulative_changes_in_demand(
     return np.cumsum(hist/np.sum(hist)), bin_edges
 
 
-def time_coincident_demand(profiles: np.ndarray):
+def time_coincident_demand(profiles: np.ndarray) -> float:
     """Return the time coincident demand for the given profiles.
 
     The maximum demand per household during the whole time.
@@ -199,7 +210,7 @@ def time_coincident_demand(profiles: np.ndarray):
     For large number of profiles, this metric is equal to
     the *after diversity maximum demand* (ADMD) , as it is
     is "the maximum demand, per customer, as the number of
-    customers connected to the network approaches infinity." [McQueen2004]
+    customers connected to the network approaches infinity." [McQueen2004]_
 
     Args:
         profiles: The load profiles which are used to compute
@@ -211,12 +222,16 @@ def time_coincident_demand(profiles: np.ndarray):
 def load_duration(
     profiles: np.ndarray,
     loads: np.ndarray = None
-):
+) -> Tuple[np.ndarray, np.ndarray] :
     """Compute the load duration of the given profiles.
 
     The outputs can be used to build the
     `load duration curve <https://en.wikipedia.org/wiki/Load_duration_curve>`_
     .
+
+    *n_loads*, the number of load thresholds returned  is either
+    given by :py:obj:`loads`
+    or by the number of unique loads in profiles
 
     Args:
         profiles: The load profiles which are used to compute
@@ -224,13 +239,10 @@ def load_duration(
         loads: The different loads thresholds at which the durations
             should be computed. size=n_loads
 
-    The number of loads return n_loads is either given by :py:obj:`loads`
-    or by the number of unique loads in profiles
-
     Returns:
-        loads: Array of the loads (sorted), size = (n_loads)
-        durations: The durations correponding to the loads (in steps).
-            size = (n_profiles, n_loads)
+        * **loads**, Array of the loads (sorted), size = (n_loads)
+        * **durations**, The durations correponding to the loads (in steps).
+          size = (n_profiles, n_loads)
     """
     if loads is None:
         loads = np.sort(np.unique(profiles))
