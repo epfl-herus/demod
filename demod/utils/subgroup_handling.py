@@ -241,7 +241,13 @@ def subgroup_households_to_persons(
 
     else:
         # Assume they are all the same
+        warnings.warn((
+            'subgroup_households_to_persons() is cannot convert hh subgroup'
+            ' {} to person subgroup. It creates residents with the'
+            ' from the same subgroup. '
+        ).format(hh_subgroup))
         return [hh_subgroup for _ in range(n_residents)]
+
 
 def add_time(
     subgroup: Subgroup, desired_datetime: datetime.datetime,
