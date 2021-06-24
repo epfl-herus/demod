@@ -824,7 +824,7 @@ GTOU_label_to_Bottaccioli_act = {
     759 : 'other',
     761 : 'other',
     762 : 'other',
-    763 : 'computer',
+    763 : 'electronics',
     769 : 'other',
     790 : 'other',
     811 : 'other',
@@ -1569,13 +1569,8 @@ def states_to_occupancy(primary_states, secondary_states, initial_occupancy, fin
 
     for i, (prim_state, sec_state, home_rating) in enumerate(zip(primary_states.T, secondary_states.T, home_ratings.T)):
 
-
-
         # only update the new states after a travel has been done
         mask_travelling = is_transportation(prim_state) | is_transportation(sec_state) # travelling is occurring
-
-
-
 
         # people who leave are not there anymore
         mask_leave = ~mask_was_travelling & mask_travelling
