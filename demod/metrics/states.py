@@ -1,13 +1,16 @@
 """Different metrics to help using states patterns.
 
-A States pattern represent a discrete value, that changes
+A state is a discrete value, that can change
 during a time period.
-States represent a number of different states patterns.
-A States patterns array, is a numpy array containing the states patterns,
-and in demod it is by convention a n_patterns * n_times array.
+A state pattern records the value of the state over the time period.
+States represent a number of different states patterns on the same
+time period.
+In demod states are numpy arrays containing the states patterns,
+and is of shape n_patterns * n_times.
 """
 
-from typing import Any, Dict, List, Tuple
+from demod.utils.sim_types import States, TPMs
+from typing import Any, Dict, List, Tuple, Union
 import numpy as np
 
 
@@ -22,13 +25,15 @@ def get_states_durations(states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         states: States patterns array
 
     Returns:
-        durations : a ndarray with the durations of each states
-        corresponding_states : a ndarray with the labels of the states
-            for each duration
+        * **durations**, a ndarray with the durations of each states
+        * **corresponding_states**, a ndarray with the labels of the states
+          for each duration
 
-    Note:
-        The order of the durations is not the real one, as the
-        unchanging states will be placed at the end.
+    .. note::
+
+        The position of the durations in the returned
+        arrays does not correspond to how
+        they happened during time.
     """
     # find where the transitions between states occurs
     transitions_indices = np.where(states != np.roll(states, 1, axis=1))
@@ -39,7 +44,7 @@ def get_states_durations(states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     # find in the indices the start and end of each household
     indices_first_household = np.where(
         household_indices != np.roll(household_indices, 1)
-    )[0]
+    )[0] if len(np.unique(household_indices)) > 1 else np.array([0], dtype=int)
     indices_last_household = np.roll(indices_first_household - 1, -1)
 
     # calculate the durations
@@ -70,7 +75,7 @@ def get_states_durations(states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         (corresponding_states, states[no_transition_households, 0])
     )
 
-    return durations, corresponding_states
+    return np.array(durations, dtype=int), corresponding_states
 
 
 def get_durations_by_states(states: np.ndarray) -> Dict[Any, np.ndarray]:
@@ -81,7 +86,7 @@ def get_durations_by_states(states: np.ndarray) -> Dict[Any, np.ndarray]:
             The matrix of the states for the housholds at all the times
 
     Returns:
-        A dictionary where you can access by giving the state and
+        **durations_dict**, dictionary where you can access by giving the state and
         recieve an array containing
         all the durations for this state
     """
@@ -97,6 +102,9 @@ def get_durations_by_states(states: np.ndarray) -> Dict[Any, np.ndarray]:
 
 def count(array: np.ndarray) -> List[Tuple[Any, int]]:
     """Count the number of elements in the input array.
+
+    Usefull to have a quick view of the values present in
+    the array.
 
     Args:
         array: the input array to be counted
@@ -114,8 +122,8 @@ def graph_metrics(
     """Compute and return 4 graph metrics for given States patterns.
 
     These metrics are an attempt to implement graph metrics as proposed
-    by `McKenna et al (2020)
-    <https://doi.org/10.1016/j.erss.2020.101572>`_ .
+    by [McKenna2020]_. The following description of the metrics
+    comes from the paper.
 
 
     Args:
@@ -123,7 +131,37 @@ def graph_metrics(
             compute the graph metrics
 
     Returns:
-        network_size, network_density, centrality, homophily.
+        * **network_size**, Refers to the number of unique nodes in a network.
+          For states sequence networks the size describes the number of
+          unique observations of states and the time they occur at.
+          A larger network is one where more states were observed and
+          gives an indication of the diversity of states that occurred.
+        * **network_density**, The fraction of the total maximum number
+          of possible connections that are actually observed in the network.
+          Network density is calculated by counting the number of unique edges
+          observed in the network and dividing it by this maximum.
+          It is a measure of the diversity of sequences present in the network.
+          A denser network is one where there are more alternative pathways
+          between time periods by different people.
+        * **centrality**, Refers to how dominant certain pathways or nodes
+          are within a network. Central states nodes are those that are
+          highly connected to others. Central connections or edges are those
+          that appear in many individual sequences i.e. those with high
+          ‘weight’. There are multiple ways of calculating centrality,
+          here we use edge weight as a measure of (path) centrality and
+          compute the mean and standard deviation of the distribution
+          of edge weights for each network.
+        * **homophily**, Refers to the likelihood that a node is connected
+          to another node of the same type. Here this refers to when a state
+          in one time period is connected to the same state in an
+          adjacent time period. It is a measure of the extent to which
+          states tend to endure in unbroken lasting sequences.
+          A simple measure of homophily used here is the proportion of times
+          a state in one time period is followed by the same state
+          in the following time period.
+          This is calculated for each sequence and the mean of
+          the distribution is taken as the measure
+          of the homophily of the network.
     """
     # Transpose the states as we will work over time
     states = states.T
@@ -170,3 +208,232 @@ def graph_metrics(
     )
 
     return network_size, network_density, centrality, homophily
+
+
+def sparsity(tpm: TPMs):
+    """Return the proportion of 0 elements in the TPMs.
+
+    | = 0. If all the elements are given
+    | = 1. If the tpms are only 0
+
+    Args:
+        tpm: The transition probability matrices.
+    """
+    return 1. - (np.sum(tpm > 0) / np.prod(tpm.shape))
+
+
+def average_state_metric(
+    simulated_state: States, measured_state: States,
+    average_over_timestep: bool = True,
+) -> Union[List[float], float]:
+    r"""Determine the average per time step state error.
+
+    This is a generalization of the Average occupancy metric
+    from [Flett2016]_ .
+
+    It determines the average per time step state error between
+    simulated data and real data from the TOU surveys, quantifying the
+    quality of the calibration of the simulation.
+
+    It is defined as
+
+    .. math::
+        A_{s} = \sum^{T}_{t=1} \frac{
+            |\overline{N}^{sim}_s(t)
+            - \overline{N}^{mes}_s(t)|
+        }{T}
+
+    where
+    :math:`\overline{N}_s(t)` are the average number of subjects in state
+    :math:`s`
+    at time :math:`t`.
+
+    Two means of analysis are possible with this metric.
+
+        1. It can be used to calculate the prediction for the average
+           per time step results of multiple profiles generated using the
+           model. This determines how effectively the model converges to
+           the population average.
+        2. It can be used to calculate the prediction error for each
+           individual profile. The mean of this error can be used to
+           determine how effectively individual profiles replicate
+           the input data.
+
+    Args:
+        simulated_state: The state that have been simulated.
+            Array of shape = (n_subjects/n_households, n_times).
+            The value should be the number of person performing
+            the states at each time of the diaries.
+        measured_state: The state that where measured.
+            Same array as simulated_state.
+            n_times must be the same as simulated_state, but
+            n_subjects/n_households can be different.
+        average_over_timestep: whether to average the result over the
+            time steps. If false, will return an array of shape =
+            (n_times).
+
+    Returns:
+        **average_state_error**, The average state error between
+        simulated_state and measured_state.
+    """
+    # Average the states at each time step
+    average_sim_state = np.mean(simulated_state, axis=0)
+    average_mes_state = np.mean(measured_state, axis=0)
+
+    # Compute the abolute error between sim and measured
+    average_errors = np.abs(average_sim_state-average_mes_state)
+
+    # Chooses the return
+    if average_over_timestep:
+        return np.mean(average_errors)
+    else:
+        return average_errors
+
+
+def state_duration_distribution_metric(
+    simulated_state: States, measured_state: States,
+    average_over_timestep: bool = True,
+) -> Dict[Any, Union[List[float], float]]:
+    r"""Compare the difference in state durations.
+
+    This is a generalization of the State duration distribution metric
+    from [Flett2016]_ .
+    This metric is commonly known as the Earth Movers Distance:
+    a commonly used quantitative histogram similarity measure where
+    the bin values are not independent and cross-bin analysis is required.
+
+    The ‘error’ is
+    the sum ofthe absolute difference between the simulated and mesured
+    data CDFs at each duration value for each state.
+
+    It is defined as
+
+    .. math::
+        DurDist_s =
+        \sum^{T}_{t=1} \frac{
+            |\sum^{t}_{d=1}\overline{P}^{sim}_s(d)
+            - \sum^{t}_{d=1}\overline{P}^{mes}_s(d)|
+        }{T}
+
+    where :math:`\overline{P}_s(d)` is the probability of a state duration of
+    :math:`d` for state :math:`s`.
+
+
+
+    Note that this metric weights the same,
+    erorrs in durations probs that are unlikely
+    to happen as errors in duration probs that are very likely.
+
+    It could be nice to do a weighted average instead, that uses
+    the weight according to the pdf ?
+
+
+    Args:
+        simulated_state: The state that have been simulated.
+            Array of shape = (n_subjects/n_households, n_times).
+            The value should be the number of person performing
+            the states at each time of the diaries.
+        measured_state: The state that where measured.
+            Same array as simulated_state.
+            n_times must be the same as simulated_state, but
+            n_subjects/n_households can be different.
+        average_over_timestep: whether to average the cdf over the
+            time steps. If false, will return an array of shape =
+            (n_times) being the absolute difference of each cdf
+            value.
+
+    Returns:
+        duration_distribution, The state duration distribution
+        difference metric.
+    """
+    # Finds the durations of the states
+    dur_dict_sim = get_durations_by_states(simulated_state)
+    dur_dict_mes = get_durations_by_states(measured_state)
+
+    n_times = measured_state.shape[1]
+
+    dic_out = {}
+    # Each state is handled separately
+    for state in set((*dur_dict_sim.keys(), *dur_dict_mes.keys())):
+        # Finds the cdf of the duration for that state
+        cdf_sim = np.cumsum(
+            np.bincount(dur_dict_sim[state], minlength=n_times + 1)
+            / len(dur_dict_sim[state])
+        )
+        cdf_mes = np.cumsum(
+            np.bincount(dur_dict_mes[state], minlength=n_times + 1)
+            / len(dur_dict_mes[state])
+        )
+        # Error between cdfs
+        err = np.abs(cdf_sim - cdf_mes)
+        # Adds this state to the outputs
+        dic_out[state] = (np.mean(err) if average_over_timestep else err)
+
+    return dic_out
+
+
+def levenshtein_edit_distance(profile1: np.ndarray, profile2: np.ndarray):
+    """Compute the Levenshtein Edit Distance Method (LEDM) between 2 profiles.
+
+    Can be used to compare the similarity between two discrete profiles,
+    as suggested by [Flett2016]_ .
+
+    You can use this distance combined with
+    :py:func:`demod.metrics.loads.profiles_similarity`
+    to compare many different profiles, by passing levenshtein_edit_distance
+    as an arg of profiles_similarity().
+
+    .. warning::
+
+        Currently this is only implemented if the profiles contains
+        single digit integers ranging from 0 to 10 (not included).
+
+    .. warning::
+
+        Requires an extra library to be installed
+        `<https://pypi.org/project/python-Levenshtein/>`_
+
+    Args:
+        profile1, profile2: Two profiles given as arrays of size 1.
+            They must be integers.
+
+    Following description comes from [Flett2016]_
+
+    This LEDM method is used to quantify the dissimilarity between
+    two strings by quantifying the measures needed to transform one
+    into the other. In the LEDM a ‘cost’ of 1 is assigned for each edit
+    (insertions, deletions, and replacements) required in the trans-
+    formation. For example, transforming 110111 to 001011 would
+    require a minimum edit of a replacement of the first digit, deletion
+    of the second, and insertion of the last digit – a total cost of 3.
+    The
+    approach can therefore be applied when comparing two numerical
+    profiles. When two profiles are compared, for clarity,the total ‘cost’
+    is converted from a per-time step to an hour equivalent by dividing
+    the result by the number of time steps per hour.
+    The metric can be used in two ways.
+
+    1. It can be used to compare the output profiles with the input
+       dataset. The smallest cost per profile, representative of the closest
+       match, is determined and an average calculated across all mod-
+       elled days. This is a measure of the average similarity between
+       generated profiles and the closest real profile.
+
+    2. Each profile in either the input dataset or model output
+       dataset can be compared with other profiles in the same dataset
+       quantifying the behavioural similarity within and between each
+       dataset.
+    """
+    try:
+        from Levenshtein import distance
+    except ImportError as imp_err:
+        raise ImportError(
+            'You need to import Levenshtein distance module: \n'
+            'pip install python-Levenshtein'
+        ) from imp_err
+
+    # Convert the arrays to strings
+    return distance(
+        ''.join(profile1.astype(str)),
+        ''.join(profile2.astype(str)),
+    )
