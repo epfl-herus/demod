@@ -142,8 +142,8 @@ by calling the children method
 
 
 We recommend that you check the example files available at
-`<https://github.com/epfl-herus/mosaik-demod/blob/master/demo.py>`_
+`demo.py <https://github.com/epfl-herus/mosaik-demod/blob/master/demo.py>`_
 and
-`<https://github.com/epfl-herus/mosaik-demod/blob/master/simulator_mosaik_modular.py>`_
+`simulator_mosaik_modular.py <https://github.com/epfl-herus/mosaik-demod/blob/master/simulator_mosaik_modular.py>`_
 .
 
