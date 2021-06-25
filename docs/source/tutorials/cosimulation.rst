@@ -21,13 +21,13 @@ The following instructions explain how to install the mosaik-demod
 adapters and how to incorporate demod simulator into mosaik.
 
 
-0. Install mosaik-demod ::
+1. Install the python library providing the adaptors ::
 
     pip install mosaikdemod
 
 
 
-1. Import the abstract adapter.
+2. Import the abstract adapter.
 If the demod simulator simulates various households,
 use the Household module.
 For a single value simulated (ex. climate), use The SingleValue module.
