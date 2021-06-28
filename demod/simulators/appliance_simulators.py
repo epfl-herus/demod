@@ -1930,5 +1930,6 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         Useful for delaying appliance use to a specific hour,
         or to model a waiting time, between two correlated appliance use
         (ex. washing machine and dryer)
+        TODO: *IMPLEMENTED IN A NEXT RELEASE*
         """
         raise NotImplementedError()
