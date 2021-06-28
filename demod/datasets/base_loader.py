@@ -3,10 +3,8 @@ from __future__ import annotations
 from datetime import timedelta
 import datetime
 import inspect
-from os.path import isfile
 from ..utils.parse_helpers import lists_to_numpy_array, make_jsonable
 from ..utils.sim_types import AppliancesDict, StateLabels, Subgroup, Subgroups, TPM, TPMs
-from ..utils.appliances import get_ownership_from_dict
 from ..utils.subgroup_handling import subgroup_string
 
 import os
@@ -21,6 +19,7 @@ import pandas as pd
 
 
 DATASET_PATH = os.path.dirname(__file__)
+GITHUB_REPO_URL = 'https://github.com/epfl-herus/demod/tree/main/demod'
 
 
 class DatasetLoader:
