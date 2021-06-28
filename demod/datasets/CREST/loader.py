@@ -5,8 +5,10 @@ Loads data from the crest spreadsheet.
 
 from datetime import time, timedelta
 from sys import version
+import shutil
 import warnings
 import os
+from urllib import request
 from typing import Any, List, Tuple, Dict, Union
 
 import pandas as pd
@@ -47,6 +49,11 @@ from ...utils.error_messages import (
 )
 
 
+DOWNLOAD_URL_BY_VERSION = {
+    '2.2': 'https://repository.lboro.ac.uk/ndownloader/files/4969096',
+    '2.3.3': 'https://repository.lboro.ac.uk/ndownloader/files/22693271',
+}
+
 class Crest(
     ApplianceLoader, LoaderTOU, ClimateLoader, LightingLoader,
     PopulationLoader, HeatingLoader
@@ -84,6 +91,17 @@ class Crest(
 
         raw_file_name = "CREST_Demand_Model_v" + version + ".xlsm"
         self.raw_file_path = os.path.join(self.raw_path, raw_file_name)
+
+        if version not in DOWNLOAD_URL_BY_VERSION:
+            raise ValueError('Unkonw Version {} of CREST.'.format(version))
+
+        # Downloads the raw file if it does not exist
+        if not os.path.isfile(self.raw_file_path):
+            # Reads the url and  download the
+            print('Downloading CREST Model to : {}'.format(self.raw_file_path))
+            with request.urlopen(DOWNLOAD_URL_BY_VERSION[version]) as response:
+                with open(self.raw_file_path, 'wb') as f:
+                    shutil.copyfileobj(response, f)
 
     def load_population_subgroups(
         self, population_type: str = "crest",
