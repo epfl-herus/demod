@@ -1570,7 +1570,7 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         self._assign_dictated_start()
 
         # Assign the switchon probabilities of the appliances
-        self.switch_on_probs = self._sample_switch_on_probs()
+        self.switch_on_probs = self.sample_switch_on_probs()
 
         self.initialize_starting_state(initial_activities_dict, **kwargs)
 
@@ -1613,13 +1613,38 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
 
         return new_dic
 
-    def _sample_switch_on_probs(self) -> np.ndarray:
+    def sample_switch_on_probs(
+        self, target_algo: str = 'switchon_events'
+    ) -> np.ndarray:
+        """Samples the probability of switch on events.
+
+        All the above methods use the expected number of steps where
+        a switch on event can occur to determine when probabilities,
+        using
+        :py:meth:`~demod.datasets.tou_loader.LoaderTOU.load_activity_probabilities`
+        .
+
+        Args:
+            target_algo: The target algo to use.
+                Will define the method used to sample the switchon
+                pobabilities.
+                The targets are defined over the year.
+                * *switchon_events*, The target number of switch on
+                  events.
+                * *consumption*, The target consumption of each appliance.
+                  Will use the consumption of the appliances to compute
+                  the probability of switch on.
+                  *NOT IMPLEMENTED YET*
+                * *duration*, The target time that the appliances are
+                  expected to be switched on.
+                  *NOT IMPLEMENTED YET*
+        """
         # Sample the probability of a switch on event is occuring
         probs = np.zeros_like(self.available_appliances, dtype=float)
 
         # For each subgroup, finds the target of consumption
         for i, subgroup in enumerate(self.subgroups_list):
-            n_residents =  (
+            n_residents = (
                 # Choose an average value if it was not specified
                 2.3 if 'n_residents' not in subgroup
                 else subgroup['n_residents']
@@ -1663,6 +1688,15 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
                 n_possible_steps = (
                     365.25 * 24 * 60 * 60 / self.step_size.total_seconds()
                 ) * np.mean(act_prob)  # Only steps of this activity
+                steps_where_app_is_used = (
+                    self.appliances['mean_duration'][mask_this_act]
+                    * target_switchons[mask_this_act]
+                )
+                n_possible_steps = np.clip(
+                    n_possible_steps - steps_where_app_is_used,
+                    1, None  # Make sure that n_possible_steps is not 0 or < 0
+                )
+
                 # Assign the probabilities at the rigth places
                 probs[
                     mask_hh_subgroup[:, np.newaxis]
@@ -1672,7 +1706,8 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
                     (sum(mask_hh_subgroup), sum(mask_this_act))
                 ).reshape(-1)
 
-                # special probs for one time probs
+                # special probs for one time probs #
+                ####################################
                 # After activity stops
                 mask_start_after_act = (
                     self.appliances['previous_activity'] == activity
