@@ -42,6 +42,7 @@ You can install demod folder from our github repository
 
 You will also need to install some libraries as requirements for
 developping.
+To do so, you can run the following line from the root of the github repository.
 
 .. code-block::
 
