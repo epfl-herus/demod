@@ -33,6 +33,7 @@ PDF = np.ndarray
 CDF = np.ndarray
 
 # Variables
+ActivitiesDict = Dict[str, np.ndarray]
 AppliancesDict = Dict[str, np.ndarray]
 Temperatures = Dict[str, np.ndarray]
 ThermostatsStates = Dict[str, np.ndarray]

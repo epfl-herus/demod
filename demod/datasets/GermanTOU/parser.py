@@ -13,7 +13,7 @@ from ...utils.parse_helpers import (
     get_initial_durations_pdfs,
     states_to_tpms,
     states_to_tpms_with_durations,
-    states_to_transitions
+    states_to_transitions,
 )
 
 MAX_PEOPLE_HOUSEHOLD = 6 + 1  # always need to get one above the real max pple
@@ -715,124 +715,124 @@ GTOU_label_to_energy_activity = {
 
 # convert to activity names to this paper https://ieeexplore.ieee.org/document/8573766
 GTOU_label_to_Bottaccioli_act = {
-    0 : '-',
+    0 : 'other',
     110 : 'sleeping',
-    120 : '-',
+    120 : 'other',
     131 : 'self_washing',
-    132 : '-',
-    139 : '-',
-    210 : '-',
-    220 : '-',
-    230 : '-',
-    241 : '-',
-    242 : '-',
-    243 : '-',
-    244 : '-',
-    245 : '-',
-    249 : '-',
-    311 : '-',
-    312 : '-',
-    313 : '-',
-    314 : '-',
-    315 : '-',
-    317 : '-',
-    319 : '-',
-    321 : '-',
-    329 : '-',
-    330 : '-',
-    341 : '-',
-    349 : '-',
+    132 : 'other',
+    139 : 'other',
+    210 : 'other',
+    220 : 'other',
+    230 : 'other',
+    241 : 'other',
+    242 : 'other',
+    243 : 'other',
+    244 : 'other',
+    245 : 'other',
+    249 : 'other',
+    311 : 'other',
+    312 : 'other',
+    313 : 'other',
+    314 : 'other',
+    315 : 'other',
+    317 : 'other',
+    319 : 'other',
+    321 : 'other',
+    329 : 'other',
+    330 : 'other',
+    341 : 'other',
+    349 : 'other',
     353 : 'studying',
     354 : 'studying',
-    361 : '-',
-    362 : '-',
-    363 : '-',
-    364 : '-',
-    369 : '-',
+    361 : 'other',
+    362 : 'other',
+    363 : 'other',
+    364 : 'other',
+    369 : 'other',
     411 : 'cooking',
-    413 : 'cooking',
+    413 : 'dishwashing',
     412 : 'cooking',
     414 : 'cooking',
     419 : 'cooking',
     421 : 'cleaning',
     422 : 'cleaning',
-    423 : '-',
-    429 : '-',
+    423 : 'other',
+    429 : 'other',
     431 : 'laundry',
     432 : 'ironing',
-    433 : '-',
-    434 : '-',
-    439 : '-',
-    441 : '-',
-    442 : '-',
-    443 : '-',
-    444 : '-',
-    445 : '-',
-    446 : '-',
-    449 : '-',
-    451 : '-',
-    452 : '-',
-    453 : '-',
-    454 : '-',
-    455 : '-',
-    459 : '-',
-    461 : '-',
-    464 : '-',
-    465 : '-',
-    466 : '-',
-    469 : '-',
-    471 : '-',
-    472 : '-',
-    473 : '-',
-    474 : '-',
-    475 : '-',
-    476 : '-',
-    479 : '-',
-    480 : '-',
-    491 : '-',
-    492 : '-',
-    499 : '-',
-    510 : '-',
-    520 : '-',
-    531 : '-',
-    532 : '-',
-    539 : '-',
-    611 : '-',
-    612 : '-',
-    621 : '-',
-    622 : '-',
-    623 : '-',
-    624 : '-',
-    625 : '-',
-    626 : '-',
-    627 : '-',
-    629 : '-',
-    630 : '-',
-    641 : '-',
-    642 : '-',
-    649 : '-',
-    711 : '-',
-    712 : '-',
-    713 : '-',
-    715 : '-',
-    716 : '-',
-    717 : '-',
-    719 : '-',
-    730 : '-',
-    740 : '-',
-    752 : '-',
-    759 : '-',
-    761 : '-',
-    762 : '-',
-    763 : 'computer',
-    769 : '-',
-    790 : '-',
-    811 : '-',
-    812 : '-',
-    813 : '-',
-    814 : '-',
-    815 : '-',
-    819 : '-',
+    433 : 'other',
+    434 : 'other',
+    439 : 'other',
+    441 : 'other',
+    442 : 'other',
+    443 : 'other',
+    444 : 'other',
+    445 : 'other',
+    446 : 'other',
+    449 : 'other',
+    451 : 'other',
+    452 : 'other',
+    453 : 'other',
+    454 : 'other',
+    455 : 'other',
+    459 : 'other',
+    461 : 'other',
+    464 : 'other',
+    465 : 'other',
+    466 : 'other',
+    469 : 'other',
+    471 : 'other',
+    472 : 'other',
+    473 : 'other',
+    474 : 'other',
+    475 : 'other',
+    476 : 'other',
+    479 : 'other',
+    480 : 'other',
+    491 : 'other',
+    492 : 'other',
+    499 : 'other',
+    510 : 'other',
+    520 : 'other',
+    531 : 'other',
+    532 : 'other',
+    539 : 'other',
+    611 : 'other',
+    612 : 'other',
+    621 : 'other',
+    622 : 'other',
+    623 : 'other',
+    624 : 'other',
+    625 : 'other',
+    626 : 'other',
+    627 : 'other',
+    629 : 'other',
+    630 : 'other',
+    641 : 'other',
+    642 : 'other',
+    649 : 'other',
+    711 : 'other',
+    712 : 'other',
+    713 : 'other',
+    715 : 'other',
+    716 : 'other',
+    717 : 'other',
+    719 : 'other',
+    730 : 'other',
+    740 : 'other',
+    752 : 'other',
+    759 : 'other',
+    761 : 'other',
+    762 : 'other',
+    763 : 'electronics',
+    769 : 'other',
+    790 : 'other',
+    811 : 'other',
+    812 : 'other',
+    813 : 'other',
+    814 : 'other',
+    815 : 'other',
+    819 : 'other',
     820 : 'watching_tv',
     830 : 'music',
     841 : 'electronics',
@@ -840,33 +840,33 @@ GTOU_label_to_Bottaccioli_act = {
     843 : 'electronics',
     844 : 'electronics',
     849 : 'electronics',
-    921 : '-',
-    922 : '-',
-    923 : '-',
-    929 : '-',
-    931 : '-',
-    934 : '-',
-    939 : '-',
-    941 : '-',
-    945 : '-',
-    946 : '-',
-    947 : '-',
-    948 : '-',
-    949 : '-',
-    951 : '-',
-    952 : '-',
-    953 : '-',
-    959 : '-',
-    961 : '-',
-    962 : '-',
-    969 : '-',
-    970 : '-',
-    980 : '-',
-    991 : '-',
-    992 : '-',
-    997 : '-',
-    998 : '-',
-    999 : '-'
+    921 : 'other',
+    922 : 'other',
+    923 : 'other',
+    929 : 'other',
+    931 : 'other',
+    934 : 'other',
+    939 : 'other',
+    941 : 'other',
+    945 : 'other',
+    946 : 'other',
+    947 : 'other',
+    948 : 'other',
+    949 : 'other',
+    951 : 'other',
+    952 : 'other',
+    953 : 'other',
+    959 : 'other',
+    961 : 'other',
+    962 : 'other',
+    969 : 'other',
+    970 : 'other',
+    980 : 'other',
+    991 : 'other',
+    992 : 'other',
+    997 : 'other',
+    998 : 'other',
+    999 : 'other'
 }
 # convert to activity names to the CREST consuming activities
 GTOU_label_to_CREST_act = {
@@ -1569,13 +1569,8 @@ def states_to_occupancy(primary_states, secondary_states, initial_occupancy, fin
 
     for i, (prim_state, sec_state, home_rating) in enumerate(zip(primary_states.T, secondary_states.T, home_ratings.T)):
 
-
-
         # only update the new states after a travel has been done
         mask_travelling = is_transportation(prim_state) | is_transportation(sec_state) # travelling is occurring
-
-
-
 
         # people who leave are not there anymore
         mask_leave = ~mask_was_travelling & mask_travelling
@@ -1740,6 +1735,7 @@ def get_tpms_activity(
     first_tpm_modification_algo='nothing',
     add_away_state=True,
     add_durations=False,
+    use_sec_states=True,
 ):
     """Get the tpms of a desired activity dictionray.
 
@@ -1747,6 +1743,9 @@ def get_tpms_activity(
         add_away_state:
             Wether to replace the states by 'away' when there is
             no one.
+        use_sec_states:
+            Wheter to use secondary states as well, to replace
+            the 'other' activity when a secondary state is not other
 
     Does NOT group by households.
     """
@@ -1763,6 +1762,25 @@ def get_tpms_activity(
     states, states_label = convert_states(raw_states, activity_dict)
 
     states_label[states_label=='-'] = 'other'
+
+    if use_sec_states:
+        # Gets the secondary states
+        raw_sec_states = primary_states[mask_subgroup]
+        sec_states, sec_states_label = convert_states(
+            raw_sec_states, activity_dict
+        )
+        sec_states_label[sec_states_label=='-'] = 'other'
+        # Find where to replace
+        mask_can_replace = (
+            (states_label[states] == 'other')
+            & (sec_states_label[sec_states] != 'other')
+        )
+        # Recontruct a states array with the secondary states
+        raw_act_array = states_label[states]
+        raw_act_array[mask_can_replace] = sec_states_label[sec_states][mask_can_replace]
+        # Finds back in states format
+        states, states_label = convert_states(raw_act_array)
+
 
     # Adds missing activities from dict to states labels
     all_activities = np.array(list(activity_dict.values()))
@@ -1999,5 +2017,3 @@ def create_data_activity_profile(
             out_dict[demod_act][:, n_occ] = prob_at_least_one_occ_perfoming_act
 
     return out_dict
-
-

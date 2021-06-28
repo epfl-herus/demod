@@ -306,12 +306,12 @@ class SemiMarkovSimulator(MarkovChain1rstOrder):
 
 
     Attributes:
-        n_subjects : int
+        n_subjects:
             The number of subjects to be simulated.
-        n_states : int
+        n_states:
             The number of states availables.
-        current_states : ndarray(int)
-            The current states
+        current_states:
+            The current states, array of integers.
     """
 
     _use_previous_state_for_duration_flag: bool
@@ -378,6 +378,8 @@ class SemiMarkovSimulator(MarkovChain1rstOrder):
                 An array containing the pdf of the times left
                 at the start for each states.
                 Shape = (n_states, n_times)
+            start_time_step:
+                The number of step to perform during intialization.
             checkcdf:
                 optional. Will check if the pdfs
                 have correct values using
@@ -517,7 +519,7 @@ class SubgroupsIndividualsActivitySimulator(
     :py:meth:`~demod.utils.cards_doc.Sim.get_occupancy`
     :py:meth:`~demod.utils.cards_doc.Sim.get_active_occupancy`
     :py:meth:`~demod.utils.cards_doc.Sim.get_thermal_gains`
-
+    or to have 'away' and 'sleeping' activites in the dataset.
 
     Params
         :py:attr:`~demod.utils.cards_doc.Params.subgroups_list`
@@ -525,6 +527,7 @@ class SubgroupsIndividualsActivitySimulator(
         :py:attr:`~demod.utils.cards_doc.Params.subsimulator`
         :py:attr:`~demod.utils.cards_doc.Params.data`
         :py:attr:`~demod.utils.cards_doc.Params.use_week_ends_days`
+        :py:attr:`~demod.utils.cards_doc.Params.use_week_sat_sun`
         :py:attr:`~demod.utils.cards_doc.Params.use_7days`
         :py:attr:`~demod.utils.cards_doc.Params.use_quarters`
         :py:attr:`~demod.utils.cards_doc.Params.start_datetime`
@@ -532,11 +535,15 @@ class SubgroupsIndividualsActivitySimulator(
     Data
         :py:attr:`~demod.utils.cards_doc.Loader.refresh_time`
         :py:meth:`~demod.datasets.tou_loader.LoaderTOU.load_tpm`
-        or :py:meth:`~demod.datasets.tou_loader.LoaderTOU.tpm_with_duration`
+        or
+        :py:meth:`~demod.datasets.tou_loader.LoaderTOU.load_tpm_with_duration`
     Step input
         None.
     Output
         :py:meth:`~demod.utils.cards_doc.Sim.get_n_doing_activity`
+        :py:meth:`~demod.utils.cards_doc.Sim.get_activity_states`
+        :py:meth:`~demod.utils.cards_doc.Sim.get_occupancy`
+        :py:meth:`~demod.utils.cards_doc.Sim.get_active_occupancy`
     Step size
         10 Minutes.
     """
@@ -548,6 +555,7 @@ class SubgroupsIndividualsActivitySimulator(
         subsimulator: Simulator = MarkovChain1rstOrder,
         data: LoaderTOU = GTOU('DemodActivities_0'),
         use_week_ends_days: bool = False,
+        use_week_sat_sun: bool = False,
         use_7days: bool = False,
         use_quarters: bool = False,
         **kwargs
@@ -562,16 +570,22 @@ class SubgroupsIndividualsActivitySimulator(
             subsimulator: The simulator class to use for simulating the
                 subgroups. Defaults to SparseActivitySimulator.
             logger: A logger object to log the results. Defaults to None.
+            use_week_ends_days, use_week_sat_sun, use_7days, use_quarters:
+                specifiy the day type to use. See
+                :py:func:`~demod.utils.subgroup_handling.add_time`
 
         Raises:
-            TypeError: [description]
+            ValueError: If step_size does not match data.step_size
         """
         self.data = data
         # Save the update time parameters
         self.use_week_ends_days = use_week_ends_days
         self.use_7days = use_7days
+        self.use_week_sat_sun = use_week_sat_sun
         self.use_quarters = use_quarters
-        self.time_aware = (use_week_ends_days or use_7days or use_quarters)
+        self.time_aware = (
+            use_week_ends_days or use_7days or use_quarters or use_week_sat_sun
+        )
 
         # Check the subsimulator and define what should be done
         self._parse_subsimulator(subsimulator)
@@ -648,6 +662,13 @@ class SubgroupsIndividualsActivitySimulator(
         subgroup_persons = subgroup_households_to_persons(
             subgroups_list,
         )
+
+        self.n_residents = np.concatenate([
+            subgroup['n_residents'] * np.ones(n_households, dtype=int)
+            for subgroup, n_households
+            in zip(subgroups_list, n_households_list)
+        ]).reshape(-1)
+
         # Counts the persons
         unique_persons, person_numbers = np.unique(
             np.concatenate(subgroup_persons), return_counts=True
@@ -682,6 +703,7 @@ class SubgroupsIndividualsActivitySimulator(
             add_time(
                 subgroup, self.current_time,
                 use_week_ends_days=self.use_week_ends_days,
+                use_week_sat_sun=self.use_week_sat_sun,
                 use_7days=self.use_7days,
                 use_quarters=self.use_quarters,
             ) for subgroup in self.subgroups_persons
@@ -831,7 +853,7 @@ class SubgroupsIndividualsActivitySimulator(
         states_in_hh[u] = c
         return states_in_hh
 
-    def get_performing_activity(self, activity_name: str) -> np.array:
+    def get_performing_activity(self, activity_name: str) -> np.ndarray:
         return self.get_n_doing_activity(activity_name)
 
     @ Callbacks.after_refresh_time
@@ -851,8 +873,33 @@ class SubgroupsIndividualsActivitySimulator(
                 in zip(self.simulators, self.subgroups_persons)
             ]
 
-    def get_states(self) -> Dict[str, np.ndarray]:
+    @ cached_getter
+    def get_activity_states(self) -> Dict[str, np.ndarray]:
         """Return a dictionary containing the persons in each state."""
-        return {
+        states = {
             lab: self.get_n_doing_activity(lab) for lab in self.activity_labels
-            }
+        }
+        states['active_occupancy'] = self.get_active_occupancy(states)
+        return states
+
+    def get_occupancy(self, states=None) -> np.array:
+        """Return the active occupancy of an activity simulator.
+
+        Reads the state 'away' and get_occupancy to deduce it.
+        """
+        if states is None:
+            states = self.get_activity_states()
+        return self.n_residents - states['away']
+
+    def get_active_occupancy(self, states=None) -> np.array:
+        """Return the active occupancy of an activity simulator.
+
+        Reads the state 'sleeping' and get_occupancy to deduce it.
+        """
+        if states is None:
+            states = self.get_activity_states()
+        occupancy = (
+            self.get_occupancy() if states is None else
+            self.get_occupancy(states)
+        )
+        return occupancy - states['sleeping']

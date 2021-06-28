@@ -164,9 +164,11 @@ class SimLogger():
                 # for dictionary attributes, convert each value of the
                 # dict
                 return {
-                    key: np.asarray(val) for key, val in out.items()
+                    # Remove last point to compensate intialization record
+                    key: np.asarray(val)[:-1] for key, val in out.items()
                 }
-            return np.asarray(out)
+            # Remove last point to compensate intialization record
+            return np.asarray(out)[:-1]
         else:
             self._raise_unkown_attribute(attribute)
 
@@ -511,7 +513,8 @@ class Simulator():
         # clears the logger after initialization
         if self.logger:
             self.logger.clear()
-
+            # visit to store the first step
+            self.logger.visit_simulator(self)
 
 
     def step(self) -> None:
@@ -522,11 +525,11 @@ class Simulator():
         """
         # update the time
         self.current_time_step += 1
+        # clear the cache
+        self._cache.clear()
         # call the logger
         if self.logger:
             self.logger.visit_simulator(self)
-        # clear the cache
-        self._cache.clear()
 
 
 # Support for Typing in simulators.
@@ -592,8 +595,6 @@ class MultiSimulator(Simulator):
         Note:
             A future implmentation could implement parallelization.
         """
-        super().step()
-
         # Tracks the household offset when iterating over subsimulators
         hh_offset:int = 0
         for sim in self.simulators:
@@ -607,6 +608,8 @@ class MultiSimulator(Simulator):
 
             sim.step(*sub_args, **sub_kwargs)
             hh_offset += sim.n_households
+
+        super().step()
 
     def _assign_getters(self) -> None:
         """Assign getters to the multi simulator, using sub-simulator."""

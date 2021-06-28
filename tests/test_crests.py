@@ -68,6 +68,11 @@ class TestDataLoader(unittest.TestCase):
             'resident_number'
         )
 
+    def test_washing_machines_loads(self, version=None):
+        from demod.datasets.CREST.loader import Crest
+        data = Crest() if version is None else Crest(version)
+        real_load_dict = data.load_real_profiles_dict('switchedON')
+
 
 
 class TestCrestOccupancySimulator(BaseSimulatorChildrenTests):

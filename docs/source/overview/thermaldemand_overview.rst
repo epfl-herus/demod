@@ -191,7 +191,7 @@ CREST domestic hot water demand
 :API: Simulation of domestic hot water demand is part of
   :ref:`overview_occupancy_based_appliance_usage` and for details
   about the implementation you can visit
-  :py:class:`~demod.simulators.appliance_simulators.SubgroupApplianceSimulator`.
+  :py:class:`~demod.simulators.appliance_simulators.OccupancyApplianceSimulator`.
 
 :Description: Currently demod simulates domestic hot water demand
   following the approach of CREST_, which simulates the use of water fixtures

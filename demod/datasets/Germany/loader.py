@@ -21,6 +21,7 @@ from ..ExcellInputFile.loader import InputFileLoader
 from ..OpenPowerSystems.loader import OpenPowerSystemClimate
 from ..GermanTOU.loader import GTOU
 from ..DESTATIS.loader import Destatis
+from ..tracebase.loader import Tracebase
 
 
 class GermanDataHerus(
@@ -49,6 +50,9 @@ class GermanDataHerus(
     """
 
     DATASET_NAME = "Germany"
+    # Assign a 1 min step size as it is the target of the simulation
+    # Though GTOU is 10 minutes
+    step_size = datetime.timedelta(minutes=1)
 
     def __init__(self, /, version: str = "v0.1", **kwargs) -> Any:
         """Create a dataset loader for HERUS data.
@@ -56,9 +60,17 @@ class GermanDataHerus(
         Args:
             version: The version of the datset to load. Defaults to "v0.1".
         """
-        self.activity_data = GTOU("Sparse9States")
+        if version == "v0.1":
+            self.activity_data = GTOU("Sparse9States")
+        elif version == "vBottaccioli":
+            self.activity_data = GTOU("Bottaccioli2018")
+        else:
+            raise ValueError("Unkown version :'{}' for '{}'".format(
+                version, self
+            ))
         self.destatis = Destatis()
-        self.climate = OpenPowerSystemClimate("Germany")
+        self.climate = OpenPowerSystemClimate("germany")
+        self.tracebase_profiles = Tracebase()
         super().__init__(version=version, **kwargs)
 
         self.raw_file_path = (
@@ -84,14 +96,29 @@ class GermanDataHerus(
     ) -> Dict[str, np.ndarray]:
         return self.activity_data.load_activity_probability_profiles(subgroup)
 
+    def load_tpm(self, *args, **kwargs):
+        return self.activity_data.load_tpm(*args, **kwargs)
+
+    def load_tpm_with_duration(self, *args, **kwargs):
+        return self.activity_data.load_tpm_with_duration(*args, **kwargs)
+
     def load_sparse_tpm(self, subgroup: Subgroup):
         return self.activity_data.load_sparse_tpm(subgroup)
+
+    def load_activity_probabilities(self, subgroup: Subgroup):
+        return self.activity_data.load_activity_probabilities(subgroup)
+
+    def load_daily_activity_starts(self, subgroup: Subgroup):
+        return self.activity_data.load_daily_activity_starts(subgroup)
 
     def load_appliance_ownership_dict(self, subgroup: Subgroup) -> np.ndarray:
         return self.destatis.load_appliance_ownership_dict(subgroup)
 
+    def load_real_profiles_dict(self, *args, **kwargs):
+        return self.tracebase_profiles.load_real_profiles_dict(*args, **kwargs)
+
     def _parse_appliance_dict(self) -> AppliancesDict:
-        if self.version == "v0.1":
+        if self.version in ["v0.1", "vBottaccioli"]:
 
             df = pd.read_excel(
                 self.raw_file_path,
@@ -120,6 +147,10 @@ class GermanDataHerus(
         if "uses_water" in appliances:
             appliances["uses_water"] = np.array(
                 appliances["uses_water"], dtype=bool
+            )
+        if "probabilistic" in appliances:
+            appliances["probabilistic"] = np.array(
+                appliances["probabilistic"], dtype=bool
             )
 
         appliances["number"] = len(appliances["name"])
@@ -155,6 +186,11 @@ class GermanDataHerus(
 
     def _parse_heating_system_dict(self, subgroup: Subgroup):
         return InputFileLoader.load_heating_system_dict(self, subgroup)
+
+    def _parse_yearly_target_switchons(
+        self, subgroup: Subgroup
+    ) -> Dict[str, float]:
+        return InputFileLoader.load_yearly_target_switchons(self, subgroup)
 
     def _parse_thermostat_dict(self, subgroup: Subgroup):
         """Parse data from CREST."""

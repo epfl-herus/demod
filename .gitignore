@@ -1,3 +1,6 @@
+# Ignore the git ignore
+.gitignore
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -163,3 +166,4 @@ demod/datasets/GermanTOU/doku/zve_puf konzept.pdf
 demod/datasets/GermanTOU/einleseroutinen/einleseroutine_sas_puf.sas
 demod/datasets/GermanTOU/einleseroutinen/einleseroutine_spss_puf.sps
 demod/datasets/GermanTOU/einleseroutinen/einleseroutine_stata_puf.do
+demod/datasets/tracebase/parsed_data/

@@ -27,3 +27,11 @@ def country_name_to_code(country_name: str) -> str:
             'Must provide a country conversion to code.') from key_err
 
     return code
+
+
+def is_country_code(country_name_or_code: str) -> bool:
+    """Find if the string given is a country code."""
+    if len(country_name_or_code) == 2:
+        return True
+    else:
+        return False

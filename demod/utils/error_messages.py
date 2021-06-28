@@ -21,6 +21,10 @@ ALGO_REQUIRES_LOADING_METHOD = (
     " from dataset. Could not find '{loading_method}' in '{dataset}'."
 )
 
+USE_OTHER_ALGOS_FOR_ALGONAME = (
+    "Try using {other_algos} as {algo_name} instead"
+)
+
 UNKOWN_POPULATION_TYPE = (
     "Unkown population type '{population_type}' for dataset"
     " {dataset}."

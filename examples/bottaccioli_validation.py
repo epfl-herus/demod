@@ -24,7 +24,7 @@ from demod.datasets.Germany.loader import GermanDataHerus
 from demod.simulators.activity_simulators import SubgroupsIndividualsActivitySimulator, SemiMarkovSimulator, MarkovChain1rstOrder
 
 # %%
-n_households = 1000
+n_households = 2000
 
 data = GermanDataHerus(version='vBottaccioli')
 
@@ -205,9 +205,17 @@ plot_stacked_activities(
 
 # %%
 
+<<<<<<< HEAD
 # plt.figure()
 # for key, profile in data.load_real_profiles_dict('full')['fridge'].items():
 #     plt.plot(profile, label=key)
 # plt.legend()
 # plt.show()
+=======
+plt.figure()
+for key, profile in data.load_real_profiles_dict('full')['fridge'].items():
+    plt.plot(profile, label=key)
+plt.legend()
+plt.show()
+>>>>>>> 1ee80731eaecfab51023cee40827addbee535b3d
 # %%

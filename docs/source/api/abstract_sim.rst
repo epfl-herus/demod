@@ -62,6 +62,9 @@ Monte Carlo sampling.
 .. autoclass:: MarkovChain1rstOrder
     :members:
 
+.. autoclass:: SemiMarkovSimulator
+    :members:
+
 
 
 Sparse simulators
