@@ -13,6 +13,9 @@ from ...utils.countries import country_name_to_code
 class OpenPowerSystemClimate(ClimateLoader):
     """Loader of the climate.
 
+    Deprectaed in demod version 0.2.
+    Should use RenewablesNinja dataset instead.
+
     Data comes from
     `Open Power System Data  <https://open-power-system-data.org/>`_
     and the raw dataset can be downloaded

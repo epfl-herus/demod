@@ -146,7 +146,11 @@ CREST_data/.~lock*
 
 
 # raw datasets
-raw_data/
+demod/datasets/CREST/raw_data/
+demod/datasets/RenewablesNinja/raw_data/
+demod/datasets/tracebase/raw_data/
+demod/datasets/GermanTOU/raw_data/
+
 
 
 # local test enviroment
@@ -166,5 +170,8 @@ demod/datasets/GermanTOU/doku/zve_puf konzept.pdf
 demod/datasets/GermanTOU/einleseroutinen/einleseroutine_sas_puf.sas
 demod/datasets/GermanTOU/einleseroutinen/einleseroutine_spss_puf.sps
 demod/datasets/GermanTOU/einleseroutinen/einleseroutine_stata_puf.do
+
+# Automatically generated data should not go on github
 demod/datasets/tracebase/parsed_data/
 demod/datasets/CREST/parsed_data/
+demod/datasets/RenewablesNinja/parsed_data/
