@@ -170,7 +170,7 @@ class AppliancesSimulator(TimeAwareSimulator):
         )
 
     def sample_available_appliances(
-        self, 
+        self,
         equipped_sampling_algo: str = "basic",
         equipped_set_defined: dict = None,
         **kwargs
@@ -192,7 +192,7 @@ class AppliancesSimulator(TimeAwareSimulator):
                     together. *FOR FUTURE IMPLEMENTATION*
                 :set_defined:
                     matches the requested set for each household given as
-                    :py:attr:`appliance_set`. 
+                    :py:attr:`appliance_set`.
                 :all:
                     give all appliances to every households
 
@@ -220,11 +220,11 @@ class AppliancesSimulator(TimeAwareSimulator):
             # Ex. you own a dryer only if you have a wasing machine
             # a tv box only with a tv
             raise NotImplementedError()
-            
+
         elif equipped_sampling_algo == "set_defined":
             # Return array of True
             return self._appliance_set(equipped_set_defined)
-        
+
         elif equipped_sampling_algo == "all":
             # Return array of True
             return np.ones(
@@ -236,21 +236,21 @@ class AppliancesSimulator(TimeAwareSimulator):
                 "Unknown equipped_sampling_algo : "
                 + equipped_sampling_algo
             )
-                  
+
     def _appliance_set(self, equipped_set_defined):
         # List the ownership booleans for each population subgroup
         app_ownership_set = np.asarray([
             np.isin(self.appliances['name'], equipped_set_defined[n])
             for n, subgroup in enumerate(self.subgroups_list)
-            ]) 
+            ])
         if len(app_ownership_set) != len(self.subgroups_list):
             raise ValueError(
                 "The list of set of appliances does not match the list of subgroups "
             )
         app_ownership_matrix =  app_ownership_set[self.hh_types]
         return app_ownership_matrix
-            
-    
+
+
 
     def _sample_from_subgroup(self):
         # load the ownership probs for appliances and each subgroup
@@ -658,6 +658,7 @@ class AppliancesSimulator(TimeAwareSimulator):
         self.n_steps_left[self.n_steps_left > 0] -= 1
         self.n_steps_till_refresh[self.n_steps_till_refresh > 0] -= 1
 
+    @cached_getter
     def get_current_usage(self) -> np.ndarray:
         """Return the current used appliances in each households.
 
@@ -669,6 +670,7 @@ class AppliancesSimulator(TimeAwareSimulator):
         """
         return (self.n_steps_left > 0) & self.available_appliances
 
+    @cached_getter
     def get_current_power_consumptions(self):
         """Return the power consumed by each appliances in each household.
 
@@ -702,12 +704,19 @@ class AppliancesSimulator(TimeAwareSimulator):
         """Sample the duration of a load.
 
         TODO: *FOR FUTURE IMPLEMENTATION* implement varying durations
+        for all appliances types
         """
         # Gets the mean durations
         durations = self.appliances["mean_duration"][indexes_appliance]
 
-        # TODO: ADD HERE varying durations
+        # TODO: ADD DURATION TYPE varying durations
         # Based on stochastic from TOU or statistical distribution
+
+        # Sample poisson for water appliances
+        mask_poisson = self.appliances['uses_water'][indexes_appliance]
+        durations[mask_poisson] = self._sample_durations_water_poisson(
+            indexes_household[mask_poisson], indexes_appliance[mask_poisson]
+        )
 
         # The real load profiles have a duration equal to their length
         real_load_durations = self.load_duration[
@@ -717,6 +726,23 @@ class AppliancesSimulator(TimeAwareSimulator):
         durations[mask_real_loads] = real_load_durations[mask_real_loads]
 
         return durations
+
+    def _sample_durations_water_poisson(
+        self, indexes_household, indexes_appliance
+    ):
+        """Sample the duration of water appliances."""
+        # get the volumes that will be consumed
+        lam = self.appliances["poisson_sampling_lambda_liters"][
+            indexes_appliance
+        ]
+        volumes = np.random.poisson(lam)
+        # compute the duration from the mean usage
+        durations = (
+            volumes
+            / self.appliances["mean_water_consumption"][indexes_appliance]
+        )
+        return durations
+
 
     def _get_variable_loads_consumptions(self) -> np.ndarray:
         """Get the consumption of the variable loads appliances."""
@@ -770,6 +796,54 @@ class AppliancesSimulator(TimeAwareSimulator):
     def get_energy_consumption(self):
         """Retrun the total energy consumed by the appliances."""
         return np.sum(self.get_current_power_consumptions(), axis=-1)
+
+    @cached_getter
+    def get_current_water_consumptions(self):
+        """Getter for the hot water consumption of each appliance (litres/min).
+
+        Assumes water appliances don't have standby consumptions.
+
+        Returns:
+            np.ndarray, shape=(n_households, n_appliances)
+        """
+        water_consumptions = np.zeros_like(self.n_steps_left, dtype=float)
+
+        # Adds the water consumption
+        water_consumptions += (
+            self.get_current_usage()
+            * self.appliances["mean_water_consumption"]
+        )
+
+        return water_consumptions
+
+    @cached_getter
+    def get_dhw_heating_demand(self) -> np.ndarray:
+        """Get the heat demand for heating the DHW required [W/K].
+
+        Returns the total heat required by the appliances of hot water.
+        The unit is W/K, which means that the heat depend on the
+        temperature difference between the cold water and the
+        target temperature water.
+
+        Returns:
+            dhw_heating_demand: heating demand for each household
+        """
+        # sum the hot water demand from all the fixtures
+        demands = self.get_current_water_consumptions().sum(axis=1)
+        # Then calculate variable thermal resistance
+        #  representing hot water demand
+        # conversion from litres to m^3 and from per minute to per second
+        dblV_w = demands / 1000.0 / 60.0  # m^3/sec
+
+        # to convert from m^3 per second to kg per second
+        # set the density of water
+        dblRho_w = 1000.0  # kg/m^3
+        dblM_w = dblRho_w * dblV_w  # kg/sec
+
+        # convert to a thermal heat transfer coefficient in W/K
+        SPECIFIC_HEAT_CAPACITY_WATER = 4200.0  # J / (kg * K)
+        return SPECIFIC_HEAT_CAPACITY_WATER * dblM_w  # W/K
+
 
 
 class OccupancyApplianceSimulator(AppliancesSimulator):
@@ -1105,33 +1179,6 @@ class OccupancyApplianceSimulator(AppliancesSimulator):
 
         return water_consumptions
 
-    @cached_getter
-    def get_dhw_heating_demand(self) -> np.ndarray:
-        """Get the heat demand for heating the DHW required [W/K].
-
-        Returns the total heat required by the appliances of hot water.
-        The unit is W/K, which means that the heat depend on the
-        temperature difference between the cold water and the
-        target temperature water.
-
-        Returns:
-            dhw_heating_demand: heating demand for each household
-        """
-        # sum the hot water demand from all the fixtures
-        demands = self.get_current_water_consumptions().sum(axis=1)
-        # Then calculate variable thermal resistance
-        #  representing hot water demand
-        # conversion from litres to m^3 and from per minute to per second
-        dblV_w = demands / 1000.0 / 60.0  # m^3/sec
-
-        # to convert from m^3 per second to kg per second
-        # set the density of water
-        dblRho_w = 1000.0  # kg/m^3
-        dblM_w = dblRho_w * dblV_w  # kg/sec
-
-        # convert to a thermal heat transfer coefficient in W/K
-        SPECIFIC_HEAT_CAPACITY_WATER = 4200.0  # J / (kg * K)
-        return SPECIFIC_HEAT_CAPACITY_WATER * dblM_w  # W/K
 
     def get_switchon_probs(self, active_occupancy: np.ndarray) -> np.ndarray:
         """Get the switchon probabilities for each appliance.
