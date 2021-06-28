@@ -17,7 +17,7 @@ from .sparse_simulators import (
     SparseTransitStatesSimulator,
     SubgroupsActivitySimulator,
 )
-from .appliance_simulators import AppliancesSimulator, SubgroupApplianceSimulator
+from .appliance_simulators import AppliancesSimulator, OccupancyApplianceSimulator
 from .lighting_simulators import CrestLightingSimulator
 from .heating_simulators import AbstractHeatingSimulator, FiveModulesHeatingSimulator
 from .crest_simulators import Crest4StatesModel
@@ -221,7 +221,7 @@ class LoadSimulator(TimeAwareSimulator):
 
         active_occupancy = self.activity_simulator.get_active_occupancy()
 
-        self.appliance_simulator = SubgroupApplianceSimulator(
+        self.appliance_simulator = OccupancyApplianceSimulator(
             subgroups,
             counts,
             initial_active_occupancy=active_occupancy,

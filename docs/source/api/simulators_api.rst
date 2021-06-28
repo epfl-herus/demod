@@ -47,6 +47,12 @@ days.
 .. autoclass:: SubgroupsActivitySimulator
 
 
+.. module:: demod.simulators.activity_simulators
+    :noindex:
+
+.. autoclass:: SubgroupsIndividualsActivitySimulator
+
+
 
 
 
@@ -91,7 +97,14 @@ appliances.
     :noindex:
 
 
+.. autoclass:: OccupancyApplianceSimulator
+
 .. autoclass:: SubgroupApplianceSimulator
+
+.. autoclass:: ActivityApplianceSimulator
+
+.. autoclass:: ProbabiliticActivityAppliancesSimulator
+
 
 
 

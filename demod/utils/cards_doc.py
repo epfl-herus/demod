@@ -288,6 +288,12 @@ class Inputs:
             :Unit: people, :py:obj:`int`
             :Related Getter: :py:meth:`~.Sim.get_active_occupancy`
 
+        activities_dict: The dictionary containing the activities of the
+            residents.
+
+            :Unit: people, :py:obj:`int`
+            :Related Getter: :py:meth:`~.Sim.get_activities`
+
         thermal_gains: The heat produced by the subjects of the
             simulator.
 
@@ -508,8 +514,10 @@ class Params:
 
                     * 1 = One person household
                     * 2 = Couple without kid
-                    * 3 = Single Parent with at least one kid under 18 and the other under 27
-                    * 4 = Couple with at least one kid under 18 and the other under 27
+                    * 3 = Single Parent with at least one kid under 18
+                      and the other under 27
+                    * 4 = Couple with at least one kid under 18
+                      and the other under 27
                     * 5 = Others
 
                 * subgroup['life_situation']
@@ -517,10 +525,14 @@ class Params:
                     From :py:class:`~demod.datasets.GermanTOU.loader.GTOU`
 
                     * 1 = Self-employed, freelancer, farmer, family worker
-                    * 2 = Employee, worker, civil servant, judge, temporary / professional soldier, voluntary social / ecological / cultural year, voluntary military service, federal voluntary service
+                    * 2 = Employee, worker, civil servant, judge,
+                      temporary / professional soldier, voluntary social /
+                      ecological / cultural year, voluntary military service,
+                      federal voluntary service
                     * 3 = Trainee (also intern, volunteer)
                     * 4 = Partial Work Time (work or retirement)
-                    * 5 = On parental leave (with an employment contract that has not been terminated)
+                    * 5 = On parental leave (with an employment contract
+                      that has not been terminated)
                     * 6 = Student, Pupil
                     * 7 = Unemployed
                     * 8 = Retired or early retirement
@@ -604,7 +616,7 @@ class Params:
                 in :math:`[l/min]`
             * appliances_dict['inactive_switch_off']
                 *bool*, Whether the appliance should switch off if the
-                occpupants leave or sleep.
+                occupants stop the activity, leave or sleep.
             * appliances_dict['equipped_prob']
                 *float*, Probability that a household is equipped with
                 this appliance.
@@ -633,10 +645,14 @@ class Params:
 
         appliance_type: A string that represent the type of appliance.
             If the name is followed by '_2', it signifies that the
-            appliance is a secondary appliance of that value.
+            appliance is a secondary appliance of that type.
             Nested levels indicate subtypes.
             Nested name should always finish with '_basename'.
             Types are very important for datset compatibilities.
+            The current naming is purely arbitrary, but it could be
+            changed in the future for compatibilty with an official
+            naming convention from other sources.
+
             Possible values:
 
             * 'freezer'
@@ -660,13 +676,24 @@ class Params:
                 * 'cd_speaker'
                 * 'radio_speaker'
                 * 'hifi_speaker'
+
             * 'tv'
+
+                * 'crt_tv'
+                * 'tft_tv'
+                * 'lcd_tv'
+                * 'led_tv'
+                * 'dlp_tv'
+                * 'plasma_tv'
+                * 'oled_tv'
+
             * 'box'
 
                 * 'tv_box'
                 * 'internet_box'
                 * 'dual_box'
                 Internet + TV
+                * 'wifi_box'
 
             * 'console'
 
@@ -677,14 +704,34 @@ class Params:
             * 'computer'
 
                 * 'laptop_computer'
-                * 'fixed_computer'
+                * 'fixed_computer' (Desktop)
                 * 'gaming_computer'
+
+            * 'monitor'
+
+                * 'crt_monitor'
+                * 'tft_monitor'
+                * 'lcd_monitor'
+                * 'led_monitor'
+                * 'dlp_monitor'
+                * 'touchscreen_monitor'
+                * 'plasma_monitor'
+                * 'oled_monitor'
+
+            * 'projector'
 
             * 'printer'
 
                 * 'fax_printer'
 
+            * 'lamp'
+
+                * 'christmas_lamp'
+
             * 'clock'
+
+                * 'alarm_clock'
+
             * 'hob'
 
                 * 'electric_hob'
@@ -693,6 +740,12 @@ class Params:
             * 'oven'
             * 'microwave'
             * 'kettle'
+            * 'waterboiler'
+            * 'coffemachine'
+
+                * 'beans_coffemachine'
+                * 'capsule_coffemachine'
+
             * 'toaster'
             * 'fitnessmachine'
             * 'dishwasher'
@@ -757,11 +810,15 @@ class Params:
             * 'electronics'
                 General purpose for using electronics. (Computer, consoles)
 
-
         equipped_sampling_algo: A string representing the algorithm to
             use for sampling the appliances of a house.
             Possible values detailed in
             :py:meth:`~demod.simulators.appliance_simulators.AppliancesSimulator.sample_available_appliances`
+
+        real_profiles_algo: A string representing the algorithm to
+            use for sampling the real load profiles of appliances.
+            Possible values detailed in
+            :py:meth:`~demod.simulators.appliance_simulators.AppliancesSimulator.sample_real_load_profiles`
 
         bulbs_sampling_algo: The algorithm to sample the lighting bulbs
                 installed in each house. See
@@ -798,6 +855,9 @@ class Params:
 
 
         initial_active_occupancy: The active occupancy at the start of
+            the simulation. Used for the initialization of a simulator.
+
+        initial_activities_dict: The activities at the start of
             the simulation. Used for the initialization of a simulator.
 
         initial_clearness: The clearness at the start of the simulation.

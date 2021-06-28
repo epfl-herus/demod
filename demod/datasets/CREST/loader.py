@@ -65,6 +65,8 @@ class Crest(
 
     DATASET_NAME = "CREST"
     refresh_time = time(0, 0, 0)
+    # Step size of the load simulation
+    step_size = timedelta(minutes=1)
 
     def __init__(self, version: str = "2.2", /, **kwargs) -> Any:
         """Create a data loader for CREST.
@@ -767,6 +769,7 @@ class Crest(
 
 
     def _parse_controls_tpm(self):
+        # TODO: OlD implementation need to change
         path = (
             OLD_DATASET_PATH
             + os.sep
@@ -783,3 +786,67 @@ class Crest(
         thermostat["transitions cdf we"] = np.cumsum(
             df_heating.to_numpy()[:, 2:].reshape((48, 2, 2)), axis=-1
         )
+
+    def _parse_real_profiles_dict(self, profiles_type: str):
+        """Parse the real profiles.
+
+        Returns:
+            The appliance dictionary, of the form
+            {app_type: {app_name: array}}, such that it is easy to retrieve
+            the profiles based on the type of the appliances
+        """
+        if profiles_type != 'switchedON':
+            raise NotImplementedError('CREST only has switched on profiles.')
+        return {
+            'washingmachine': {
+                'CREST_washingmachine':
+                self._compute_washing_machine_power(np.arange(138, dtype=int))
+            },
+            'washer_dryer': {
+                'CREST_washer_dryer':
+                self._compute_washing_machine_power(np.arange(198, dtype=int))
+            }
+        }
+
+    def _compute_washing_machine_power(self, current_time):
+        """Washing machine power for a minute based simulation."""
+        power = np.zeros_like(current_time, dtype=float)
+        # define the values of power depending on n_times left, form CREST
+        power[current_time <= 8] = 73  # Start-up and fill
+        power[
+            np.logical_and(current_time > 8, current_time <= 29)
+        ] = 2056  # Heating
+        power[
+            np.logical_and(current_time > 29, current_time <= 81)
+        ] = 73  # Wash and drain
+        power[
+            np.logical_and(current_time > 81, current_time <= 92)
+        ] = 73  # Spin
+        power[
+            np.logical_and(current_time > 92, current_time <= 94)
+        ] = 250  # Rinse
+        power[
+            np.logical_and(current_time > 94, current_time <= 105)
+        ] = 73  # Spin
+        power[
+            np.logical_and(current_time > 105, current_time <= 107)
+        ] = 250  # Rinse
+        power[
+            np.logical_and(current_time > 107, current_time <= 118)
+        ] = 73  # Spin
+        power[
+            np.logical_and(current_time > 118, current_time <= 120)
+        ] = 250  # Rinse
+        power[
+            np.logical_and(current_time > 120, current_time <= 131)
+        ] = 73  # Spin
+        power[
+            np.logical_and(current_time > 131, current_time <= 133)
+        ] = 250  # Rinse
+        power[
+            np.logical_and(current_time > 133, current_time <= 138)
+        ] = 568  # Fast spin
+        power[
+            np.logical_and(current_time > 138, current_time <= 198)
+        ] = 2500  # Drying cycle
+        return power

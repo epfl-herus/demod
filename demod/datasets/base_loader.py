@@ -5,7 +5,7 @@ import datetime
 import inspect
 from ..utils.parse_helpers import lists_to_numpy_array, make_jsonable
 from ..utils.sim_types import AppliancesDict, StateLabels, Subgroup, Subgroups, TPM, TPMs
-from ..utils.subgroup_handling import subgroup_string
+from ..utils.subgroup_handling import remove_time_attributues, subgroup_string
 
 import os
 import json
@@ -93,6 +93,9 @@ class DatasetLoader:
 
         if version is not None:
             self.parsed_path = os.path.join(self.parsed_path, version)
+            if not os.path.isdir(self.parsed_path):
+                os.mkdir(self.parsed_path)
+
         self.version = version
 
         if clear_parsed_data:
@@ -168,8 +171,8 @@ class DatasetLoader:
 
     def _warn_could_not_load_parsed(
         self,
-        exception_raised: Exception,
-        data_name: str,
+        exception_raised: FileNotFoundError,
+        data_name: str = None,
         warning_type: str = "warning",
     ):
         """Send a could not load parsed warning message.
@@ -178,9 +181,11 @@ class DatasetLoader:
         loading the raw data.
 
         Args:
-            exception_raised: The exception that was raised during the
+            exception_raised: The FileNotFoundError
+                exception that was raised during the
                 parsing of the data
-            data_name: The name of the data that was loaded
+            data_name: Deprecated: The name of the data that was loaded
+                (it won't be used, only kept for compatibility)
             warning_type: The type of warning to raise.
                 Curently implemented:
                     - 'warning' : using the warning module
@@ -189,14 +194,21 @@ class DatasetLoader:
                 If warning_type is not registerd, will use 'print'.
                 Defaults to 'warning'.
         """
+
+        if not isinstance(exception_raised, FileNotFoundError):
+            raise ValueError(
+                "{} should be a FileNotFoundError.".format(exception_raised)
+            )
+
         warn_msg = "".join(
             (
                 "Could not load parsed data for '{}', due to: \n '{}'",
-                "with message: '{}'.\nGenerating now from raw_data.",
+                "of file: '{}'.\nGenerating now from raw_data.",
             )
         )
         msg = warn_msg.format(
-            data_name, type(exception_raised).__name__, exception_raised
+            self.DATASET_NAME, type(exception_raised).__name__,
+            exception_raised.filename
         )
 
         if (warning_type == "warning") or (warning_type == "all"):
@@ -388,12 +400,15 @@ class PopulationLoader(DatasetLoader):
             "{}.".format(type(self).__name__)
         )
 
+
 class ApplianceLoader(DatasetLoader):
     """Loader that provide methods for loading appliances data.
 
     Children of this class need to implement the following methods:
     * :py:meth:`_parse_appliance_dict`
     """
+
+    _SPLIT_CHAR: str = '&'  # A special char used to split names for save
 
     def load_appliance_dict(self) -> AppliancesDict:
         """Load the appliance dictionary.
@@ -428,9 +443,62 @@ class ApplianceLoader(DatasetLoader):
 
         return lists_to_numpy_array(appliance_dict)
 
+    def load_real_profiles_dict(
+        self, profiles_type: str = 'full'
+    ) -> Dict[str, Dict[str, np.ndarray]]:
+        """Load a dictionary containing real load profiles.
+
+        Try to call self. :py:meth:`_parse_real_profiles_dict` if the
+        parsed data is not available.
+
+        Args:
+            profiles_type: The type of profile to load. Possibilities:
+
+                * 'full', the wholes profiles are returned
+                * 'switchedON', only profiles when appliances are ON
+                * 'switchedOFF', only profiles when appliances are OFF
+
+        Returns:
+            The appliance dictionary, of the form
+            {app_type: {app_name: array}}, such that it is easy to retrieve
+            the profiles based on the type of the appliances
+        """
+        app_file = self.parsed_path + os.sep + "loadprofiles_" + profiles_type
+        try:
+            parsed_dict = np.load(app_file + '.npz')
+
+            load_profiles_dict = {}
+
+            for name, load in parsed_dict.items():
+                app_type, profile_name = str.split(name, self._SPLIT_CHAR)
+                if app_type not in load_profiles_dict:
+                    load_profiles_dict[app_type] = {}
+                load_profiles_dict[app_type][profile_name] = load
+
+        except FileNotFoundError as err:
+            self._warn_could_not_load_parsed(err, app_file)
+
+            load_profiles_dict = self._parse_real_profiles_dict(profiles_type)
+
+            parsed_dict = {}
+
+            for app_type, names_dict in load_profiles_dict.items():
+                for name, load in names_dict.items():
+                    parsed_dict[app_type + self._SPLIT_CHAR + name] = load
+            # Compress as the load profiles might be quite heavy
+            np.savez_compressed(app_file, **parsed_dict)
+
+        return load_profiles_dict
+
     def _parse_appliance_dict(self):
         raise NotImplementedError(
             "'_parse_appliance_dict' requires overriding in "
+            "{}.".format(type(self).__name__)
+        )
+
+    def _parse_real_profiles_dict(self, profiles_type: str):
+        raise NotImplementedError(
+            "'_parse_real_profiles_dict' requires overriding in "
             "{}.".format(type(self).__name__)
         )
 
@@ -460,9 +528,9 @@ class ApplianceLoader(DatasetLoader):
                 probabilities.
 
         Return:
-            pdf of ownership for each appliance
+            probability of ownership for each appliance
         """
-        subgroup_str = subgroup_string(subgroup)
+        subgroup_str = subgroup_string(remove_time_attributues(subgroup))
 
         # put in a dedicated folder
         folder_name = "appliance_ownership"
@@ -490,6 +558,61 @@ class ApplianceLoader(DatasetLoader):
 
         raise NotImplementedError(
             "'_parse_appliance_ownership' requires overriding in "
+            "{}.".format(type(self).__name__)
+        )
+
+    def load_yearly_target_switchons(
+        self,
+        subgroup: Subgroup = {},
+    ) -> Dict[str, float]:
+        """Return the target of switchons in a year of each appliances.
+
+        A subgroup can be specified for datasets that differentiate
+        different subgroups.
+
+        :py:func:`~demod.utils.appliances.get_target_from_dict`
+        can then be used to sample the target number of yearly switchons
+        using an appliance dictionary.
+
+        Args:
+            subgroup: The subgroup of the desired targets number of
+                switchons.
+
+        Return:
+            Number of target switchons for each appliance type.
+        """
+        subgroup_str = subgroup_string(
+            # Time attributes don't change target of switchons
+            remove_time_attributues(subgroup)
+        )
+
+        # put in a dedicated folder
+        folder_name = "appliance_targets"
+        parsed_path_targets = self.parsed_path + os.sep + folder_name
+        if not os.path.exists(parsed_path_targets):
+            os.mkdir(parsed_path_targets)
+
+        file_name = folder_name + os.sep + "switchons__" + subgroup_str
+        file_path = os.path.join(self.parsed_path, file_name)
+
+        try:
+            with open(file_path, "r") as f:
+                targets_dict = dict(json.load(f))
+        except FileNotFoundError as err:
+            self._warn_could_not_load_parsed(err, file_name)
+            targets_dict = self._parse_yearly_target_switchons(subgroup)
+            with open(file_path, "w+") as f:
+                json.dump(make_jsonable(targets_dict), f, indent=2)
+
+        return targets_dict
+
+    def _parse_yearly_target_switchons(
+        self,
+        subgroup: Subgroup = None,
+    ) -> Union[np.ndarray, Dict[str, float]]:
+
+        raise NotImplementedError(
+            "'_parse_yearly_target_switchons' requires overriding in "
             "{}.".format(type(self).__name__)
         )
 

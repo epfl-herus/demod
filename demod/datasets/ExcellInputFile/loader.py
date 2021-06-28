@@ -206,3 +206,12 @@ class InputFileLoader(ApplianceLoader, LoaderTOU, LightingLoader, HeatingLoader)
         self, subgroup: Subgroup
     ) -> Dict[str, float]:
         raise NotImplementedError()
+
+    def load_yearly_target_switchons(
+        self, subgroup: Subgroup = {},
+    ) -> Dict[str, float]:
+        app_dict = self.load_appliance_dict()
+        return {
+            app_type: target_switchon for app_type, target_switchon
+            in zip(app_dict['type'], app_dict['target_cycle_year'])
+        }

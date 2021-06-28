@@ -1,3 +1,5 @@
+from demod.datasets.Germany.loader import GermanDataHerus
+from demod.datasets.CREST.loader import Crest
 import sys
 import unittest
 import datetime
@@ -88,6 +90,10 @@ class TestClimateLoader(unittest.TestCase):
         start_datetime = datetime.datetime(
             2014, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc
         )
+
+    def test_with_herus_data(self):
+        data = GermanDataHerus()
+        data.load_historical_climate_data(datetime.datetime(2014, 1, 1))
 
 class RealClimateTests(TimeAwareSimulatorChildrenTests, unittest.TestCase):
     """Tests for real climate simulator."""
