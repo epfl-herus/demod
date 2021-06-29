@@ -19,7 +19,7 @@ from ..base_loader import (
 from ..ExcellInputFile.loader import InputFileLoader
 
 
-from ..OpenPowerSystems.loader import OpenPowerSystemClimate
+from ..RenewablesNinja.loader import NinjaRenewablesClimate
 from ..GermanTOU.loader import GTOU
 from ..DESTATIS.loader import Destatis
 from ..tracebase.loader import Tracebase
@@ -70,7 +70,7 @@ class GermanDataHerus(
                 version, self
             ))
         self.destatis = Destatis()
-        self.climate = OpenPowerSystemClimate("germany")
+        self.climate = NinjaRenewablesClimate("germany")
 
         super().__init__(version=version, **kwargs)
 
