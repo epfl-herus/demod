@@ -3,8 +3,6 @@ import sys
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-import demod
-
 from demod.simulators.load_simulators import LoadSimulator
 # Import the DatasetLoader
 from demod.datasets.CREST.loader import Crest
