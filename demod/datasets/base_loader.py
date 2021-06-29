@@ -616,6 +616,123 @@ class ApplianceLoader(DatasetLoader):
             "{}.".format(type(self).__name__)
         )
 
+    def load_yearly_target_consumption(
+        self,
+        subgroup: Subgroup = {},
+    ) -> Dict[str, float]:
+        """Return the target of consumption in a year of each appliances.
+
+        A subgroup can be specified for datasets that differentiate
+        different subgroups.
+
+        :Unit: : KwH/y
+
+        :py:func:`~demod.utils.appliances.get_target_from_dict`
+        can then be used to sample the target number of yearly consumption
+        using an appliance dictionary.
+
+        Args:
+            subgroup: The subgroup of the desired targets number of
+                consumption.
+
+        Return:
+            Number of target consumption for each appliance type.
+        """
+        subgroup_str = subgroup_string(
+            # Time attributes don't change target of consumption
+            remove_time_attributues(subgroup)
+        )
+
+        # put in a dedicated folder
+        folder_name = "appliance_targets"
+        parsed_path_targets = self.parsed_path + os.sep + folder_name
+        if not os.path.exists(parsed_path_targets):
+            os.mkdir(parsed_path_targets)
+
+        file_name = folder_name + os.sep + "consumption__" + subgroup_str
+        file_path = os.path.join(self.parsed_path, file_name)
+
+        try:
+            with open(file_path, "r") as f:
+                targets_dict = dict(json.load(f))
+        except FileNotFoundError as err:
+            self._warn_could_not_load_parsed(err, file_name)
+            targets_dict = self._parse_yearly_target_consumption(subgroup)
+            with open(file_path, "w+") as f:
+                json.dump(make_jsonable(targets_dict), f, indent=2)
+
+        return targets_dict
+
+    def _parse_yearly_target_consumption(
+        self,
+        subgroup: Subgroup = None,
+    ) -> Union[np.ndarray, Dict[str, float]]:
+
+        raise NotImplementedError(
+            "'_parse_yearly_target_consumption' requires overriding in "
+            "{}.".format(type(self).__name__)
+        )
+
+    def load_yearly_target_duration(
+        self,
+        subgroup: Subgroup = {},
+    ) -> Dict[str, float]:
+        """Return the target of duration in a year of each appliances.
+
+        The duration is in number of steps simulated when the appliance
+        should be on.
+
+        A subgroup can be specified for datasets that differentiate
+        different subgroups.
+
+        :Unit: : number of steps
+
+        :py:func:`~demod.utils.appliances.get_target_from_dict`
+        can then be used to sample the target number of yearly duration
+        using an appliance dictionary.
+
+        Args:
+            subgroup: The subgroup of the desired targets number of
+                duration.
+
+        Return:
+            Number of target duration for each appliance type.
+        """
+        subgroup_str = subgroup_string(
+            # Time attributes don't change target of duration
+            remove_time_attributues(subgroup)
+        )
+
+        # put in a dedicated folder
+        folder_name = "appliance_targets"
+        parsed_path_targets = self.parsed_path + os.sep + folder_name
+        if not os.path.exists(parsed_path_targets):
+            os.mkdir(parsed_path_targets)
+
+        file_name = folder_name + os.sep + "duration__" + subgroup_str
+        file_path = os.path.join(self.parsed_path, file_name)
+
+        try:
+            with open(file_path, "r") as f:
+                targets_dict = dict(json.load(f))
+        except FileNotFoundError as err:
+            self._warn_could_not_load_parsed(err, file_name)
+            targets_dict = self._parse_yearly_target_duration(subgroup)
+            with open(file_path, "w+") as f:
+                json.dump(make_jsonable(targets_dict), f, indent=2)
+
+        return targets_dict
+
+    def _parse_yearly_target_duration(
+        self,
+        subgroup: Subgroup = None,
+    ) -> Union[np.ndarray, Dict[str, float]]:
+
+        raise NotImplementedError(
+            "'_parse_yearly_target_duration' requires overriding in "
+            "{}.".format(type(self).__name__)
+        )
+
 
 class ClimateLoader(DatasetLoader):
     """Loader providing methods for loading climate data.
