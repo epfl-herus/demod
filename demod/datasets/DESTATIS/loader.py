@@ -3,10 +3,11 @@ import os
 from typing import Dict, List, Tuple, Union
 import numpy as np
 import pandas as pd
+from urllib import request
 from ...utils.sim_types import AppliancesDict, Subgroup, Subgroups
 from ...utils.appliances import assign_ownership_from_prob1_and_number
-from ..base_loader import ApplianceLoader, PopulationLoader
 from ...utils.subgroup_handling import remove_time_attributues
+from ..base_loader import ApplianceLoader, PopulationLoader
 
 
 class Destatis(ApplianceLoader, PopulationLoader):
@@ -130,6 +131,23 @@ class Destatis(ApplianceLoader, PopulationLoader):
         subgroup = remove_time_attributues(subgroup)
 
         data_path = self.raw_path + os.sep + "appliances_penetration.ods"
+        if not os.path.isfile(data_path):
+            # Download the raw data from github if does not exist
+            url = (
+                'https://raw.githubusercontent.com/epfl-herus/demod/'
+                'master/demod/datasets/DESTATIS/raw_data/'
+                'appliances_penetration.ods'
+            )
+            print('Downloading {} raw data for {} from {}.'.format(
+                self.DATASET_NAME, 'appliance ownership', url
+            ))
+            # Reads the url and  download the zip archive
+            response = request.urlopen(url)
+            datatowrite = response.read()
+            with open(data_path, 'wb') as f:
+                f.write(datatowrite)
+
+
         df = pd.read_excel(data_path, header=[0, 1, 2])
 
         try:
