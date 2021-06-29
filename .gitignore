@@ -175,3 +175,7 @@ demod/datasets/GermanTOU/einleseroutinen/einleseroutine_stata_puf.do
 demod/datasets/tracebase/parsed_data/
 demod/datasets/CREST/parsed_data/
 demod/datasets/RenewablesNinja/parsed_data/
+
+# Other files I don't want to share
+demod/datasets/DESTATIS/raw_data/evs-ausstattung-privater-haushalte-2152601189004.pdf
+demod/datasets/DESTATIS/raw_data/evs-ausstattung-privater-haushalte-2152601189004-1.ods
