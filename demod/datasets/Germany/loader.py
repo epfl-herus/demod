@@ -1,6 +1,7 @@
 """Dataset loaders for Germany."""
 import datetime
 import os
+from urllib import request
 
 import numpy as np
 import pandas as pd
@@ -76,6 +77,20 @@ class GermanDataHerus(
         self.raw_file_path = (
             self.raw_path + os.sep + "data_" + version + ".xlsx"
         )
+
+        if not os.path.isfile(self.raw_file_path):
+            # Download file if does not exist
+            url = (
+                'https://raw.githubusercontent.com/epfl-herus/demod/master',
+                '/demod/datasets/Germany/raw_data/data_{}.xlsx'.format(version)
+            )
+            print('Downloading {} excell sheet for {} from {}.'.format(
+                self.DATASET_NAME, version, url
+            ))
+            response = request.urlopen(url)
+            datatowrite = response.read()
+            with open(self.raw_file_path, 'wb') as f:
+                f.write(datatowrite)
 
         self.refresh_time = self.activity_data.refresh_time
 
