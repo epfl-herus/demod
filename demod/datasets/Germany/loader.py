@@ -71,7 +71,7 @@ class GermanDataHerus(
             ))
         self.destatis = Destatis()
         self.climate = OpenPowerSystemClimate("germany")
-        self.tracebase_profiles = Tracebase()
+
         super().__init__(version=version, **kwargs)
 
         self.raw_file_path = (
@@ -81,7 +81,7 @@ class GermanDataHerus(
         if not os.path.isfile(self.raw_file_path):
             # Download file if does not exist
             url = (
-                'https://raw.githubusercontent.com/epfl-herus/demod/master',
+                'https://raw.githubusercontent.com/epfl-herus/demod/master'
                 '/demod/datasets/Germany/raw_data/data_{}.xlsx'.format(version)
             )
             print('Downloading {} excell sheet for {} from {}.'.format(
@@ -130,6 +130,7 @@ class GermanDataHerus(
         return self.destatis.load_appliance_ownership_dict(subgroup)
 
     def load_real_profiles_dict(self, *args, **kwargs):
+        self.tracebase_profiles = Tracebase()
         return self.tracebase_profiles.load_real_profiles_dict(*args, **kwargs)
 
     def _parse_appliance_dict(self) -> AppliancesDict:

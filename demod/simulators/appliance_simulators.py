@@ -112,7 +112,7 @@ class AppliancesSimulator(TimeAwareSimulator):
         appliances_dict: AppliancesDict,
         equipped_sampling_algo: str = "basic",
         equipped_set_defined: dict = None,
-        real_profiles_algo: str = "uniform",
+        real_profiles_algo: str = "nothing",
         **kwargs
     ):
         """Initialize an appliance simulator with its appliances.
@@ -308,7 +308,7 @@ class AppliancesSimulator(TimeAwareSimulator):
         ]).reshape(-1)
 
     def sample_real_load_profiles(
-        self, real_profiles_algo: str = 'uniform',
+        self, real_profiles_algo: str = 'nothing',
     ) -> np.ndarray:
         """Assign a load profile for each appliance.
 
