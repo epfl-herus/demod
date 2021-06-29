@@ -133,11 +133,19 @@ class GTOU(LoaderTOU, PopulationLoader):
             self.DATASET_NAME, self.activity_type, url
         ))
         # Reads the url and  download the zip archive
-        response = request.urlopen(url)
+        try:
+            response = request.urlopen(url)
+        except error.HTTPError as e:
+            if e.code == 404:
+                raise FileNotFoundError((
+                    'Parsed data for {} is not available on Github.'
+                    'Please contact us on {}'
+                ).format(self.activity_type, GITHUB_REPO_URL))
+            else:
+                raise e
         datatowrite = response.read()
         with open(parsed_zip_filepath, 'wb') as f:
             f.write(datatowrite)
-        print('end_download')
         # Now the file is downloaded
         with zipfile.ZipFile(parsed_zip_filepath, 'r') as zip_obj:
             zip_obj.extractall(self.parsed_path_activity)
