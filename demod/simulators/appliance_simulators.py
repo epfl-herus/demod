@@ -918,7 +918,6 @@ class OccupancyApplianceSimulator(AppliancesSimulator):
         step_size: datetime.timedelta = None,
         initial_active_occupancy: np.ndarray = None,
         equipped_sampling_algo: str = 'subgroup',
-        real_profiles_algo: str = 'only_switched_on',
         **kwargs
     ):
         """Create a simulator for the appliances."""
@@ -945,7 +944,6 @@ class OccupancyApplianceSimulator(AppliancesSimulator):
             n_hh, appliances_dict,
             step_size=step_size,
             equipped_sampling_algo=equipped_sampling_algo,
-            real_profiles_algo=real_profiles_algo,
             **kwargs
         )
 
