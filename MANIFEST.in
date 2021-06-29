@@ -1,4 +1,6 @@
 
 
 recursive-exclude demod/datasets *.json
+recursive-exclude demod/datasets *.npy
+recursive-exclude demod/datasets *.npz
 recursive-include demod *.py
