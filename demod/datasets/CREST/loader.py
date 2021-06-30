@@ -122,7 +122,7 @@ class Crest(
                 df = pd.read_excel(
                     self.raw_file_path,
                     "ActivityStats",
-                    header=11,
+                    header=10 if self.version == "v_2.2" else 11,
                     nrows=5,
                     usecols=[1, 2],
                     engine="openpyxl",
@@ -137,7 +137,7 @@ class Crest(
                 )].to_numpy()
             elif self.version == "v_2.2":
                 pdf = df[
-                    "Probability of dwelling having this number of residents"
+                    ("Probability of dwelling having this number of residents")
                 ].to_numpy()
             else:
                 raise ValueError(
@@ -394,7 +394,8 @@ class Crest(
         df = pd.read_excel(
             self.raw_file_path,
             "ActivityStats",
-            header=head,
+            # For a wierd reasons, some lines are ignored in v2.2
+            header=head-2 if self.version == "v_2.2" else head,
             nrows=36,
             usecols=np.arange(144) + 4,
             engine="openpyxl",
@@ -405,7 +406,7 @@ class Crest(
         labels_df = pd.read_excel(
             self.raw_file_path,
             "ActivityStats",
-            header=28,
+            header=26 if self.version == "v_2.2" else 28,
             nrows=6,
             usecols=[3],
             engine="openpyxl",
@@ -770,7 +771,7 @@ class Crest(
         )
         buildings["floor_area"] = np.array(df["Floor area, living space"])
         buildings["height"] = np.array(df["Height, living space"])
-        print(df.columns)
+
         buildings["emitters_target_temperature"] = np.array(
             df["Nominal temperature of emitters "]
         )

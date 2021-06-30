@@ -46,7 +46,9 @@ class TestDataLoader(unittest.TestCase):
     def test_new_versions(self):
         old_versions = ['2.3.3']
         for version in old_versions:
+            self.test_clear_parsed_data(version)
             self.test_load_tpm(version)
+            self.test_population(version)
 
     def test_ownership(self, version=None):
         from demod.datasets.CREST.loader import Crest
@@ -72,6 +74,27 @@ class TestDataLoader(unittest.TestCase):
         from demod.datasets.CREST.loader import Crest
         data = Crest() if version is None else Crest(version)
         real_load_dict = data.load_real_profiles_dict('switchedON')
+
+    def test_other_loaders(self, version=None):
+        from demod.datasets.CREST.loader import Crest
+        data = Crest() if version is None else Crest(version)
+        data.load_crest_lighting()
+        data.load_bulbs_config()
+
+#   def test_clear_parsed_data(self, version=None):
+#       from demod.datasets.CREST.loader import Crest
+#       data = (
+#           Crest(clear_parsed_data=True) if version is None
+#           else Crest(version, clear_parsed_data=True)
+#       )
+#       self.test_population(version)
+#       self.test_load_tpm(version)
+#       self.test_washing_machines_loads(version)
+#       self.test_load_activity_probability_profiles(version)
+#
+#
+#       # self.test_ownership(version)
+#       # self.test_load_appliances_dict(version)
 
 
 
