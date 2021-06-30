@@ -122,7 +122,7 @@ class Crest(
                 df = pd.read_excel(
                     self.raw_file_path,
                     "ActivityStats",
-                    header=10 if self.version == "v_2.2" else 11,
+                    header=11,
                     nrows=5,
                     usecols=[1, 2],
                     engine="openpyxl",
@@ -395,7 +395,7 @@ class Crest(
             self.raw_file_path,
             "ActivityStats",
             # For a wierd reasons, some lines are ignored in v2.2
-            header=head-2 if self.version == "v_2.2" else head,
+            header=head,
             nrows=36,
             usecols=np.arange(144) + 4,
             engine="openpyxl",
@@ -406,7 +406,7 @@ class Crest(
         labels_df = pd.read_excel(
             self.raw_file_path,
             "ActivityStats",
-            header=26 if self.version == "v_2.2" else 28,
+            header=28,
             nrows=6,
             usecols=[3],
             engine="openpyxl",
