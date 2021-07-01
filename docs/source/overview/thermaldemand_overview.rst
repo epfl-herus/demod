@@ -125,8 +125,8 @@ Low-order building thermal model (4R3C)
   This module simulates the thermal behavior of the building using an
   equivalent low-order electric circuit as in CREST_
   (see :numref:`4R3C-building-thermal-model`).
-  Six building typology are available: detached house,
-  semi-detached house and apartment both in the renovated version and not.
+  Six building typologies are available: detached house,
+  semi-detached house and apartment either renovated or not renovated.
 
   The name 4R3C refers to three thermal capacitances representing
   the thermal masses of the building :math:`C_{b}`,

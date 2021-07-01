@@ -1,4 +1,6 @@
 
+.. _quickstart-example:
+
 ===================
 Quickstart Examples
 ===================

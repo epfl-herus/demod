@@ -82,7 +82,7 @@ Occupancy-based appliance usage simulator
   **Appliance usage and load.**
   Appliance usage and load profiles are estimated as follows:
 
-  1. first, the activity pdf is multiplied by a calibration scalar,
+  1. first, the activity probability density function (pdf) is multiplied by a calibration scalar,
      whose value is assigned such that the simulated annual consumption
      of a device matches a target value;
   2. second, the turn-on event occurs if the probability exceeds a
@@ -112,7 +112,7 @@ Occupancy-based appliance usage simulator
 
   - Households are initialized with a set of appliances that is dependent
     on socio-demographic data, using the dataset from [Destatis2017]_.
-  - The full set of available appliances is updated to reflect osbolescence
+  - The full set of available appliances is updated to reflect obsolescence
     (e.g., answer machine, cassette / CD player) and changes
     (e.g., tables, game console) in technology.
 

@@ -35,6 +35,7 @@ and the data processing methods allows the application of demod
 to contexts other than Germany.
 
 
+
 Socio-technical modeling
 --------------------------
 
@@ -68,13 +69,13 @@ Thanks to its properties of modularity, scalability and complete transparency,
 demod can be used in various applications:
 
 - **Direct use** for generating occupancy, activity, thermal and electrical
-  demand profiles with high temporal resolution.
+  demand profiles with high temporal resolution (see :ref:`quickstart-example`).
 - Integration of demod-based domestic energy demand model within
   **co-simulation ecosystems** for the study of larger scale scenarios
-  at district, urban and national level.
+  at district, urban and national level (see :ref:`co-simulation`).
 - **Improve, change modules** or **extend** demod's modules to perform
-  cross-analysis and validation of entire models or individual components.
-
+  cross-analysis and validation of entire models or individual components 
+  (see :ref:`create-sim_label`)
 
 
 demod's main components
@@ -104,11 +105,11 @@ model framework is reported.
 .. toctree::
     :maxdepth: 2
 
-    occupancy_overview
-    electricdemand_overview
-    thermaldemand_overview
+    Occupany and activity (green) <occupancy_overview>
+    Appliance usage and lighting (yellow) <electricdemand_overview>
+    Heating demand and supply (red) <thermaldemand_overview>
     mobility_overview
-    weather_overview
+    Wather simulators (blue) <weather_overview>
 
 .. initialization_overview
 
@@ -118,3 +119,10 @@ model framework is reported.
 .. _German-time-use: https://www.forschungsdatenzentrum.de/de/haushalte/zve
 
 .. _CREST: https://www.lboro.ac.uk/research/crest/demand-model/
+
+.. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COLORs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |green| image:: OverviewFigures/green.png
+.. |red| image:: OverviewFigures/red.png
+.. |yellow| image:: OverviewFigures/yellow.png
+.. |blue| image:: OverviewFigures/blue.png

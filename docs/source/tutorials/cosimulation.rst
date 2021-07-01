@@ -1,17 +1,31 @@
+
+.. _co-simulation:
+
 =========================================
 Integration with Co-simulation Frameworks
 =========================================
 
 Once you have created your simulator, we provide a simple adaptor API to
-some other cosimulation frameworks.
+a co-simulation framework.
 
+Co-simulation frameworks provide functionality to combine heterogeneous 
+simulation  components  from  different  domains  in  an  integrated  
+simulation.
+Indeed, cos-imulation deisgn ensures *modularity* to the simulation, 
+allowing to incorporate additional models such as networks 
+(e.g., eletric grid andmobility infrastructure), 
+devices (e.g., electric vehicles and batteries), 
+agents (e.g.,industries  and  governance  authorities)  
+and  platforms  (e.g.,  spot  market) and 
+facilitating model use and modification.
 
 
 Mosaik integration
 ------------------
-Available in a next release:
-`mosaik <https://mosaik.readthedocs.io/en/latest/overview.html>`_ is an
-API that performs coordinated simulation of Smart Grid scenario.
+
+`mosaik <https://mosaik.readthedocs.io/en/latest/overview.html>`_ is a 
+framework which provides API to coordinated simulations
+of Smart Grid scenarios.
 
 You can access the
 `GitHub repository of mosaik-demod <https://github.com/epfl-herus/mosaik-demod>`_
@@ -38,21 +52,21 @@ For a single value simulated (ex. climate), use The SingleValue module.
     from mosaikdemod.adaptors import AbstractSingleValueModule
 
 
-2. import demod library
+3. import demod library
 
 .. code-block:: python
 
     import demod
 
 
-3. Inherit from the abstract module
+4. Inherit from the abstract module
 
 .. code-block:: python
 
     class ComponentSimulator(AbstractHouseholdsModule):
 
 
-4. Specify the attributes of the simulator that can be accessed
+5. Specify the attributes of the simulator that can be accessed
 
 .. code-block:: python
 
@@ -62,7 +76,7 @@ For a single value simulated (ex. climate), use The SingleValue module.
         ...
     }
 
-5. Specify the inputs of the simulator that can be accessed
+6. Specify the inputs of the simulator that can be accessed
 
 .. code-block:: python
 
@@ -72,7 +86,7 @@ For a single value simulated (ex. climate), use The SingleValue module.
         ...
     }
 
-6. Override the :py:meth:`__init__()` method
+7. Override the :py:meth:`__init__()` method
 
 .. code-block:: python
 
@@ -88,7 +102,7 @@ For a single value simulated (ex. climate), use The SingleValue module.
         super().__init__(simulated_component, default_simulator, step_size)
 
 
-7. Import your simulator to your mosaik scenario script.
+8. Import your simulator to your mosaik scenario script.
 
 .. code-block:: python
 
@@ -122,7 +136,7 @@ For a single value simulated (ex. climate), use The SingleValue module.
     )
 
 
-8. Connect the simulators. You can connect a whole household group to another one if you use 2 demod components.
+9. Connect the simulators. You can connect a whole household group to another one if you use 2 demod components.
 Or you can also connect all the households individually
 by calling the children method
 

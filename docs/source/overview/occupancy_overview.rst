@@ -2,7 +2,7 @@
 Occupancy and activity
 ======================
 
-These modules allows to simulate household occupancy and activity behaviour
+These modules allow to simulate household occupancy and activity behaviour
 with a 10 min time resolution.
 They uses a Markov chain technique to create stochastic profiles using
 transition probability matrices based on time use survey data.
