@@ -11,7 +11,7 @@ a co-simulation framework.
 Co-simulation frameworks provide functionality to combine heterogeneous 
 simulation  components  from  different  domains  in  an  integrated  
 simulation.
-Indeed, cos-imulation deisgn ensures *modularity* to the simulation, 
+Indeed, co-simulation design ensures *modularity* to the simulation, 
 allowing to incorporate additional models such as networks 
 (e.g., eletric grid andmobility infrastructure), 
 devices (e.g., electric vehicles and batteries), 
