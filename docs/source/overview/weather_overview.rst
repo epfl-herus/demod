@@ -127,4 +127,4 @@ Real interpolated climate simulator
 
 .. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LINKs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. _CREST: https://www.lboro.ac.uk/research/crest/demand-model/
+.. _CREST: https://repository.lboro.ac.uk/articles/dataset/CREST_Demand_Model_v2_0/2001129
