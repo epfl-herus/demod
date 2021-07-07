@@ -55,11 +55,11 @@ CREST
 .. autoclass:: Crest
 
 
-Open power systems
+Ninja Renwables
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. module:: demod.datasets.OpenPowerSystems.loader
-.. autoclass:: OpenPowerSystemClimate
+.. module:: demod.datasets.RenewablesNinja.loader
+.. autoclass:: NinjaRenewablesClimate
 
 DESTATIS
 ~~~~~~~~~~~~~~~~~~~~~~~~~

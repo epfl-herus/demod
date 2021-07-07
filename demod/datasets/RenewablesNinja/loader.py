@@ -36,10 +36,13 @@ class NinjaRenewablesClimate(ClimateLoader):
     - 'outside_temperature'
     - 'irradiance'
 
-    Attributes:
+    Parameters:
         weighted_type: The method used to weight the climate.
             This was performed by Renewables.ninja. Can be
             'population' or 'land_area'.
+        update_raw_data: Wether the raw data file should be updated.
+            As time goes by, new data might be collected by
+            Renewable Ninjas.
 
     Loaders:
         :py:meth:`~demod.datasets.base_loader.ClimateLoader.load_historical_climate_data`

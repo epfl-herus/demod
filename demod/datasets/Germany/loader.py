@@ -39,7 +39,7 @@ class GermanDataHerus(
 
     * :py:meth:`~demod.datasets.CREST.loader.Crest`
     * :py:meth:`~demod.datasets.GermanTOU.loader.GTOU`
-    * :py:meth:`~demod.datasets.OpenPowerSystems.loader.OpenPowerSystemClimate`
+    * :py:meth:`~demod.datasets.RenewablesNinja.loader.NinjaRenewablesClimate`
     * :py:meth:`~demod.datasets.DESTATIS.loader.Destatis`
 
     The raw data is in some parts in an excell sheet.
