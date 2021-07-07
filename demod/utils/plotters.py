@@ -9,14 +9,15 @@ from .sim_types import AppliancesDict, StateLabels, States
 
 # Set the default color cycle
 plt.rcParams['axes.prop_cycle'] = plt.cycler(color=[
-    '#8dd3c7','#ffffb3','#bebada','#fb8072','#80b1d3',
-    '#fdb462','#b3de69','#fccde5','#d9d9d9','#bc80bd',
-    '#ccebc5','#ffed6f'
+    '#8dd3c7', '#ffffb3', '#bebada', '#fb8072', '#80b1d3',
+    '#fdb462', '#b3de69', '#fccde5', '#d9d9d9', '#bc80bd',
+    '#ccebc5', '#ffed6f'
 ])
 
 
 FIGSIZE = (16, 9)
 MAIN_ACTIVITIES = ['active_occupancy', 'away', 'sleeping']
+
 
 
 def optional_ax(function):
