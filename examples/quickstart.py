@@ -1,13 +1,15 @@
 import os
 import sys
 
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
+module_path = os.path.abspath(os.path.join('..'))
+if module_path not in sys.path:
+    sys.path.append(module_path)
 
 from demod.simulators.load_simulators import LoadSimulator
 # Import the DatasetLoader
 from demod.datasets.CREST.loader import Crest
-
 from demod.simulators.base_simulators import SimLogger
+
 
 sim = LoadSimulator(n_households=100, data=Crest())
 

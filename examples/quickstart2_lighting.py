@@ -1,7 +1,16 @@
+"""
+"""
+import matplotlib
+import matplotlib.pyplot as plt
+import datetime
+
 import os
 import sys
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-import datetime
+
+module_path = os.path.abspath(os.path.join('..'))
+if module_path not in sys.path:
+    sys.path.append(module_path)
+
 from demod.simulators.base_simulators import SimLogger
 from demod.datasets.GermanTOU.loader import GTOU
 from demod.datasets.OpenPowerSystems.loader import OpenPowerSystemClimate
@@ -51,8 +60,6 @@ for _ in range(n_days*24):
             irradiance=climate_sim.get_irradiance()
         )
 
-
-import matplotlib.pyplot as plt
 
 fig, axes = plt.subplots(3, 1, sharex=True)
 
