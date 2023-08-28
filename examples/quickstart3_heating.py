@@ -27,7 +27,7 @@ from demod.simulators.sparse_simulators import SparseTransitStatesSimulator
 from demod.simulators.weather_simulators import RealClimate
 from demod.simulators.lighting_simulators import CrestLightingSimulator
 from demod.simulators.heating_simulators import  FiveModulesHeatingSimulator
-from demod.simulators.appliance_simulators import SubgroupApplianceSimulator
+from demod.simulators.appliance_simulators import OccupancyApplianceSimulator
 from demod.simulators.weather_simulators import RealInterpolatedClimate
 
 
@@ -88,7 +88,7 @@ heating_sim = FiveModulesHeatingSimulator(
 
 
 # Appliances, water fixtures 
-app_sim = SubgroupApplianceSimulator(
+app_sim = OccupancyApplianceSimulator(
     [subgroup], [n_households], data=data,
     initial_active_occupancy=occ_sim.get_active_occupancy(),
     start_datetime=time_,

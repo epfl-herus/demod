@@ -357,6 +357,22 @@ class LoadSimulator(TimeAwareSimulator):
             + self.light_sim.get_power_demand()
             + _heating
         )
+    
+    @cached_getter
+    def get_lighting_power_demand(self):
+        return self.light_sim.get_power_demand()
+    
+    @cached_getter
+    def get_appliance_power_demand(self):
+        return self.appliance_simulator.get_power_demand()
+    
+    @cached_getter
+    def get_heating_power_demand(self):
+        return (
+            self.heating.get_power_demand()
+            if self.include_heating
+            else np.zeros(self.n_households)
+        )
 
     @cached_getter
     def get_total_heat_demand(self):
