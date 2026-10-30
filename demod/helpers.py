@@ -8,8 +8,6 @@ import pandas as pd
 import datetime
 import warnings
 
-import pytz
-
 
 def subgroup_file(subgroup_kwargs, folder_path = os.path.join(OLD_DATASET_PATH + os.sep +'GermanTOU', 'compiled_data', 'sparse_activities') + os.sep):
     """Create a file name with the access path included for the specified subgroup kwargs

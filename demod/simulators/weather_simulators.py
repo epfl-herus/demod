@@ -136,10 +136,8 @@ class CrestIrradianceSimulator(ClimateSimulator):
         """
         # Finds where the initial clearness is in the values
         indices = np.where(self.clearness_values == initial_clearness)[0]
-        self._clearness_state = int(
-            # Happens when 'clear' is the same as 1.
-            indices if len(indices) == 1 else indices[0]
-        )
+        # Happens when 'clear' is the same as 1.
+        self._clearness_state = int(indices[0])
 
         self.on_after_next_day()
 
@@ -151,9 +149,9 @@ class CrestIrradianceSimulator(ClimateSimulator):
 
     def _next_clearness(self):
         # update the state through a Markov Chain Monte Carlo algorithm
-        self._clearness_state = monte_carlo_from_1d_cdf(
+        self._clearness_state = int(monte_carlo_from_1d_cdf(
             self.clearness_cdf[self._clearness_state]
-        )
+        )[0])
         return self.clearness_values[
             self._clearness_state
         ]  # return the value of the clearness

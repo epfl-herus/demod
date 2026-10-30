@@ -418,7 +418,7 @@ class SparseTransitStatesSimulator(SparseStatesSimulator):
         self,
         n_households: int,
         subgroup_kwargs: Subgroup,
-        data: DataInput = GTOU('Sparse9States'),
+        data: DataInput = None,
         **kwargs
     ) -> None:
         """Creates a Transit state simulator.
@@ -431,6 +431,8 @@ class SparseTransitStatesSimulator(SparseStatesSimulator):
         Raises:
             ValueError: [description]
         """
+        if data is None:
+            data = GTOU('Sparse9States')
         self.data = data
 
         # Check that we have the number of occupants int subgroup_kwargs

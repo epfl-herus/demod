@@ -553,7 +553,7 @@ class SubgroupsIndividualsActivitySimulator(
         subgroups_list: Subgroups,
         n_households_list: List[int],
         subsimulator: Simulator = MarkovChain1rstOrder,
-        data: LoaderTOU = GTOU('DemodActivities_0'),
+        data: LoaderTOU = None,
         use_week_ends_days: bool = False,
         use_week_sat_sun: bool = False,
         use_7days: bool = False,
@@ -577,6 +577,8 @@ class SubgroupsIndividualsActivitySimulator(
         Raises:
             ValueError: If step_size does not match data.step_size
         """
+        if data is None:
+            data = GTOU('DemodActivities_0')
         self.data = data
         # Save the update time parameters
         self.use_week_ends_days = use_week_ends_days
