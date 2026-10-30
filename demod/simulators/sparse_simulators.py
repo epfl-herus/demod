@@ -203,7 +203,9 @@ class SparseStatesSimulator(Simulator):
             ):  # chekc that activity labels has been properly initialized
                 if np.isin(state, self.activity_labels):
                     # gets the position of this state in the list
-                    act_number = int(*np.where(self.activity_labels == state))
+                    act_number = int(
+                        np.where(self.activity_labels == state)[0][0]
+                    )
                     return self.get_n_doing_state(
                         act_number
                     )  # recursively get the value
