@@ -172,7 +172,7 @@ class Tracebase(ApplianceLoader):
         if profiles_type == 'full':
             df = pd.read_csv(
                 file_path,
-                parse_dates=[0], infer_datetime_format=True,
+                parse_dates=[0],
                 sep=';', usecols=[0, 1], header=None
             )
             # sample on a step size
