@@ -190,11 +190,12 @@ class LoadSimulator(TimeAwareSimulator):
         include_heating=True,
         include_climate=True,
         initial_outside_temperature=5.0,
-        data=GermanDataHerus(),
+        data=None,
         **kwargs
     ):
 
-
+        if data is None:
+            data = GermanDataHerus()
 
         super().__init__(
             n_households=n_households,

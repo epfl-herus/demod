@@ -422,7 +422,7 @@ class BuildingThermalDynamics(Simulator):
         initial_outside_temperature: float,
         step_size: datetime.timedelta = datetime.timedelta(minutes=1),
         target_temperatures: Tuple[np.ndarray, Temperatures] = None,
-        data: DataInput = GermanDataHerus(),
+        data: DataInput = None,
         **kwargs
     ) -> None:
         """Create a Simulator for the buildling thermal dynamics.
@@ -436,6 +436,8 @@ class BuildingThermalDynamics(Simulator):
             initial_outside_temperature: Outside temperature at initial time.
             data: The data to use. Defaults to 'Germany'.
         """
+        if data is None:
+            data = GermanDataHerus()
         super().__init__(n_households, **kwargs)
         self.outside_temperature = initial_outside_temperature
 
@@ -704,9 +706,11 @@ class Thermostats(Simulator):
         self,
         n_households: int,
         initial_temperatures: Temperatures = None,
-        data: DataInput = GermanDataHerus(),
+        data: DataInput = None,
         **kwargs
     ):
+        if data is None:
+            data = GermanDataHerus()
         super().__init__(n_households, **kwargs)
 
         self.thermostat = self.read_thermostats(data=data)
@@ -1287,7 +1291,7 @@ class HeatingSystem(Simulator):
     def __init__(
         self,
         n_households: int,
-        data: DataInput = GermanDataHerus(),
+        data: DataInput = None,
         initial_controls: HeatingControls = None,
         initial_heat_demand: HeatingDemand = None,
         **kwargs
@@ -1302,6 +1306,8 @@ class HeatingSystem(Simulator):
             initial_heating_demand: The heating demand at the start of
                 the simuation.
         """
+        if data is None:
+            data = GermanDataHerus()
         super().__init__(n_households, **kwargs)
 
         self.heating_systems = self.read_heating_system(data=data)
@@ -1651,10 +1657,12 @@ class FiveModulesHeatingSimulator(AbstractHeatingSimulator):
         n_households: int,
         initial_outside_temperature: float,
         heatdemand_algo: str = "heat_max_emmiters",
-        data: DataInput = GermanDataHerus(),
+        data: DataInput = None,
         step_size: datetime.timedelta = datetime.timedelta(minutes=1),
         **kwargs
     ) -> None:
+        if data is None:
+            data = GermanDataHerus()
         super().__init__(n_households, **kwargs)
 
         # Initialize parameters to interact with external heating components

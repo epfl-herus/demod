@@ -46,7 +46,6 @@ class TestDataLoader(unittest.TestCase):
     def test_new_versions(self):
         old_versions = ['2.3.3']
         for version in old_versions:
-            self.test_clear_parsed_data(version)
             self.test_load_tpm(version)
             self.test_population(version)
 

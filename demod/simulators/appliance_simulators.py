@@ -914,13 +914,15 @@ class OccupancyApplianceSimulator(AppliancesSimulator):
         self,
         subgroups_list: Subgroups,
         n_households_list: List[int],
-        data: DataInput = GermanDataHerus(),
+        data: DataInput = None,
         step_size: datetime.timedelta = None,
         initial_active_occupancy: np.ndarray = None,
         equipped_sampling_algo: str = 'subgroup',
         **kwargs
     ):
         """Create a simulator for the appliances."""
+        if data is None:
+            data = GermanDataHerus()
         self.data = data
 
         appliances_dict = self.data.load_appliance_dict()
@@ -1310,7 +1312,7 @@ class ActivityApplianceSimulator(AppliancesSimulator):
     def __init__(
         self, n_households: int,
         initial_activities_dict: ActivitiesDict,
-        data=GermanDataHerus('vBottaccioli'),
+        data=None,
         subgroups_list: Subgroups = None,
         n_households_list: List[int] = None,
         **kwargs
@@ -1320,6 +1322,8 @@ class ActivityApplianceSimulator(AppliancesSimulator):
         Sample the appliances, but only the ones that are related to the
         activity.
         """
+        if data is None:
+            data = GermanDataHerus('vBottaccioli')
         appliance_dict = data.load_appliance_dict()
         self.data = data
 
@@ -1542,7 +1546,7 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
     def __init__(
         self, n_households: int,
         initial_activities_dict: ActivitiesDict,
-        data: DataInput = GermanDataHerus('vBottaccioli'),
+        data: DataInput = None,
         subgroups_list: Subgroups = None,
         n_households_list: List[int] = None,
         **kwargs
@@ -1552,6 +1556,8 @@ class ProbabiliticActivityAppliancesSimulator(AppliancesSimulator):
         Sample the appliances, but only the ones that are related to the
         activity.
         """
+        if data is None:
+            data = GermanDataHerus('vBottaccioli')
         appliance_dict = data.load_appliance_dict()
         self.data = data
 

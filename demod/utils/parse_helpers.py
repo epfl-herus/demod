@@ -646,7 +646,9 @@ def states_to_tpms(
             axis=1, return_counts=True
         )
         # converts the indexes for accessing the matrix later
-        states_indices = [(i) for i in states_indices]
+        # a tuple is required so that numpy indexes rows and columns
+        # independently; a list would be treated as a single 2D index
+        states_indices = tuple(states_indices)
 
         # compute the sum of the transitions for each states
         transition_matrice = np.full((n_states, n_states), 0)
