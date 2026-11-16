@@ -4,3 +4,4 @@ pandas
 matplotlib
 openpyxl
 odfpy
+python-Levenshtein

@@ -5,7 +5,6 @@ Loads data from the crest spreadsheet.
 
 from datetime import time, timedelta
 from sys import version
-import shutil
 import warnings
 import os
 from urllib import request
@@ -49,9 +48,13 @@ from ...utils.error_messages import (
 )
 
 
+# The CREST model is hosted on the Loughborough figshare repository
+# (article 2001129). The repository domain is now protected by a bot
+# challenge, so the files are fetched directly from the figshare
+# download host instead.
 DOWNLOAD_URL_BY_VERSION = {
-    '2.2': 'https://repository.lboro.ac.uk/ndownloader/files/4969096',
-    '2.3.3': 'https://repository.lboro.ac.uk/ndownloader/files/22693271',
+    '2.2': 'https://ndownloader.figshare.com/files/4969096',
+    '2.3.3': 'https://ndownloader.figshare.com/files/22693271',
 }
 
 class Crest(
@@ -98,10 +101,19 @@ class Crest(
             if version not in DOWNLOAD_URL_BY_VERSION:
                 raise ValueError('Unkonw Version {} of CREST.'.format(version))
             # Reads the url and  download the
+            download_url = DOWNLOAD_URL_BY_VERSION[version]
             print('Downloading CREST Model to : {}'.format(self.raw_file_path))
-            with request.urlopen(DOWNLOAD_URL_BY_VERSION[version]) as response:
-                with open(self.raw_file_path, 'wb') as f:
-                    shutil.copyfileobj(response, f)
+            with request.urlopen(download_url) as response:
+                data = response.read()
+            if len(data) == 0:
+                # Avoid leaving an empty file behind, which would
+                # prevent any later download attempt.
+                raise RuntimeError((
+                    "Downloading the CREST model from {} returned an "
+                    "empty response."
+                ).format(download_url))
+            with open(self.raw_file_path, 'wb') as f:
+                f.write(data)
 
     def load_population_subgroups(
         self, population_type: str = "crest",

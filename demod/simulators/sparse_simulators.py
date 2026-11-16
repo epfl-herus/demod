@@ -203,7 +203,9 @@ class SparseStatesSimulator(Simulator):
             ):  # chekc that activity labels has been properly initialized
                 if np.isin(state, self.activity_labels):
                     # gets the position of this state in the list
-                    act_number = int(*np.where(self.activity_labels == state))
+                    act_number = int(
+                        np.where(self.activity_labels == state)[0][0]
+                    )
                     return self.get_n_doing_state(
                         act_number
                     )  # recursively get the value
@@ -418,7 +420,7 @@ class SparseTransitStatesSimulator(SparseStatesSimulator):
         self,
         n_households: int,
         subgroup_kwargs: Subgroup,
-        data: DataInput = GTOU('Sparse9States'),
+        data: DataInput = None,
         **kwargs
     ) -> None:
         """Creates a Transit state simulator.
@@ -431,6 +433,8 @@ class SparseTransitStatesSimulator(SparseStatesSimulator):
         Raises:
             ValueError: [description]
         """
+        if data is None:
+            data = GTOU('Sparse9States')
         self.data = data
 
         # Check that we have the number of occupants int subgroup_kwargs

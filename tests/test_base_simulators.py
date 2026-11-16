@@ -252,7 +252,7 @@ class TimeAwareSimulatorChildrenTests(BaseSimulatorChildrenTests):
             start_datetime=self.default_start_datetime,
             step_size=self.random_step_size, **self.kwargs)
         sim.step(*self.args_step, **self.kwargs_step)
-        self.assertEquals(
+        self.assertEqual(
             sim.current_time,
             self.default_start_datetime+self.random_step_size
         )

@@ -111,7 +111,7 @@ class CrestOccupancySimulator(MarkovChain1rstOrder, ActivitySimulator):
         n_households: int,
         n_residents: int,
         day_type: str,
-        data: data_types.DataInput = Crest(),
+        data: data_types.DataInput = None,
         adjustcdfvalues: bool = True,
         **kwargs
     ):
@@ -132,6 +132,9 @@ class CrestOccupancySimulator(MarkovChain1rstOrder, ActivitySimulator):
             AssertionError
                 If the parameters have wrong types or shapes
         """
+        if data is None:
+            data = Crest()
+
         # check the inputs
         try:
             assert day_type == "e" or day_type == "d", (
@@ -232,7 +235,7 @@ class Crest4StatesModel(TimeAwareSimulator, MultiSimulator):
     def __init__(
         self,
         n_households: int,
-        data: Crest = Crest(),
+        data: Crest = None,
         start_datetime: datetime.datetime = datetime.datetime(2014, 1, 1, 0, 0, 0),
         **kwargs
     ):
@@ -246,6 +249,9 @@ class Crest4StatesModel(TimeAwareSimulator, MultiSimulator):
         """
 
         # get the data of the households numbers
+
+        if data is None:
+            data = Crest()
 
         subgroups, pdf_households, _ = data.load_population_subgroups(
             'resident_number'

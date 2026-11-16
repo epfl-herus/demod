@@ -8,8 +8,6 @@ from datetime import timedelta
 import os
 from typing import Any, Dict
 import urllib.request
-import shutil
-import zipfile
 
 import numpy as np
 import pandas as pd
@@ -53,6 +51,26 @@ class NinjaRenewablesClimate(ClimateLoader):
     # Default step size from ninja
     step_size = timedelta(hours=1)
 
+    # Renewables.ninja now serves one csv file per climate variable.
+    # These are downloaded and merged into a single raw file whose
+    # columns are named after these variables.
+    VARIABLES = [
+        'temperature',
+        'precipitation',
+        'snowfall',
+        'snow_mass',
+        'cloud_cover',
+        'air_density',
+        'irradiance_surface',
+        'irradiance_toa',
+    ]
+    # Maps the weighting type name used in demod to the one used in the
+    # Renewables.ninja urls.
+    _WEIGHTING_URL_NAMES = {
+        'population': 'pop_wtd',
+        'land_area': 'area_wtd',
+    }
+
     def __init__(
         self, country_name,
         update_raw_data: bool = False,
@@ -90,36 +108,74 @@ class NinjaRenewablesClimate(ClimateLoader):
         # Check if the raw file already exists and should not be updated
         if os.path.isfile(self.raw_file_path) and not update_raw_data:
             return
-        # Else download it
+        # Else download every variable and merge them in a single file
+        weighting = self._WEIGHTING_URL_NAMES.get(
+            weighted_type, weighted_type
+        )
         base_url = 'https://www.renewables.ninja/country_downloads/'
-        country_url_template = (
-            '{country}/ninja_weather_country_{country}_'
-            'merra-2_{weighted_type}_weighted.csv'
+        variable_url_template = (
+            '{country}/ninja-weather-country-{country}-{variable}'
+            '_{weighting}-merra2.csv'
         )
-        country_url = base_url + country_url_template.format(
-            country=country_code,
-            weighted_type=weighted_type
-        )
-        print('Downloading {} raw data from {}.'.format(
-            self.DATASET_NAME, country_url
+        print('Downloading {} raw data. This can take some time.'.format(
+            self.DATASET_NAME
         ))
-        print('This can take some time.')
-        # Creates the request
+        merged = None
+        for variable in self.VARIABLES:
+            country_url = base_url + variable_url_template.format(
+                country=country_code,
+                variable=variable,
+                weighting=weighting,
+            )
+            variable_df = self._download_variable(country_url, country_code)
+            variable_df = variable_df.rename(
+                columns={variable_df.columns[1]: variable}
+            )
+            merged = (
+                variable_df if merged is None
+                else merged.merge(variable_df, on='time', how='outer')
+            )
+        merged.to_csv(self.raw_file_path, index=False)
+        print('download finished')
+        # Now the file is downloaded, we can remove old parsed data
+        for f in os.listdir(self.parsed_path_climate):
+            os.remove(os.path.join(self.parsed_path_climate, f))
+
+    def _download_variable(
+        self, url, country_code
+    ) -> pd.DataFrame:
+        """Download a single climate variable and keep the country column.
+
+        Renewables.ninja serves one csv file per climate variable. These
+        files start with three commented metadata lines, followed by a
+        header row and the hourly values for every country zone. Only the
+        ``time`` column and the country level column are kept.
+
+        Args:
+            url: The url of the csv file to download.
+            country_code: The ISO2 code of the country.
+
+        Returns:
+            A dataframe with a ``time`` column and a single value column.
+        """
         user_agent = (
             'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) '
             'Gecko/2009021910 Firefox/3.0.7'
         )
         headers = {'User-Agent': user_agent}
-        request = urllib.request.Request(country_url, None, headers)
-
-        # Reads the url and  download the
-        with urllib.request.urlopen(request) as response:
-            with open(self.raw_file_path, 'wb') as f:
-                shutil.copyfileobj(response, f)
-        print('download finished')
-        # Now the file is downloaded, we can remove old parsed data
-        for f in os.listdir(self.parsed_path_climate):
-            os.remove(os.path.join(self.parsed_path_climate, f))
+        try:
+            request = urllib.request.Request(url, None, headers)
+            with urllib.request.urlopen(request) as response:
+                return pd.read_csv(
+                    response, skiprows=3, usecols=['time', country_code]
+                )
+        except ValueError:
+            # The country code is not a column of this file: fall back on
+            # the first value column, the country level aggregate.
+            request = urllib.request.Request(url, None, headers)
+            with urllib.request.urlopen(request) as response:
+                df = pd.read_csv(response, skiprows=3)
+            return df[['time', df.columns[1]]]
 
 
 
@@ -139,7 +195,7 @@ class NinjaRenewablesClimate(ClimateLoader):
                 - 'outside_temperature'
                 - 'irradiance'
         """
-        df = pd.read_csv(self.raw_file_path, skiprows=2)
+        df = pd.read_csv(self.raw_file_path)
 
         out_dict = {}
 
